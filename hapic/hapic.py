@@ -109,8 +109,8 @@ class BottleContext(ContextInterface):
             path_parameters=bottle.request.url_args,
             query_parameters=bottle.request.params,
             body_parameters=bottle.request.json,
-            form_parameters={},  # TODO
-            header_parameters={},  # TODO
+            form_parameters=bottle.request.forms,
+            header_parameters=bottle.request.headers,
         )
 
     def get_response(
