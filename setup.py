@@ -8,8 +8,8 @@ here = path.abspath(path.dirname(__file__))
 
 install_requires = [
     # Note: Bottle will be an extension in future
-    'bottle==0.12.13',
-    'marshmallow==2.13.6',
+    'bottle',
+    'marshmallow',
 ]
 tests_require = []
 
