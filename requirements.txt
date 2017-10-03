@@ -1,2 +1,0 @@
-bottle==0.12.13
-marshmallow==2.13.6
