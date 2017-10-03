@@ -11,7 +11,9 @@ install_requires = [
     'bottle==0.12.13',
     'marshmallow==2.13.6',
 ]
-tests_require = []
+tests_require = [
+    'pytest',
+]
 
 setup(
     name='hapic',

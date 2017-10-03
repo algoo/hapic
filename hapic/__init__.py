@@ -17,6 +17,7 @@ from hapic.hapic import input_path
 from hapic.hapic import input_headers
 from hapic.hapic import BottleContext
 from hapic.hapic import set_fake_default_context
+from hapic.hapic import error_schema
 
 
 class FakeSetContext(object):

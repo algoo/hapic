@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import bottle
 import hapic
-from example import HelloResponseSchema, HelloPathSchema, HelloJsonSchema
+from example import HelloResponseSchema, HelloPathSchema, HelloJsonSchema, \
+    ErrorResponseSchema
 from hapic.hapic import HapicData
 
 app = bottle.Bottle()
@@ -15,6 +16,7 @@ def bob(f):
 
 @hapic.with_api_doc()
 @hapic.ext.bottle.bottle_context()
+@hapic.error_schema(ErrorResponseSchema())
 @hapic.input_path(HelloPathSchema())
 @hapic.output(HelloResponseSchema())
 def hello(name: str, hapic_data: HapicData):
@@ -26,6 +28,7 @@ def hello(name: str, hapic_data: HapicData):
 
 @hapic.with_api_doc()
 @hapic.ext.bottle.bottle_context()
+@hapic.error_schema(ErrorResponseSchema())
 @hapic.input_path(HelloPathSchema())
 @hapic.input_body(HelloJsonSchema())
 @hapic.output(HelloResponseSchema())
@@ -42,6 +45,7 @@ kwargs = {'validated_data': {'name': 'bob'}, 'name': 'bob'}
 
 @hapic.with_api_doc()
 @hapic.ext.bottle.bottle_context()
+@hapic.error_schema(ErrorResponseSchema())
 @hapic.output(HelloResponseSchema())
 def hello3(name: str, hapic_data: HapicData):
     return {

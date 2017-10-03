@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
 import typing
+from http import HTTPStatus
 
 import functools
 
@@ -11,12 +12,28 @@ import bottle
 
 
 # CHANGE
+from hapic.exception import InputValidationException, \
+    OutputValidationException, InputWorkflowException, ProcessException
+
 flatten = lambda l: [item for sublist in l for item in sublist]
 
 
 _waiting = {}
 _endpoints = {}
 _default_global_context = None
+_default_global_error_schema = None
+
+
+def error_schema(schema):
+    global _default_global_error_schema
+    _default_global_error_schema = schema
+
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
 
 
 def set_fake_default_context(context):
@@ -91,6 +108,16 @@ class RequestParameters(object):
         self.header_parameters = header_parameters
 
 
+class ProcessValidationError(object):
+    def __init__(
+        self,
+        error_message: str,
+        error_details: dict,
+    ) -> None:
+        self.error_message = error_message
+        self.error_details = error_details
+
+
 class ContextInterface(object):
     def get_request_parameters(self, *args, **kwargs) -> RequestParameters:
         raise NotImplementedError()
@@ -99,7 +126,14 @@ class ContextInterface(object):
         self,
         response: dict,
         http_code: int,
-    ):
+    ) -> typing.Any:
+        raise NotImplementedError()
+
+    def get_validation_error_response(
+        self,
+        error: ProcessValidationError,
+        http_code: HTTPStatus=HTTPStatus.BAD_REQUEST,
+    ) -> typing.Any:
         raise NotImplementedError()
 
 
@@ -126,6 +160,27 @@ class BottleContext(ContextInterface):
             status=http_code,
         )
 
+    def get_validation_error_response(
+        self,
+        error: ProcessValidationError,
+        http_code: HTTPStatus=HTTPStatus.BAD_REQUEST,
+    ) -> typing.Any:
+        unmarshall = _default_global_error_schema.dump(error)
+        if unmarshall.errors:
+            raise OutputValidationException(
+                'Validation error during dump of error response: {}'.format(
+                    str(unmarshall.errors)
+                )
+            )
+
+        return bottle.HTTPResponse(
+            body=json.dumps(unmarshall.data),
+            headers=[
+                ('Content-Type', 'application/json'),
+            ],
+            status=int(http_code),
+        )
+
 
 class OutputProcessorInterface(object):
     def __init__(self):
@@ -134,48 +189,68 @@ class OutputProcessorInterface(object):
     def process(self, value):
         raise NotImplementedError
 
+    def get_validation_error(
+        self,
+        request_context: RequestParameters,
+    ) -> ProcessValidationError:
+        raise NotImplementedError
+
 
 class InputProcessorInterface(object):
     def __init__(self):
         self.schema = None
 
-    def process(self, request_context: RequestParameters):
+    def process(
+        self,
+        request_context: RequestParameters,
+    ) -> typing.Any:
+        raise NotImplementedError
+
+    def get_validation_error(
+        self,
+        request_context: RequestParameters,
+    ) -> ProcessValidationError:
         raise NotImplementedError
 
 
 class MarshmallowOutputProcessor(OutputProcessorInterface):
     def process(self, data: typing.Any):
-        return self.schema.dump(data).data
+        unmarshall = self.schema.dump(data)
+        if unmarshall.errors:
+            raise InputValidationException(
+                'Error when validate input: {}'.format(
+                    str(unmarshall.errors),
+                )
+            )
+
+        return unmarshall.data
+
+    def get_validation_error(self, data: dict) -> ProcessValidationError:
+        marshmallow_errors = self.schema.dump(data).errors
+        return ProcessValidationError(
+            error_message='Validation error of output data',
+            error_details=marshmallow_errors,
+        )
 
 
 class MarshmallowInputProcessor(OutputProcessorInterface):
     def process(self, data: dict):
-        return self.schema.load(data).data
+        unmarshall = self.schema.load(data)
+        if unmarshall.errors:
+            raise OutputValidationException(
+                'Error when validate ouput: {}'.format(
+                    str(unmarshall.errors),
+                )
+            )
 
+        return unmarshall.data
 
-# class MarshmallowPathInputProcessor(OutputProcessorInterface):
-#     def process(self, request_context: RequestParameters):
-#         return self.schema.load(request_context.path_parameters).data
-#
-#
-# class MarshmallowQueryInputProcessor(OutputProcessorInterface):
-#     def process(self, request_context: RequestParameters):
-#         return self.schema.load(request_context.query_parameters).data
-#
-#
-# class MarshmallowJsonInputProcessor(OutputProcessorInterface):
-#     def process(self, request_context: RequestParameters):
-#         return self.schema.load(request_context.json_parameters).data
-
-
-# class MarshmallowFormInputProcessor(OutputProcessorInterface):
-#     def process(self, request_context: RequestParameters):
-#         return self.schema.load(xxx).data
-#
-#
-# class MarshmallowHeaderInputProcessor(OutputProcessorInterface):
-#     def process(self, request_context: RequestParameters):
-#         return self.schema.load(xxx).data
+    def get_validation_error(self, data: dict) -> ProcessValidationError:
+        marshmallow_errors = self.schema.load(data).errors
+        return ProcessValidationError(
+            error_message='Validation error of input data',
+            error_details=marshmallow_errors,
+        )
 
 
 class HapicData(object):
@@ -214,13 +289,12 @@ def output(
         return wrapper
     return decorator
 
-
 # TODO: raccourcis 'input' tout court ?
 def input_body(
     schema,
     processor: InputProcessorInterface=None,
     context: ContextInterface=None,
-    error_http_code=400,
+    error_http_code: HTTPStatus=HTTPStatus.BAD_REQUEST,
 ):
     processor = processor or MarshmallowInputProcessor()
     processor.schema = schema
@@ -234,8 +308,24 @@ def input_body(
             updated_kwargs.update(kwargs)
             hapic_data = updated_kwargs['hapic_data']
 
-            request_parameters = context.get_request_parameters(*args, **updated_kwargs)
-            hapic_data.body = processor.process(request_parameters.body_parameters)
+            request_parameters = context.get_request_parameters(
+                *args,
+                **updated_kwargs
+            )
+
+            try:
+                hapic_data.body = processor.process(
+                    request_parameters.body_parameters,
+                )
+            except ProcessException:
+                error = processor.get_validation_error(
+                    request_parameters.body_parameters,
+                )
+                error_response = context.get_validation_error_response(
+                    error,
+                    http_code=error_http_code,
+                )
+                return error_response
 
             return func(*args, **updated_kwargs)
 
