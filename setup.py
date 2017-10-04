@@ -7,7 +7,8 @@ from os import path
 here = path.abspath(path.dirname(__file__))
 
 install_requires = [
-    # Note: Bottle will be an extension in future
+    # TODO: Bottle will be an extension in future
+    # TODO: marshmallow an extension too ?
     'bottle',
     'marshmallow',
 ]
