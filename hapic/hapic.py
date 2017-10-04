@@ -11,6 +11,7 @@ import marshmallow
 from hapic.buffer import DecorationBuffer
 from hapic.context import ContextInterface, BottleContext
 from hapic.decorator import DecoratedController
+from hapic.decorator import ExceptionHandlerControllerWrapper
 from hapic.decorator import InputBodyControllerWrapper
 from hapic.decorator import InputHeadersControllerWrapper
 from hapic.decorator import InputPathControllerWrapper
@@ -227,6 +228,25 @@ class Hapic(object):
             processor=processor,
             error_http_code=error_http_code,
             default_http_code=default_http_code,
+        )
+
+        def decorator(func):
+            self._buffer.input_forms = InputFormsDescription(decoration)
+            return decoration.get_wrapper(func)
+        return decorator
+
+    def handle_exception(
+        self,
+        handled_exception_class: typing.Type[Exception],
+        http_code: HTTPStatus = HTTPStatus.INTERNAL_SERVER_ERROR,
+        context: ContextInterface = None,
+    ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Any]:
+        context = context or _default_global_context
+
+        decoration = ExceptionHandlerControllerWrapper(
+            handled_exception_class,
+            context,
+            http_code,
         )
 
         def decorator(func):

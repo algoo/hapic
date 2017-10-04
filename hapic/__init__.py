@@ -13,6 +13,7 @@ output_headers = _hapic_default.output_headers
 output_body = _hapic_default.output_body
 # with_api_doc_bis = _hapic_default.with_api_doc_bis
 generate_doc = _hapic_default.generate_doc
+handle_exception = _hapic_default.handle_exception
 
 # from hapic.hapic import with_api_doc
 # from hapic.hapic import with_api_doc_bis

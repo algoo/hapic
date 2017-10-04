@@ -11,18 +11,6 @@ from hapic.processor import RequestParameters
 
 
 class ControllerWrapper(object):
-    def __init__(
-        self,
-        context: ContextInterface,
-        processor: ProcessorInterface,
-        error_http_code: HTTPStatus=HTTPStatus.BAD_REQUEST,
-        default_http_code: HTTPStatus=HTTPStatus.OK,
-    ) -> None:
-        self.context = context
-        self.processor = processor
-        self.error_http_code = error_http_code
-        self.default_http_code = default_http_code
-
     def before_wrapped_func(
         self,
         func_args: typing.Tuple[typing.Any, ...],
@@ -44,13 +32,35 @@ class ControllerWrapper(object):
             if replacement_response:
                 return replacement_response
 
-            response = func(*args, **kwargs)
+            response = self._execute_wrapped_function(func, args, kwargs)
             new_response = self.after_wrapped_function(response)
             return new_response
         return wrapper
 
+    def _execute_wrapped_function(
+        self,
+        func,
+        func_args,
+        func_kwargs,
+    ) -> typing.Any:
+        return func(*func_args, **func_kwargs)
 
-class InputControllerWrapper(ControllerWrapper):
+
+class InputOutputControllerWrapper(ControllerWrapper):
+    def __init__(
+        self,
+        context: ContextInterface,
+        processor: ProcessorInterface,
+        error_http_code: HTTPStatus=HTTPStatus.BAD_REQUEST,
+        default_http_code: HTTPStatus=HTTPStatus.OK,
+    ) -> None:
+        self.context = context
+        self.processor = processor
+        self.error_http_code = error_http_code
+        self.default_http_code = default_http_code
+
+
+class InputControllerWrapper(InputOutputControllerWrapper):
     def before_wrapped_func(
         self,
         func_args: typing.Tuple[typing.Any, ...],
@@ -122,7 +132,7 @@ class InputControllerWrapper(ControllerWrapper):
         return error_response
 
 
-class OutputControllerWrapper(ControllerWrapper):
+class OutputControllerWrapper(InputOutputControllerWrapper):
     def __init__(
         self,
         context: ContextInterface,
@@ -130,10 +140,12 @@ class OutputControllerWrapper(ControllerWrapper):
         error_http_code: HTTPStatus=HTTPStatus.INTERNAL_SERVER_ERROR,
         default_http_code: HTTPStatus=HTTPStatus.OK,
     ) -> None:
-        self.context = context
-        self.processor = processor
-        self.error_http_code = error_http_code
-        self.default_http_code = default_http_code
+        super().__init__(
+            context,
+            processor,
+            error_http_code,
+            default_http_code,
+        )
 
     def get_error_response(
         self,
@@ -271,3 +283,42 @@ class InputFormsControllerWrapper(InputControllerWrapper):
             request_parameters.form_parameters,
         )
         return processed_data
+
+
+class ExceptionHandlerControllerWrapper(ControllerWrapper):
+    def __init__(
+        self,
+        handled_exception_class: typing.Type[Exception],
+        context: ContextInterface,
+        http_code: HTTPStatus=HTTPStatus.INTERNAL_SERVER_ERROR,
+    ) -> None:
+        self.handled_exception_class = handled_exception_class
+        self.context = context
+        self.http_code = http_code
+
+    def _execute_wrapped_function(
+        self,
+        func,
+        func_args,
+        func_kwargs,
+    ) -> typing.Any:
+        try:
+            return super()._execute_wrapped_function(
+                func,
+                func_args,
+                func_kwargs,
+            )
+        except self.handled_exception_class as exc:
+            # TODO: error_dict configurable name
+            # TODO: Who assume error structure ? We have to rethink it
+            error_dict = {
+                'error_message': str(exc),
+            }
+            if hasattr(exc, 'error_dict'):
+                error_dict.update(exc.error_dict)
+
+            error_response = self.context.get_response(
+                error_dict,
+                self.http_code,
+            )
+            return error_response

@@ -6,7 +6,8 @@ import marshmallow
 
 from hapic.context import ContextInterface
 from hapic.data import HapicData
-from hapic.decorator import ControllerWrapper
+from hapic.decorator import InputOutputControllerWrapper
+from hapic.decorator import ExceptionHandlerControllerWrapper
 from hapic.decorator import InputControllerWrapper
 from hapic.decorator import OutputControllerWrapper
 from hapic.processor import RequestParameters
@@ -63,7 +64,7 @@ class MyProcessor(ProcessorInterface):
         )
 
 
-class MyControllerWrapper(ControllerWrapper):
+class MyControllerWrapper(InputOutputControllerWrapper):
     def before_wrapped_func(
         self,
         func_args: typing.Tuple[typing.Any, ...],
@@ -103,7 +104,7 @@ class TestControllerWrapper(Base):
     def test_unit__base_controller_wrapper__ok__no_behaviour(self):
         context = MyContext()
         processor = MyProcessor()
-        wrapper = ControllerWrapper(context, processor)
+        wrapper = InputOutputControllerWrapper(context, processor)
 
         @wrapper.get_wrapper
         def func(foo):
@@ -197,4 +198,54 @@ class TestOutputControllerWrapper(Base):
         assert 'original_error' in result
         assert result['original_error'].error_details == {
             'name': ['Missing data for required field.']
+        }
+
+
+class TestExceptionHandlerControllerWrapper(Base):
+    def test_unit__exception_handled__ok__nominal_case(self):
+        context = MyContext()
+        wrapper = ExceptionHandlerControllerWrapper(
+            ZeroDivisionError,
+            context,
+            http_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
+
+        @wrapper.get_wrapper
+        def func(foo):
+            raise ZeroDivisionError('We are testing')
+
+        response = func(42)
+        assert 'http_code' in response
+        assert response['http_code'] == HTTPStatus.INTERNAL_SERVER_ERROR
+        assert 'original_response' in response
+        assert response['original_response'] == {
+            'error_message': 'We are testing',
+        }
+
+    def test_unit__exception_handled__ok__exception_error_dict(self):
+        class MyException(Exception):
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                self.error_dict = {}
+
+        context = MyContext()
+        wrapper = ExceptionHandlerControllerWrapper(
+            MyException,
+            context,
+            http_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
+
+        @wrapper.get_wrapper
+        def func(foo):
+            exc = MyException('We are testing')
+            exc.error_dict = {'foo': 'bar'}
+            raise exc
+
+        response = func(42)
+        assert 'http_code' in response
+        assert response['http_code'] == HTTPStatus.INTERNAL_SERVER_ERROR
+        assert 'original_response' in response
+        assert response['original_response'] == {
+            'error_message': 'We are testing',
+            'foo': 'bar',
         }

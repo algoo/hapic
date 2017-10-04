@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from http import HTTPStatus
+
 import bottle
 import hapic
 from example import HelloResponseSchema, HelloPathSchema, HelloJsonSchema, \
@@ -16,10 +18,13 @@ def bob(f):
 
 @hapic.with_api_doc()
 # @hapic.ext.bottle.bottle_context()
-# @hapic.error_schema(ErrorResponseSchema())
+@hapic.handle_exception(ZeroDivisionError, http_code=HTTPStatus.BAD_REQUEST)
 @hapic.input_path(HelloPathSchema())
 @hapic.output_body(HelloResponseSchema())
 def hello(name: str, hapic_data: HapicData):
+    if name == 'zero':
+        raise ZeroDivisionError('Don\'t call him zero !')
+
     return {
         'sentence': 'Hello !',
         'name': name,
