@@ -2,8 +2,9 @@
 import bottle
 import hapic
 from example import HelloResponseSchema, HelloPathSchema, HelloJsonSchema
-from hapic.hapic import MarshmallowOutputProcessor, BottleContext, \
-    MarshmallowPathInputProcessor, MarshmallowJsonInputProcessor
+from hapic.hapic import MarshmallowPathInputProcessor, MarshmallowJsonInputProcessor
+from hapic import BottleContext
+from hapic.processor import MarshmallowOutputProcessor
 
 
 def bob(f):
@@ -15,7 +16,7 @@ def bob(f):
 @hapic.with_api_doc_bis()
 @bottle.route('/hello/<name>')
 @hapic.input(HelloPathSchema(), MarshmallowPathInputProcessor(), context=BottleContext())  # nopep8
-@hapic.output(HelloResponseSchema(), MarshmallowOutputProcessor())
+@hapic.output_body(HelloResponseSchema(), MarshmallowOutputProcessor())
 @bob
 def hello(name: str):
     return "Hello {}!".format(name)
@@ -25,7 +26,7 @@ def hello(name: str):
 @bottle.route('/hello2/<name>')
 @hapic.input(HelloPathSchema(), MarshmallowPathInputProcessor(), context=BottleContext())  # nopep8
 @hapic.input(HelloJsonSchema(), MarshmallowJsonInputProcessor(), context=BottleContext())  # nopep8
-@hapic.output(HelloResponseSchema())
+@hapic.output_body(HelloResponseSchema())
 @bob
 def hello2(name: str):
     return "Hello {}!".format(name)
@@ -33,7 +34,7 @@ def hello2(name: str):
 
 @hapic.with_api_doc_bis()
 @bottle.route('/hello3/<name>')
-@hapic.output(HelloResponseSchema())
+@hapic.output_body(HelloResponseSchema())
 def hello3(name: str):
     return "Hello {}!".format(name)
 
@@ -49,7 +50,7 @@ bottle.run(host='localhost', port=8080, debug=True)
 @hapic.input_header(HelloPathSchema(), MarshmallowPathInputProcessor(), context=BottleContext())  # nopep8
 @hapic.input_query(HelloPathSchema(), MarshmallowPathInputProcessor(), context=BottleContext())  # nopep8
 @hapic.input_path(HelloPathSchema(), MarshmallowPathInputProcessor(), context=BottleContext())  # nopep8
-@hapic.output(HelloResponseSchema(), MarshmallowOutputProcessor())
+@hapic.output_body(HelloResponseSchema(), MarshmallowOutputProcessor())
 def hello(name: str, hapic_data):
     return "Hello {}!".format(name)
 
@@ -57,7 +58,7 @@ def hello(name: str, hapic_data):
 @hapic.with_api_doc_bis()
 @bottle.route('/hello/<name>')
 @hapic.input(HelloPathSchema(), MarshmallowPathInputProcessor(), context=BottleContext())  # nopep8
-@hapic.output(HelloResponseSchema(), MarshmallowOutputProcessor())
+@hapic.output_body(HelloResponseSchema(), MarshmallowOutputProcessor())
 @bob
 def hello(name: str):
     return "Hello {}!".format(name)

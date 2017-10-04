@@ -9,6 +9,14 @@ class WorkflowException(HapicException):
     pass
 
 
+class DecorationException(HapicException):
+    pass
+
+
+class AlreadyDecoratedException(DecorationException):
+    pass
+
+
 class ProcessException(HapicException):
     pass
 
