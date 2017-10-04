@@ -27,11 +27,6 @@ class TestProcessor(Base):
         assert data == tested_data
 
     def test_unit__marshmallow_output_processor__ok__missing_data(self):
-        """
-        Important note: Actually marshmallow don't validate when deserialize.
-        But we think about make it possible:
-        https://github.com/marshmallow-code/marshmallow/issues/684
-        """
         processor = MarshmallowOutputProcessor()
         processor.schema = MySchema()
 
@@ -39,10 +34,8 @@ class TestProcessor(Base):
             'last_name': 'Turing',
         }
 
-        data = processor.process(tested_data)
-        assert {
-            'last_name': 'Turing',
-        } == data
+        with pytest.raises(OutputValidationException):
+            processor.process(tested_data)
 
     def test_unit__marshmallow_input_processor__ok__process_success(self):
         processor = MarshmallowInputProcessor()

@@ -2,12 +2,15 @@
 import typing
 from http import HTTPStatus
 
+import marshmallow
+
 from hapic.context import ContextInterface
 from hapic.data import HapicData
 from hapic.decorator import ControllerWrapper
 from hapic.decorator import InputControllerWrapper
 from hapic.decorator import OutputControllerWrapper
 from hapic.processor import RequestParameters
+from hapic.processor import MarshmallowOutputProcessor
 from hapic.processor import ProcessValidationError
 from hapic.processor import ProcessorInterface
 from tests.base import Base
@@ -92,6 +95,10 @@ class MyInputControllerWrapper(InputControllerWrapper):
         hapic_data.query = processed_data
 
 
+class MySchema(marshmallow.Schema):
+    name = marshmallow.fields.String(required=True)
+
+
 class TestControllerWrapper(Base):
     def test_unit__base_controller_wrapper__ok__no_behaviour(self):
         context = MyContext()
@@ -171,3 +178,23 @@ class TestOutputControllerWrapper(Base):
                    'http_code': HTTPStatus.OK,
                    'original_response': 43,
                } == result
+
+    def test_unit__output_data_wrapping__fail__error_response(self):
+        context = MyContext()
+        processor = MarshmallowOutputProcessor()
+        processor.schema = MySchema()
+        wrapper = OutputControllerWrapper(context, processor)
+
+        @wrapper.get_wrapper
+        def func(foo):
+            return 'wrong result format'
+
+        result = func(42)
+        # see MyProcessor#process
+        assert isinstance(result, dict)
+        assert 'http_code' in result
+        assert result['http_code'] == HTTPStatus.INTERNAL_SERVER_ERROR
+        assert 'original_error' in result
+        assert result['original_error'].error_details == {
+            'name': ['Missing data for required field.']
+        }

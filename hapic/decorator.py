@@ -123,6 +123,18 @@ class InputControllerWrapper(ControllerWrapper):
 
 
 class OutputControllerWrapper(ControllerWrapper):
+    def __init__(
+        self,
+        context: ContextInterface,
+        processor: ProcessorInterface,
+        error_http_code: HTTPStatus=HTTPStatus.INTERNAL_SERVER_ERROR,
+        default_http_code: HTTPStatus=HTTPStatus.OK,
+    ) -> None:
+        self.context = context
+        self.processor = processor
+        self.error_http_code = error_http_code
+        self.default_http_code = default_http_code
+
     def get_error_response(
         self,
         response: typing.Any,

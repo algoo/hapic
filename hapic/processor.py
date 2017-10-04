@@ -54,23 +54,25 @@ class OutputProcessor(ProcessorInterface):
 
 class MarshmallowOutputProcessor(OutputProcessor):
     def process(self, data: typing.Any):
-        unmarshall = self.schema.dump(data)
-        # TODO: Il n'y a jamais rien dans le error au dump. il faut check le
-        # data au travers de .validate
-        if unmarshall.errors:
-            raise InputValidationException(
+        data = self.schema.dump(data).data
+        self.validate(data)
+        return data
+
+    def validate(self, data: typing.Any) -> None:
+        errors = self.schema.load(data).errors
+        if errors:
+            raise OutputValidationException(
                 'Error when validate input: {}'.format(
-                    str(unmarshall.errors),
+                    str(errors),
                 )
             )
 
-        return unmarshall.data
-
     def get_validation_error(self, data: dict) -> ProcessValidationError:
-        marshmallow_errors = self.schema.dump(data).errors
+        data = self.schema.dump(data).data
+        errors = self.schema.load(data).errors
         return ProcessValidationError(
             error_message='Validation error of output data',
-            error_details=marshmallow_errors,
+            error_details=errors,
         )
 
 
