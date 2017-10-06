@@ -27,7 +27,8 @@ class InputHeadersDescription(Description):
 
 
 class InputFormsDescription(Description):
-    pass
+    def __init__(self, wrapper: 'ControllerWrapper') -> None:
+        self.wrapper = wrapper
 
 
 class OutputBodyDescription(Description):

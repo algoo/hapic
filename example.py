@@ -20,6 +20,12 @@ class HelloPathSchema(marshmallow.Schema):
     )
 
 
+class HelloQuerySchema(marshmallow.Schema):
+    alive = marshmallow.fields.Boolean(
+        required=False,
+    )
+
+
 class HelloJsonSchema(marshmallow.Schema):
     color =marshmallow.fields.String(
         required=True,

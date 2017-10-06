@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import functools
 import typing
 from http import HTTPStatus
 
@@ -35,7 +36,7 @@ class ControllerWrapper(object):
             response = self._execute_wrapped_function(func, args, kwargs)
             new_response = self.after_wrapped_function(response)
             return new_response
-        return wrapper
+        return functools.update_wrapper(wrapper, func)
 
     def _execute_wrapped_function(
         self,

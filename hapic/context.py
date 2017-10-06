@@ -29,6 +29,7 @@ class ContextInterface(object):
         raise NotImplementedError()
 
 
+# TODO: In extension
 class BottleContext(ContextInterface):
     def get_request_parameters(self, *args, **kwargs) -> RequestParameters:
         return RequestParameters(

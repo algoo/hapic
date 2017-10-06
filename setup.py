@@ -11,6 +11,7 @@ install_requires = [
     # TODO: marshmallow an extension too ?
     'bottle',
     'marshmallow',
+    'apispec',
 ]
 tests_require = [
     'pytest',

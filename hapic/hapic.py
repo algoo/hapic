@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
 import typing
 from http import HTTPStatus
-
-import bottle
 import functools
 
-# CHANGE
 import marshmallow
 
 from hapic.buffer import DecorationBuffer
@@ -18,16 +15,16 @@ from hapic.decorator import InputPathControllerWrapper
 from hapic.decorator import InputQueryControllerWrapper
 from hapic.decorator import OutputBodyControllerWrapper
 from hapic.decorator import OutputHeadersControllerWrapper
-from hapic.description import InputBodyDescription
+from hapic.description import InputBodyDescription, ErrorDescription
 from hapic.description import InputFormsDescription
 from hapic.description import InputHeadersDescription
 from hapic.description import InputPathDescription
 from hapic.description import InputQueryDescription
 from hapic.description import OutputBodyDescription
 from hapic.description import OutputHeadersDescription
-from hapic.processor import ProcessorInterface, MarshmallowInputProcessor
-
-flatten = lambda l: [item for sublist in l for item in sublist]
+from hapic.doc import DocGenerator
+from hapic.processor import ProcessorInterface
+from hapic.processor import MarshmallowInputProcessor
 
 # TODO: Gérer les erreurs de schema
 # TODO: Gérer les cas ou c'est une liste la réponse (items, item_nb)
@@ -47,7 +44,8 @@ _default_global_error_schema = ErrorResponseSchema()
 class Hapic(object):
     def __init__(self):
         self._buffer = DecorationBuffer()
-        self._controllers = []
+        self._controllers = []  # type: typing.List[DecoratedController]
+        # TODO: Permettre la surcharge des classes utilisés ci-dessous
 
     def with_api_doc(self):
         def decorator(func):
@@ -250,22 +248,11 @@ class Hapic(object):
         )
 
         def decorator(func):
-            self._buffer.input_forms = InputFormsDescription(decoration)
+            self._buffer.errors.append(ErrorDescription(decoration))
             return decoration.get_wrapper(func)
         return decorator
 
     def generate_doc(self, app=None):
         # TODO @Damien bottle specific code !
-        app = app or bottle.default_app()
-
-        route_by_callbacks = []
-        routes = flatten(app.router.dyna_routes.values())
-        for path, path_regex, route, func_ in routes:
-            route_by_callbacks.append(route.callback)
-
-        for description in self._controllers:
-            for path, path_regex, route, func_ in routes:
-                if route.callback == description.reference:
-                    # TODO: use description to feed apispec
-                    print(route.method, path, description)
-                    continue
+        doc_generator = DocGenerator()
+        return doc_generator.get_doc(self._controllers, app)
