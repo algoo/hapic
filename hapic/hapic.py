@@ -53,7 +53,8 @@ class Hapic(object):
     def with_api_doc(self):
         def decorator(func):
 
-            @functools.wraps(func)
+            # FIXME: casse ou casse pas le bis ?
+            # @functools.wraps(func)
             def wrapper(*args, **kwargs):
                 return func(*args, **kwargs)
 
