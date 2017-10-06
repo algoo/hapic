@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from hapic.context import BottleContext
 from hapic.hapic import Hapic
 
 _hapic_default = Hapic()
@@ -13,6 +14,7 @@ output_headers = _hapic_default.output_headers
 output_body = _hapic_default.output_body
 # with_api_doc_bis = _hapic_default.with_api_doc_bis
 generate_doc = _hapic_default.generate_doc
+set_context = _hapic_default.set_context
 handle_exception = _hapic_default.handle_exception
 
 # from hapic.hapic import with_api_doc
@@ -28,18 +30,14 @@ handle_exception = _hapic_default.handle_exception
 # from hapic.hapic import error_schema
 
 
-# class FakeSetContext(object):
-#     def bottle_context(self):
-#         hapic.set_fake_default_context(BottleContext())
-#         def decorator(func):
-#             def wrapper(*args, **kwargs):
-#                 return func(*args, **kwargs)
-#             return wrapper
-#         return decorator
-#
-#
-# class FakeExt(object):
-#     bottle = FakeSetContext()
-#
-#
-# ext = FakeExt()
+class FakeSetContext(object):
+    @property
+    def bottle_context(self):
+        return BottleContext()
+
+
+class FakeExt(object):
+    bottle = FakeSetContext()
+
+
+ext = FakeExt()

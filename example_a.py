@@ -12,6 +12,11 @@ from example import HelloResponseSchema, HelloPathSchema, HelloJsonSchema, \
 from hapic.data import HapicData
 
 app = bottle.Bottle()
+# hapic.global_exception_handler(UnAuthExc, StandardErrorSchema)
+# hapic.global_exception_handler(UnAuthExc2, StandardErrorSchema)
+# hapic.global_exception_handler(UnAuthExc3, StandardErrorSchema)
+bottle.default_app.push(app)
+hapic.set_context(hapic.ext.bottle.bottle_context)
 
 
 def bob(f):
@@ -95,6 +100,6 @@ app.route('/hello3/<name>', callback=hello3)
 # print(yaml.dump(ss, default_flow_style=False))
 # time.sleep(1)
 
-print(json.dumps(hapic.generate_doc(app)))
+print(json.dumps(hapic.generate_doc()))
 
 app.run(host='localhost', port=8080, debug=True)

@@ -26,18 +26,20 @@ from hapic.doc import DocGenerator
 from hapic.processor import ProcessorInterface
 from hapic.processor import MarshmallowInputProcessor
 
-# TODO: Gérer les erreurs de schema
+# TODO: Gérer les erreurs avec schema
+# TODO: Gérer les erreurs avec schema: pouvoir le spécialiser
 # TODO: Gérer les cas ou c'est une liste la réponse (items, item_nb)
 # TODO: Confusion nommage body/json/forms
 
 # _waiting = {}
 # _endpoints = {}
-# TODO NOW: C'est un gros gros fake !
+# FIXME: Voir
 class ErrorResponseSchema(marshmallow.Schema):
     error_message = marshmallow.fields.String(required=True)
-    error_details = marshmallow.fields.Dict(required=True)
 
-_default_global_context = BottleContext()
+
+    error_details = marshmallow.fields.Dict(required=True)
+# FIXME: C'est un gros gros fake !
 _default_global_error_schema = ErrorResponseSchema()
 
 
@@ -45,6 +47,7 @@ class Hapic(object):
     def __init__(self):
         self._buffer = DecorationBuffer()
         self._controllers = []  # type: typing.List[DecoratedController]
+        self._context = None
         # TODO: Permettre la surcharge des classes utilisés ci-dessous
 
     def with_api_doc(self):
@@ -65,6 +68,10 @@ class Hapic(object):
 
         return decorator
 
+    def set_context(self, context: ContextInterface) -> None:
+        assert not self._context
+        self._context = context
+
     def output_body(
         self,
         schema: typing.Any,
@@ -75,7 +82,7 @@ class Hapic(object):
     ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Any]:
         processor = processor or MarshmallowInputProcessor()
         processor.schema = schema
-        context = context or _default_global_context
+        context = context or self._context
 
         decoration = OutputBodyControllerWrapper(
             context=context,
@@ -99,7 +106,7 @@ class Hapic(object):
     ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Any]:
         processor = processor or MarshmallowInputProcessor()
         processor.schema = schema
-        context = context or _default_global_context
+        context = context or self._context
 
         decoration = OutputHeadersControllerWrapper(
             context=context,
@@ -123,7 +130,7 @@ class Hapic(object):
     ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Any]:
         processor = processor or MarshmallowInputProcessor()
         processor.schema = schema
-        context = context or _default_global_context
+        context = context or self._context
 
         decoration = InputHeadersControllerWrapper(
             context=context,
@@ -147,7 +154,7 @@ class Hapic(object):
     ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Any]:
         processor = processor or MarshmallowInputProcessor()
         processor.schema = schema
-        context = context or _default_global_context
+        context = context or self._context
 
         decoration = InputPathControllerWrapper(
             context=context,
@@ -171,7 +178,7 @@ class Hapic(object):
     ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Any]:
         processor = processor or MarshmallowInputProcessor()
         processor.schema = schema
-        context = context or _default_global_context
+        context = context or self._context
 
         decoration = InputQueryControllerWrapper(
             context=context,
@@ -195,7 +202,7 @@ class Hapic(object):
     ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Any]:
         processor = processor or MarshmallowInputProcessor()
         processor.schema = schema
-        context = context or _default_global_context
+        context = context or self._context
 
         decoration = InputBodyControllerWrapper(
             context=context,
@@ -219,7 +226,7 @@ class Hapic(object):
     ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Any]:
         processor = processor or MarshmallowInputProcessor()
         processor.schema = schema
-        context = context or _default_global_context
+        context = context or self._context
 
         decoration = InputBodyControllerWrapper(
             context=context,
@@ -239,7 +246,7 @@ class Hapic(object):
         http_code: HTTPStatus = HTTPStatus.INTERNAL_SERVER_ERROR,
         context: ContextInterface = None,
     ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Any]:
-        context = context or _default_global_context
+        context = context or self._context
 
         decoration = ExceptionHandlerControllerWrapper(
             handled_exception_class,
@@ -252,7 +259,9 @@ class Hapic(object):
             return decoration.get_wrapper(func)
         return decorator
 
-    def generate_doc(self, app=None):
-        # TODO @Damien bottle specific code !
+    def generate_doc(self):
+        # FIXME @Damien bottle specific code !
+        # rendre ca generique
+        app = self._context.get_app()
         doc_generator = DocGenerator()
         return doc_generator.get_doc(self._controllers, app)

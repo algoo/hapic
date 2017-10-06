@@ -61,6 +61,7 @@ def bottle_generate_operations(
     # jsonschema based
     if description.input_path:
         schema_class = type(description.input_path.wrapper.processor.schema)
+        # TODO: look schema2parameters ?
         jsonschema = schema2jsonschema(schema_class, spec=spec)
         for name, schema in jsonschema.get('properties', {}).items():
             method_operations.setdefault('parameters', []).append({
