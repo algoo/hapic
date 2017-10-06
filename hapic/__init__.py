@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from hapic.context import BottleContext
 from hapic.hapic import Hapic
+from hapic.data import HapicData
 
 _hapic_default = Hapic()
 
