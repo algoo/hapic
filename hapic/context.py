@@ -76,6 +76,6 @@ class BottleContext(ContextInterface):
             status=int(http_code),
         )
 
-    # FIXME: Pas generique
+    # FIXME: Pas generique, marche pas en plus :'(
     def get_app(self):
         return bottle.default_app()
