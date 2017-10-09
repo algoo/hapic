@@ -10,6 +10,10 @@ from hapic.context import ContextInterface
 from hapic.processor import ProcessorInterface
 from hapic.processor import RequestParameters
 
+# TODO: Ensure usage of DECORATION_ATTRIBUTE_NAME is documented and
+# var names correctly choose.
+DECORATION_ATTRIBUTE_NAME = '_hapic_decoration_token'
+
 
 class ControllerWrapper(object):
     def before_wrapped_func(
@@ -177,15 +181,15 @@ class OutputControllerWrapper(InputOutputControllerWrapper):
 class DecoratedController(object):
     def __init__(
         self,
-        reference: 'typing.Callable[..., typing.Any]',
+        token: str,
         description: ControllerDescription,
     ) -> None:
-        self._reference = reference
+        self._token = token
         self._description = description
 
     @property
-    def reference(self) -> 'typing.Callable[..., typing.Any]':
-        return self._reference
+    def token(self) -> str:
+        return self._token
 
     @property
     def description(self) -> ControllerDescription:

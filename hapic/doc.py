@@ -6,8 +6,7 @@ import bottle
 from apispec import APISpec, Path
 from apispec.ext.marshmallow.swagger import schema2jsonschema
 
-from hapic.decorator import DecoratedController
-
+from hapic.decorator import DecoratedController, DECORATION_ATTRIBUTE_NAME
 
 # Bottle regular expression to locate url parameters
 from hapic.description import ControllerDescription
@@ -15,9 +14,14 @@ from hapic.description import ControllerDescription
 BOTTLE_RE_PATH_URL = re.compile(r'<(?:[^:<>]+:)?([^<>]+)>')
 
 
-def bottle_route_for_view(reference, app):
+def bottle_route_for_view(token, app):
     for route in app.routes:
-        if route.callback == reference:
+        route_token = getattr(
+            route.callback,
+            DECORATION_ATTRIBUTE_NAME,
+            None,
+        )
+        if route_token == token:
             return route
     # TODO: specialize exception
     raise Exception('Not found')
@@ -139,7 +143,7 @@ class DocGenerator(object):
         # with app.test_request_context():
         paths = {}
         for controller in controllers:
-            bottle_route = bottle_route_for_view(controller.reference, app)
+            bottle_route = bottle_route_for_view(controller.token, app)
             swagger_path = BOTTLE_RE_PATH_URL.sub(r'{\1}', bottle_route.rule)
 
             operations = bottle_generate_operations(

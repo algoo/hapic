@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 import typing
+import uuid
 from http import HTTPStatus
 import functools
 
 import marshmallow
 
 from hapic.buffer import DecorationBuffer
-from hapic.context import ContextInterface, BottleContext
-from hapic.decorator import DecoratedController
+from hapic.context import ContextInterface
+from hapic.decorator import DecoratedController, DECORATION_ATTRIBUTE_NAME
 from hapic.decorator import ExceptionHandlerControllerWrapper
 from hapic.decorator import InputBodyControllerWrapper
 from hapic.decorator import InputHeadersControllerWrapper
@@ -15,7 +16,8 @@ from hapic.decorator import InputPathControllerWrapper
 from hapic.decorator import InputQueryControllerWrapper
 from hapic.decorator import OutputBodyControllerWrapper
 from hapic.decorator import OutputHeadersControllerWrapper
-from hapic.description import InputBodyDescription, ErrorDescription
+from hapic.description import InputBodyDescription
+from hapic.description import ErrorDescription
 from hapic.description import InputFormsDescription
 from hapic.description import InputHeadersDescription
 from hapic.description import InputPathDescription
@@ -54,13 +56,16 @@ class Hapic(object):
         def decorator(func):
 
             # FIXME: casse ou casse pas le bis ?
-            # @functools.wraps(func)
+            @functools.wraps(func)
             def wrapper(*args, **kwargs):
                 return func(*args, **kwargs)
 
+            token = uuid.uuid4().hex
+            setattr(wrapper, DECORATION_ATTRIBUTE_NAME, token)
             description = self._buffer.get_description()
+
             decorated_controller = DecoratedController(
-                reference=wrapper,
+                token=token,
                 description=description,
             )
             self._buffer.clear()
