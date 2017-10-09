@@ -54,15 +54,21 @@ class ControllerWrapper(object):
 class InputOutputControllerWrapper(ControllerWrapper):
     def __init__(
         self,
-        context: ContextInterface,
+        context: typing.Union[ContextInterface, typing.Callable[[], ContextInterface]],  # nopep8
         processor: ProcessorInterface,
         error_http_code: HTTPStatus=HTTPStatus.BAD_REQUEST,
         default_http_code: HTTPStatus=HTTPStatus.OK,
     ) -> None:
-        self.context = context
+        self._context = context
         self.processor = processor
         self.error_http_code = error_http_code
         self.default_http_code = default_http_code
+
+    @property
+    def context(self) -> ContextInterface:
+        if callable(self._context):
+            return self._context()
+        return self._context
 
 
 class InputControllerWrapper(InputOutputControllerWrapper):
@@ -140,7 +146,7 @@ class InputControllerWrapper(InputOutputControllerWrapper):
 class OutputControllerWrapper(InputOutputControllerWrapper):
     def __init__(
         self,
-        context: ContextInterface,
+        context: typing.Union[ContextInterface, typing.Callable[[], ContextInterface]],  # nopep8
         processor: ProcessorInterface,
         error_http_code: HTTPStatus=HTTPStatus.INTERNAL_SERVER_ERROR,
         default_http_code: HTTPStatus=HTTPStatus.OK,
@@ -294,7 +300,7 @@ class ExceptionHandlerControllerWrapper(ControllerWrapper):
     def __init__(
         self,
         handled_exception_class: typing.Type[Exception],
-        context: ContextInterface,
+        context: typing.Union[ContextInterface, typing.Callable[[], ContextInterface]],  # nopep8
         http_code: HTTPStatus=HTTPStatus.INTERNAL_SERVER_ERROR,
     ) -> None:
         self.handled_exception_class = handled_exception_class

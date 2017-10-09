@@ -76,7 +76,7 @@ class MarshmallowOutputProcessor(OutputProcessor):
         )
 
 
-class MarshmallowInputProcessor(OutputProcessor):
+class MarshmallowInputProcessor(InputProcessor):
     def process(self, data: dict):
         unmarshall = self.schema.load(data)
         if unmarshall.errors:

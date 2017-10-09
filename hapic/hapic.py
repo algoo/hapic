@@ -27,6 +27,7 @@ from hapic.description import OutputHeadersDescription
 from hapic.doc import DocGenerator
 from hapic.processor import ProcessorInterface
 from hapic.processor import MarshmallowInputProcessor
+from hapic.processor import MarshmallowOutputProcessor
 
 # TODO: Gérer les erreurs avec schema
 # TODO: Gérer les erreurs avec schema: pouvoir le spécialiser
@@ -50,6 +51,15 @@ class Hapic(object):
         self._buffer = DecorationBuffer()
         self._controllers = []  # type: typing.List[DecoratedController]
         self._context = None
+
+        # This local function will be pass to different components
+        # who will need context but declared (like with decorator)
+        # before context declaration
+        def context_getter():
+            return self._context
+
+        self._context_getter = context_getter
+
         # TODO: Permettre la surcharge des classes utilisés ci-dessous
 
     def with_api_doc(self):
@@ -86,10 +96,9 @@ class Hapic(object):
         error_http_code: HTTPStatus = HTTPStatus.BAD_REQUEST,
         default_http_code: HTTPStatus = HTTPStatus.OK,
     ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Any]:
-        processor = processor or MarshmallowInputProcessor()
+        processor = processor or MarshmallowOutputProcessor()
         processor.schema = schema
-        context = context or self._context
-
+        context = context or self._context_getter
         decoration = OutputBodyControllerWrapper(
             context=context,
             processor=processor,
@@ -110,9 +119,9 @@ class Hapic(object):
         error_http_code: HTTPStatus = HTTPStatus.BAD_REQUEST,
         default_http_code: HTTPStatus = HTTPStatus.OK,
     ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Any]:
-        processor = processor or MarshmallowInputProcessor()
+        processor = processor or MarshmallowOutputProcessor()
         processor.schema = schema
-        context = context or self._context
+        context = context or self._context_getter
 
         decoration = OutputHeadersControllerWrapper(
             context=context,
@@ -136,7 +145,7 @@ class Hapic(object):
     ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Any]:
         processor = processor or MarshmallowInputProcessor()
         processor.schema = schema
-        context = context or self._context
+        context = context or self._context_getter
 
         decoration = InputHeadersControllerWrapper(
             context=context,
@@ -160,7 +169,7 @@ class Hapic(object):
     ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Any]:
         processor = processor or MarshmallowInputProcessor()
         processor.schema = schema
-        context = context or self._context
+        context = context or self._context_getter
 
         decoration = InputPathControllerWrapper(
             context=context,
@@ -184,7 +193,7 @@ class Hapic(object):
     ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Any]:
         processor = processor or MarshmallowInputProcessor()
         processor.schema = schema
-        context = context or self._context
+        context = context or self._context_getter
 
         decoration = InputQueryControllerWrapper(
             context=context,
@@ -208,7 +217,7 @@ class Hapic(object):
     ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Any]:
         processor = processor or MarshmallowInputProcessor()
         processor.schema = schema
-        context = context or self._context
+        context = context or self._context_getter
 
         decoration = InputBodyControllerWrapper(
             context=context,
@@ -232,7 +241,7 @@ class Hapic(object):
     ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Any]:
         processor = processor or MarshmallowInputProcessor()
         processor.schema = schema
-        context = context or self._context
+        context = context or self._context_getter
 
         decoration = InputBodyControllerWrapper(
             context=context,
@@ -252,7 +261,7 @@ class Hapic(object):
         http_code: HTTPStatus = HTTPStatus.INTERNAL_SERVER_ERROR,
         context: ContextInterface = None,
     ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Any]:
-        context = context or self._context
+        context = context or self._context_getter
 
         decoration = ExceptionHandlerControllerWrapper(
             handled_exception_class,
