@@ -310,8 +310,14 @@ class ExceptionHandlerControllerWrapper(ControllerWrapper):
         http_code: HTTPStatus=HTTPStatus.INTERNAL_SERVER_ERROR,
     ) -> None:
         self.handled_exception_class = handled_exception_class
-        self.context = context
+        self._context = context
         self.http_code = http_code
+
+    @property
+    def context(self) -> ContextInterface:
+        if callable(self._context):
+            return self._context()
+        return self._context
 
     def _execute_wrapped_function(
         self,
