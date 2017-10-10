@@ -3,6 +3,9 @@ import functools
 import typing
 from http import HTTPStatus
 
+# TODO BS 20171010: bottle specific !
+from bottle import HTTPResponse
+
 from hapic.data import HapicData
 from hapic.description import ControllerDescription
 from hapic.exception import ProcessException
@@ -197,6 +200,9 @@ class OutputControllerWrapper(InputOutputControllerWrapper):
 
     def after_wrapped_function(self, response: typing.Any) -> typing.Any:
         try:
+            if isinstance(response, HTTPResponse):
+                return response
+
             processed_response = self.processor.process(response)
             prepared_response = self.context.get_response(
                 processed_response,
