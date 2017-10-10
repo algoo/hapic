@@ -189,9 +189,11 @@ class DecoratedController(object):
         self,
         token: str,
         description: ControllerDescription,
+        name: str='',
     ) -> None:
         self._token = token
         self._description = description
+        self._name = name
 
     @property
     def token(self) -> str:
@@ -200,6 +202,10 @@ class DecoratedController(object):
     @property
     def description(self) -> ControllerDescription:
         return self._description
+
+    @property
+    def name(self) -> str:
+        return self._name
 
 
 class OutputBodyControllerWrapper(OutputControllerWrapper):

@@ -3,10 +3,12 @@ import re
 import typing
 
 import bottle
-from apispec import APISpec, Path
+from apispec import APISpec
+from apispec import Path
 from apispec.ext.marshmallow.swagger import schema2jsonschema
 
-from hapic.decorator import DecoratedController, DECORATION_ATTRIBUTE_NAME
+from hapic.decorator import DecoratedController
+from hapic.decorator import DECORATION_ATTRIBUTE_NAME
 
 # Bottle regular expression to locate url parameters
 from hapic.description import ControllerDescription
@@ -14,17 +16,25 @@ from hapic.description import ControllerDescription
 BOTTLE_RE_PATH_URL = re.compile(r'<(?:[^:<>]+:)?([^<>]+)>')
 
 
-def bottle_route_for_view(token, app):
+def bottle_route_for_view(
+    decorated_controller: DecoratedController,
+    app: bottle.Bottle,
+):
     for route in app.routes:
         route_token = getattr(
             route.callback,
             DECORATION_ATTRIBUTE_NAME,
             None,
         )
-        if route_token == token:
+        if route_token == decorated_controller.token:
             return route
-    # TODO: specialize exception
-    raise Exception('Not found')
+    # TODO BS 20171010: specialize exception
+    # TODO BS 20171010: Raise exception or print error ?
+    raise Exception(
+        'Decorated route "{}" was not found in bottle routes'.format(
+            decorated_controller.name,
+        )
+    )
 
 
 def bottle_generate_operations(
@@ -143,7 +153,7 @@ class DocGenerator(object):
         # with app.test_request_context():
         paths = {}
         for controller in controllers:
-            bottle_route = bottle_route_for_view(controller.token, app)
+            bottle_route = bottle_route_for_view(controller, app)
             swagger_path = BOTTLE_RE_PATH_URL.sub(r'{\1}', bottle_route.rule)
 
             operations = bottle_generate_operations(

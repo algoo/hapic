@@ -77,6 +77,7 @@ class Hapic(object):
             decorated_controller = DecoratedController(
                 token=token,
                 description=description,
+                name=func.__name__,
             )
             self._buffer.clear()
             self._controllers.append(decorated_controller)
