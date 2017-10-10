@@ -21,7 +21,7 @@ def find_bottle_route(
     app: bottle.Bottle,
 ):
     if not app.routes:
-        # TODO BS 20171010: specialize exception
+        # TODO BS 20171010: specialize exception, see #9
         raise Exception('There is no routes in yout bottle app')
 
     reference = decorated_controller.reference
@@ -38,8 +38,8 @@ def find_bottle_route(
 
         if match_with_wrapper or match_with_wrapped or match_with_token:
             return route
-    # TODO BS 20171010: specialize exception
-    # TODO BS 20171010: Raise exception or print error ?
+    # TODO BS 20171010: specialize exception, see #9
+    # TODO BS 20171010: Raise exception or print error ? see #10
     raise Exception(
         'Decorated route "{}" was not found in bottle routes'.format(
             decorated_controller.name,
@@ -119,8 +119,8 @@ class DocGenerator(object):
         controllers: typing.List[DecoratedController],
         app,
     ) -> dict:
-        # TODO: Découper
-        # TODO: bottle specific code !
+        # TODO: Découper, see #11
+        # TODO: bottle specific code !, see #11
         if not app:
             app = bottle.default_app()
         else:

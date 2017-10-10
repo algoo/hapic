@@ -3,7 +3,7 @@ import functools
 import typing
 from http import HTTPStatus
 
-# TODO BS 20171010: bottle specific !
+# TODO BS 20171010: bottle specific !  # see #5
 from bottle import HTTPResponse
 
 from hapic.data import HapicData
@@ -14,7 +14,7 @@ from hapic.processor import ProcessorInterface
 from hapic.processor import RequestParameters
 
 # TODO: Ensure usage of DECORATION_ATTRIBUTE_NAME is documented and
-# var names correctly choose.
+# var names correctly choose.  see #6
 DECORATION_ATTRIBUTE_NAME = '_hapic_decoration_token'
 
 
@@ -127,7 +127,7 @@ class InputControllerWrapper(InputOutputControllerWrapper):
         cls,
         func_kwargs: typing.Dict[str, typing.Any],
     ) -> HapicData:
-        # TODO: Permit other name than "hapic_data" ?
+        # TODO: Permit other name than "hapic_data" ? see #7
         try:
             return func_kwargs['hapic_data']
         except KeyError:
@@ -211,7 +211,7 @@ class OutputControllerWrapper(InputOutputControllerWrapper):
             return prepared_response
         except ProcessException:
             # TODO: ici ou ailleurs: il faut pas forcement donner le detail
-            # de l'erreur (mode debug par exemple)
+            # de l'erreur (mode debug par exemple)  see #8
             error_response = self.get_error_response(response)
             return error_response
 
@@ -245,7 +245,6 @@ class OutputBodyControllerWrapper(OutputControllerWrapper):
 
 
 class OutputHeadersControllerWrapper(OutputControllerWrapper):
-    # TODO: write me
     pass
 
 
@@ -364,8 +363,8 @@ class ExceptionHandlerControllerWrapper(ControllerWrapper):
                 func_kwargs,
             )
         except self.handled_exception_class as exc:
-            # TODO: error_dict configurable name
-            # TODO: Who assume error structure ? We have to rethink it
+            # TODO: error_dict configurable name, see #4
+            # TODO: Who assume error structure ? We have to rethink it, see #4
             error_dict = {
                 'error_message': str(exc),
             }

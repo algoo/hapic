@@ -31,20 +31,15 @@ from hapic.processor import ProcessorInterface
 from hapic.processor import MarshmallowInputProcessor
 from hapic.processor import MarshmallowOutputProcessor
 
-# TODO: Gérer les erreurs avec schema
-# TODO: Gérer les erreurs avec schema: pouvoir le spécialiser
-# TODO: Gérer les cas ou c'est une liste la réponse (items, item_nb)
-# TODO: Confusion nommage body/json/forms
+# TODO: Gérer les cas ou c'est une liste la réponse (items, item_nb), see #12
+# TODO: Confusion nommage body/json/forms, see #13
 
 # _waiting = {}
 # _endpoints = {}
-# FIXME: Voir
 class ErrorResponseSchema(marshmallow.Schema):
     error_message = marshmallow.fields.String(required=True)
-
-
     error_details = marshmallow.fields.Dict(required=True)
-# FIXME: C'est un gros gros fake !
+
 _default_global_error_schema = ErrorResponseSchema()
 
 
@@ -62,7 +57,7 @@ class Hapic(object):
 
         self._context_getter = context_getter
 
-        # TODO: Permettre la surcharge des classes utilisés ci-dessous
+        # TODO: Permettre la surcharge des classes utilisés ci-dessous, see #14
 
     @property
     def controllers(self) -> typing.List[DecoratedController]:
@@ -74,8 +69,6 @@ class Hapic(object):
 
     def with_api_doc(self):
         def decorator(func):
-
-            # FIXME: casse ou casse pas le bis ?
             @functools.wraps(func)
             def wrapper(*args, **kwargs):
                 return func(*args, **kwargs)
@@ -292,8 +285,9 @@ class Hapic(object):
             return decoration.get_wrapper(func)
         return decorator
 
-    def generate_doc(self, app):  # FIXME: j'ai du tricher avec app
-        # FIXME @Damien bottle specific code !
+    def generate_doc(self, app):
+        # FIXME: j'ai du tricher avec app, see #11
+        # FIXME @Damien bottle specific code ! see #11
         # rendre ca generique
         app = app or self._context.get_app()
         doc_generator = DocGenerator()

@@ -29,7 +29,7 @@ class ContextInterface(object):
         raise NotImplementedError()
 
 
-# TODO: In extension
+# TODO: In extension, see #3
 class BottleContext(ContextInterface):
     def get_request_parameters(self, *args, **kwargs) -> RequestParameters:
         return RequestParameters(
@@ -58,7 +58,7 @@ class BottleContext(ContextInterface):
         error: ProcessValidationError,
         http_code: HTTPStatus=HTTPStatus.BAD_REQUEST,
     ) -> typing.Any:
-        # TODO
+        # TODO BS 20171010: Manage error schemas, see #4
         from hapic.hapic import _default_global_error_schema
         unmarshall = _default_global_error_schema.dump(error)
         if unmarshall.errors:
@@ -75,7 +75,3 @@ class BottleContext(ContextInterface):
             ],
             status=int(http_code),
         )
-
-    # FIXME: Pas generique, marche pas en plus :'(
-    def get_app(self):
-        return bottle.default_app()
