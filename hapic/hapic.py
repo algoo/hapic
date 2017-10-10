@@ -8,7 +8,9 @@ import marshmallow
 
 from hapic.buffer import DecorationBuffer
 from hapic.context import ContextInterface
-from hapic.decorator import DecoratedController, DECORATION_ATTRIBUTE_NAME
+from hapic.decorator import DecoratedController
+from hapic.decorator import DECORATION_ATTRIBUTE_NAME
+from hapic.decorator import ControllerReference
 from hapic.decorator import ExceptionHandlerControllerWrapper
 from hapic.decorator import InputBodyControllerWrapper
 from hapic.decorator import InputHeadersControllerWrapper
@@ -50,7 +52,7 @@ class Hapic(object):
     def __init__(self):
         self._buffer = DecorationBuffer()
         self._controllers = []  # type: typing.List[DecoratedController]
-        self._context = None
+        self._context = None  # type: ContextInterface
 
         # This local function will be pass to different components
         # who will need context but declared (like with decorator)
@@ -62,6 +64,14 @@ class Hapic(object):
 
         # TODO: Permettre la surcharge des classes utilisés ci-dessous
 
+    @property
+    def controllers(self) -> typing.List[DecoratedController]:
+        return self._controllers
+
+    @property
+    def context(self) -> ContextInterface:
+        return self._context
+
     def with_api_doc(self):
         def decorator(func):
 
@@ -72,10 +82,17 @@ class Hapic(object):
 
             token = uuid.uuid4().hex
             setattr(wrapper, DECORATION_ATTRIBUTE_NAME, token)
+            setattr(func, DECORATION_ATTRIBUTE_NAME, token)
+
             description = self._buffer.get_description()
 
-            decorated_controller = DecoratedController(
+            reference = ControllerReference(
+                wrapper=wrapper,
+                wrapped=func,
                 token=token,
+            )
+            decorated_controller = DecoratedController(
+                reference=reference,
                 description=description,
                 name=func.__name__,
             )

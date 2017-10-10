@@ -15,6 +15,32 @@ from hapic.processor import RequestParameters
 DECORATION_ATTRIBUTE_NAME = '_hapic_decoration_token'
 
 
+class ControllerReference(object):
+    def __init__(
+        self,
+        wrapper: typing.Callable[..., typing.Any],
+        wrapped: typing.Callable[..., typing.Any],
+        token: str,
+    ) -> None:
+        """
+        This class is a centralization of different ways to match
+        final controller with decorated function:
+          - wrapper will match if final controller is the hapic returned
+            wrapper
+          - wrapped will match if final controller is the controller itself
+          - token will match if only apposed token still exist: This case
+            happen when hapic decoration is make on class function and final
+            controller is the same function but as instance function.
+
+        :param wrapper: Wrapper returned by decorator
+        :param wrapped: Function wrapped by decorator
+        :param token: String token set on these both functions
+        """
+        self.wrapper = wrapper
+        self.wrapped = wrapped
+        self.token = token
+
+
 class ControllerWrapper(object):
     def before_wrapped_func(
         self,
@@ -187,17 +213,17 @@ class OutputControllerWrapper(InputOutputControllerWrapper):
 class DecoratedController(object):
     def __init__(
         self,
-        token: str,
+        reference: ControllerReference,
         description: ControllerDescription,
         name: str='',
     ) -> None:
-        self._token = token
+        self._reference = reference
         self._description = description
         self._name = name
 
     @property
-    def token(self) -> str:
-        return self._token
+    def reference(self) -> ControllerReference:
+        return self._reference
 
     @property
     def description(self) -> ControllerDescription:

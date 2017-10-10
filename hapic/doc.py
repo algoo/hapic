@@ -16,17 +16,27 @@ from hapic.description import ControllerDescription
 BOTTLE_RE_PATH_URL = re.compile(r'<(?:[^:<>]+:)?([^<>]+)>')
 
 
-def bottle_route_for_view(
+def find_bottle_route(
     decorated_controller: DecoratedController,
     app: bottle.Bottle,
 ):
+    if not app.routes:
+        # TODO BS 20171010: specialize exception
+        raise Exception('There is no routes in yout bottle app')
+
+    reference = decorated_controller.reference
     for route in app.routes:
         route_token = getattr(
             route.callback,
             DECORATION_ATTRIBUTE_NAME,
             None,
         )
-        if route_token == decorated_controller.token:
+
+        match_with_wrapper = route.callback == reference.wrapper
+        match_with_wrapped = route.callback == reference.wrapped
+        match_with_token = route_token == reference.token
+
+        if match_with_wrapper or match_with_wrapped or match_with_token:
             return route
     # TODO BS 20171010: specialize exception
     # TODO BS 20171010: Raise exception or print error ?
@@ -153,7 +163,7 @@ class DocGenerator(object):
         # with app.test_request_context():
         paths = {}
         for controller in controllers:
-            bottle_route = bottle_route_for_view(controller, app)
+            bottle_route = find_bottle_route(controller, app)
             swagger_path = BOTTLE_RE_PATH_URL.sub(r'{\1}', bottle_route.rule)
 
             operations = bottle_generate_operations(
