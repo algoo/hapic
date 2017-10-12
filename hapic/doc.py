@@ -9,10 +9,11 @@ from apispec.ext.marshmallow.swagger import schema2jsonschema
 
 from hapic.decorator import DecoratedController
 from hapic.decorator import DECORATION_ATTRIBUTE_NAME
+from hapic.description import ControllerDescription
+from hapic.exception import NoRoutesException
+from hapic.exception import RouteNotFound
 
 # Bottle regular expression to locate url parameters
-from hapic.description import ControllerDescription
-
 BOTTLE_RE_PATH_URL = re.compile(r'<(?:[^:<>]+:)?([^<>]+)>')
 
 
@@ -21,8 +22,7 @@ def find_bottle_route(
     app: bottle.Bottle,
 ):
     if not app.routes:
-        # TODO BS 20171010: specialize exception, see #9
-        raise Exception('There is no routes in yout bottle app')
+        raise NoRoutesException('There is no routes in yout bottle app')
 
     reference = decorated_controller.reference
     for route in app.routes:
@@ -38,9 +38,8 @@ def find_bottle_route(
 
         if match_with_wrapper or match_with_wrapped or match_with_token:
             return route
-    # TODO BS 20171010: specialize exception, see #9
     # TODO BS 20171010: Raise exception or print error ? see #10
-    raise Exception(
+    raise RouteNotFound(
         'Decorated route "{}" was not found in bottle routes'.format(
             decorated_controller.name,
         )

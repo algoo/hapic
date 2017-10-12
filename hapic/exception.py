@@ -35,3 +35,15 @@ class InputValidationException(InputWorkflowException, ProcessException):
 
 class OutputValidationException(InputWorkflowException, ProcessException):
     pass
+
+
+class DocumentationException(HapicException):
+    pass
+
+
+class NoRoutesException(DocumentationException):
+    pass
+
+
+class RouteNotFound(DocumentationException):
+    pass
