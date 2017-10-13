@@ -76,9 +76,13 @@ def bottle_generate_operations(
 
     if description.errors:
         for error in description.errors:
+            schema_class = type(error.wrapper.schema)
             method_operations.setdefault('responses', {})\
                 [int(error.wrapper.http_code)] = {
                     'description': str(error.wrapper.http_code),
+                    'schema': {
+                        '$ref': '#/definitions/{}'.format(schema_class.__name__)  # nopep8
+                    }
                 }
 
     # jsonschema based
@@ -154,6 +158,10 @@ class DocGenerator(object):
                 schemas.append(type(
                     description.output_body.wrapper.processor.schema
                 ))
+
+            if description.errors:
+                for error in description.errors:
+                    schemas.append(type(error.wrapper.schema))
 
         for schema in set(schemas):
             spec.definition(schema.__name__, schema=schema)
