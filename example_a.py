@@ -118,7 +118,7 @@ controllers.bind(app)
 # print(yaml.dump(ss, default_flow_style=False))
 # time.sleep(1)
 
-hapic.set_context(hapic.ext.bottle.bottle_context)
+hapic.set_context(hapic.ext.bottle.BottleContext())
 print(json.dumps(hapic.generate_doc(app)))
 
 app.run(host='localhost', port=8080, debug=True)

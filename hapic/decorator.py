@@ -4,6 +4,7 @@ import typing
 from http import HTTPStatus
 
 # TODO BS 20171010: bottle specific !  # see #5
+import marshmallow
 from bottle import HTTPResponse
 
 from hapic.data import HapicData
@@ -338,11 +339,13 @@ class ExceptionHandlerControllerWrapper(ControllerWrapper):
         self,
         handled_exception_class: typing.Type[Exception],
         context: typing.Union[ContextInterface, typing.Callable[[], ContextInterface]],  # nopep8
+        schema: marshmallow.Schema,
         http_code: HTTPStatus=HTTPStatus.INTERNAL_SERVER_ERROR,
     ) -> None:
         self.handled_exception_class = handled_exception_class
         self._context = context
         self.http_code = http_code
+        self.schema = schema
 
     @property
     def context(self) -> ContextInterface:
@@ -363,16 +366,17 @@ class ExceptionHandlerControllerWrapper(ControllerWrapper):
                 func_kwargs,
             )
         except self.handled_exception_class as exc:
-            # TODO: error_dict configurable name, see #4
-            # TODO: Who assume error structure ? We have to rethink it, see #4
-            error_dict = {
-                'error_message': str(exc),
+            # TODO: "error_detail" attribute name should be configurable
+            # TODO BS 20171013: use overrideable mechanism, error object given
+            #  to schema ? see #15
+            raw_response = {
+                'message': str(exc),
+                'code': None,
+                'detail': getattr(exc, 'error_detail', {}),
             }
-            if hasattr(exc, 'error_dict'):
-                error_dict.update(exc.error_dict)
 
             error_response = self.context.get_response(
-                error_dict,
+                raw_response,
                 self.http_code,
             )
             return error_response

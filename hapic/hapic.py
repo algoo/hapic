@@ -31,16 +31,18 @@ from hapic.processor import ProcessorInterface
 from hapic.processor import MarshmallowInputProcessor
 from hapic.processor import MarshmallowOutputProcessor
 
-# TODO: Gérer les cas ou c'est une liste la réponse (items, item_nb), see #12
-# TODO: Confusion nommage body/json/forms, see #13
 
-# _waiting = {}
-# _endpoints = {}
 class ErrorResponseSchema(marshmallow.Schema):
-    error_message = marshmallow.fields.String(required=True)
-    error_details = marshmallow.fields.Dict(required=True)
+    message = marshmallow.fields.String(required=True)
+    details = marshmallow.fields.Dict(required=False, missing={})
+    code = marshmallow.fields.Raw(missing=None)
+
 
 _default_global_error_schema = ErrorResponseSchema()
+
+
+# TODO: Gérer les cas ou c'est une liste la réponse (items, item_nb), see #12
+# TODO: Confusion nommage body/json/forms, see #13
 
 
 class Hapic(object):
@@ -277,7 +279,9 @@ class Hapic(object):
         decoration = ExceptionHandlerControllerWrapper(
             handled_exception_class,
             context,
-            http_code,
+            # TODO BS 20171013: Permit schema overriding, see #15
+            schema=_default_global_error_schema,
+            http_code=http_code,
         )
 
         def decorator(func):
