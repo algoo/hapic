@@ -8,7 +8,7 @@ python:
 install:
   - python setup.py develop
   - pip install pytest pytest-cov
-  - if [[ $TRAVIS_PYTHON_VERSION == 3.4 ]]; then pip install typing; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == 3.4 ]]; then pip install typing http; fi
 
 script: 
   - pytest --cov=hapic tests
