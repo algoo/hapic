@@ -1,0 +1,16 @@
+sudo: false
+language: python
+python:
+  - "3.4"
+  - "3.5"
+  - "3.6"
+
+install:
+  - python setup.py develop
+  - pip install pytest pytest-cov
+
+script: 
+  - pytest --cov=hapic tests
+
+after_success:
+  - coveralls
