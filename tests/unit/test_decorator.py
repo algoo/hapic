@@ -10,6 +10,7 @@ from hapic.decorator import InputOutputControllerWrapper
 from hapic.decorator import ExceptionHandlerControllerWrapper
 from hapic.decorator import InputControllerWrapper
 from hapic.decorator import OutputControllerWrapper
+from hapic.hapic import ErrorResponseSchema
 from hapic.processor import RequestParameters
 from hapic.processor import MarshmallowOutputProcessor
 from hapic.processor import ProcessValidationError
@@ -207,6 +208,7 @@ class TestExceptionHandlerControllerWrapper(Base):
         wrapper = ExceptionHandlerControllerWrapper(
             ZeroDivisionError,
             context,
+            schema=ErrorResponseSchema(),
             http_code=HTTPStatus.INTERNAL_SERVER_ERROR,
         )
 
@@ -219,7 +221,9 @@ class TestExceptionHandlerControllerWrapper(Base):
         assert response['http_code'] == HTTPStatus.INTERNAL_SERVER_ERROR
         assert 'original_response' in response
         assert response['original_response'] == {
-            'error_message': 'We are testing',
+            'message': 'We are testing',
+            'code': None,
+            'detail': {},
         }
 
     def test_unit__exception_handled__ok__exception_error_dict(self):
@@ -232,13 +236,14 @@ class TestExceptionHandlerControllerWrapper(Base):
         wrapper = ExceptionHandlerControllerWrapper(
             MyException,
             context,
+            schema=ErrorResponseSchema(),
             http_code=HTTPStatus.INTERNAL_SERVER_ERROR,
         )
 
         @wrapper.get_wrapper
         def func(foo):
             exc = MyException('We are testing')
-            exc.error_dict = {'foo': 'bar'}
+            exc.error_detail = {'foo': 'bar'}
             raise exc
 
         response = func(42)
@@ -246,6 +251,7 @@ class TestExceptionHandlerControllerWrapper(Base):
         assert response['http_code'] == HTTPStatus.INTERNAL_SERVER_ERROR
         assert 'original_response' in response
         assert response['original_response'] == {
-            'error_message': 'We are testing',
-            'foo': 'bar',
+            'message': 'We are testing',
+            'code': None,
+            'detail': {'foo': 'bar'},
         }

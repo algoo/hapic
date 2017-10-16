@@ -9,7 +9,7 @@ from tests.base import Base
 class TestBottleExt(Base):
     def test_unit__map_binding__ok__decorated_function(self):
         hapic_ = hapic.Hapic()
-        hapic_.set_context(hapic.ext.bottle.bottle_context)
+        hapic_.set_context(hapic.ext.bottle.BottleContext())
 
         app = bottle.Bottle()
 
@@ -29,7 +29,7 @@ class TestBottleExt(Base):
 
     def test_unit__map_binding__ok__mapped_function(self):
         hapic_ = hapic.Hapic()
-        hapic_.set_context(hapic.ext.bottle.bottle_context)
+        hapic_.set_context(hapic.ext.bottle.BottleContext())
 
         app = bottle.Bottle()
 
@@ -50,7 +50,7 @@ class TestBottleExt(Base):
 
     def test_unit__map_binding__ok__mapped_method(self):
         hapic_ = hapic.Hapic()
-        hapic_.set_context(hapic.ext.bottle.bottle_context)
+        hapic_.set_context(hapic.ext.bottle.BottleContext())
 
         app = bottle.Bottle()
 
