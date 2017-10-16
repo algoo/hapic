@@ -1,14 +1,12 @@
 sudo: false
 language: python
 python:
-  - "3.4"
   - "3.5"
   - "3.6"
 
 install:
   - python setup.py develop
   - pip install pytest pytest-cov
-  - if [[ $TRAVIS_PYTHON_VERSION == 3.4 ]]; then pip install typing http requests; fi
 
 script: 
   - pytest --cov=hapic tests
