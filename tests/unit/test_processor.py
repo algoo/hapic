@@ -61,8 +61,8 @@ class TestProcessor(Base):
             processor.process(tested_data)
 
         errors = processor.get_validation_error(tested_data)
-        assert errors.error_details
-        assert 'first_name' in errors.error_details
+        assert errors.details
+        assert 'first_name' in errors.details
 
     def test_unit__marshmallow_input_processor__ok__completed_data(self):
         processor = MarshmallowInputProcessor()

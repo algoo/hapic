@@ -58,10 +58,10 @@ class MyProcessor(ProcessorInterface):
         request_context: RequestParameters,
     ) -> ProcessValidationError:
         return ProcessValidationError(
-            error_details={
+            details={
                 'original_request_context': request_context,
             },
-            error_message='ERROR',
+            message='ERROR',
         )
 
 
@@ -197,7 +197,7 @@ class TestOutputControllerWrapper(Base):
         assert 'http_code' in result
         assert result['http_code'] == HTTPStatus.INTERNAL_SERVER_ERROR
         assert 'original_error' in result
-        assert result['original_error'].error_details == {
+        assert result['original_error'].details == {
             'name': ['Missing data for required field.']
         }
 

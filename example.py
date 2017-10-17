@@ -3,8 +3,8 @@ import marshmallow
 
 
 class ErrorResponseSchema(marshmallow.Schema):
-    error_message = marshmallow.fields.String(required=True)
-    error_details = marshmallow.fields.Dict(required=True)
+    message = marshmallow.fields.String(required=True)
+    details = marshmallow.fields.Dict(required=True)
 
 
 class HelloResponseSchema(marshmallow.Schema):

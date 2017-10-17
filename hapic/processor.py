@@ -23,11 +23,11 @@ class RequestParameters(object):
 class ProcessValidationError(object):
     def __init__(
         self,
-        error_message: str,
-        error_details: dict,
+        message: str,
+        details: dict,
     ) -> None:
-        self.error_message = error_message
-        self.error_details = error_details
+        self.message = message
+        self.details = details
 
 
 class ProcessorInterface(object):
@@ -71,8 +71,8 @@ class MarshmallowOutputProcessor(OutputProcessor):
         data = self.schema.dump(data).data
         errors = self.schema.load(data).errors
         return ProcessValidationError(
-            error_message='Validation error of output data',
-            error_details=errors,
+            message='Validation error of output data',
+            details=errors,
         )
 
 
@@ -91,7 +91,7 @@ class MarshmallowInputProcessor(InputProcessor):
     def get_validation_error(self, data: dict) -> ProcessValidationError:
         marshmallow_errors = self.schema.load(data).errors
         return ProcessValidationError(
-            error_message='Validation error of input data',
-            error_details=marshmallow_errors,
+            message='Validation error of input data',
+            details=marshmallow_errors,
         )
 
