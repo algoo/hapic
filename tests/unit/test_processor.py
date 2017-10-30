@@ -54,6 +54,7 @@ class TestProcessor(Base):
         processor.schema = MySchema()
 
         tested_data = {
+            # Missing 'first_name' key
             'last_name': 'Turing',
         }
 
@@ -63,6 +64,48 @@ class TestProcessor(Base):
         errors = processor.get_validation_error(tested_data)
         assert errors.details
         assert 'first_name' in errors.details
+
+    def test_unit__marshmallow_input_processor__error__validation_error_no_data(self):  # nopep8
+        processor = MarshmallowInputProcessor()
+        processor.schema = MySchema()
+
+        # Schema will not valid it because require first_name field
+        tested_data = {}
+
+        with pytest.raises(OutputValidationException):
+            processor.process(tested_data)
+
+        errors = processor.get_validation_error(tested_data)
+        assert errors.details
+        assert 'first_name' in errors.details
+
+    def test_unit__marshmallow_input_processor__error__validation_error_no_data_none(self):  # nopep8
+        processor = MarshmallowInputProcessor()
+        processor.schema = MySchema()
+
+        # Schema will not valid it because require first_name field
+        tested_data = None
+
+        with pytest.raises(OutputValidationException):
+            processor.process(tested_data)
+
+        errors = processor.get_validation_error(tested_data)
+        assert errors.details
+        assert 'first_name' in errors.details
+
+    def test_unit__marshmallow_input_processor__error__validation_error_no_data_empty_string(self):  # nopep8
+        processor = MarshmallowInputProcessor()
+        processor.schema = MySchema()
+
+        # Schema will not valid it because require first_name field
+        tested_data = ''
+
+        with pytest.raises(OutputValidationException):
+            processor.process(tested_data)
+
+        errors = processor.get_validation_error(tested_data)
+        assert errors.details
+        assert {'_schema': ['Invalid input type.']} == errors.details
 
     def test_unit__marshmallow_input_processor__ok__completed_data(self):
         processor = MarshmallowInputProcessor()
