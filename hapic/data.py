@@ -8,3 +8,4 @@ class HapicData(object):
         self.query = {}
         self.headers = {}
         self.forms = {}
+        self.files = {}

@@ -22,7 +22,7 @@ def find_bottle_route(
     app: bottle.Bottle,
 ):
     if not app.routes:
-        raise NoRoutesException('There is no routes in yout bottle app')
+        raise NoRoutesException('There is no routes in your bottle app')
 
     reference = decorated_controller.reference
     for route in app.routes:
@@ -74,6 +74,15 @@ def bottle_generate_operations(
                 }
             }
 
+    if description.output_file:
+        method_operations.setdefault('produce', []).append(
+            description.output_file.wrapper.output_type
+        )
+        method_operations.setdefault('responses', {})\
+            [int(description.output_file.wrapper.default_http_code)] = {
+            'description': str(description.output_file.wrapper.default_http_code),  # nopep8
+        }
+
     if description.errors:
         for error in description.errors:
             schema_class = type(error.wrapper.schema)
@@ -107,6 +116,16 @@ def bottle_generate_operations(
                 'name': name,
                 'required': name in jsonschema.get('required', []),
                 'type': schema['type']
+            })
+
+    if description.input_files:
+        method_operations.setdefault('consume', []).append('multipart/form-data')
+        for field_name, field in description.input_files.wrapper.processor.schema.fields.items():
+            method_operations.setdefault('parameters', []).append({
+                'in': 'formData',
+                'name': field_name,
+                'required': field.required,
+                'type': 'file',
             })
 
     operations = {
