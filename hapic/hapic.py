@@ -16,19 +16,24 @@ from hapic.decorator import InputBodyControllerWrapper
 from hapic.decorator import InputHeadersControllerWrapper
 from hapic.decorator import InputPathControllerWrapper
 from hapic.decorator import InputQueryControllerWrapper
+from hapic.decorator import InputFilesControllerWrapper
 from hapic.decorator import OutputBodyControllerWrapper
 from hapic.decorator import OutputHeadersControllerWrapper
+from hapic.decorator import OutputFileControllerWrapper
 from hapic.description import InputBodyDescription
 from hapic.description import ErrorDescription
 from hapic.description import InputFormsDescription
 from hapic.description import InputHeadersDescription
 from hapic.description import InputPathDescription
 from hapic.description import InputQueryDescription
+from hapic.description import InputFilesDescription
 from hapic.description import OutputBodyDescription
 from hapic.description import OutputHeadersDescription
+from hapic.description import OutputFileDescription
 from hapic.doc import DocGenerator
 from hapic.processor import ProcessorInterface
 from hapic.processor import MarshmallowInputProcessor
+from hapic.processor import MarshmallowInputFilesProcessor
 from hapic.processor import MarshmallowOutputProcessor
 
 
@@ -145,6 +150,22 @@ class Hapic(object):
 
         def decorator(func):
             self._buffer.output_headers = OutputHeadersDescription(decoration)
+            return decoration.get_wrapper(func)
+        return decorator
+
+    # TODO BS 20171102: Think about possibilities to validate output ? (with mime type, or validator)
+    def output_file(
+        self,
+        output_type: str,
+        default_http_code: HTTPStatus = HTTPStatus.OK,
+    ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Any]:
+        decoration = OutputFileControllerWrapper(
+            output_type=output_type,
+            default_http_code=default_http_code,
+        )
+
+        def decorator(func):
+            self._buffer.output_file = OutputFileDescription(decoration)
             return decoration.get_wrapper(func)
         return decorator
 
@@ -265,6 +286,30 @@ class Hapic(object):
 
         def decorator(func):
             self._buffer.input_forms = InputFormsDescription(decoration)
+            return decoration.get_wrapper(func)
+        return decorator
+
+    def input_files(
+        self,
+        schema: typing.Any,
+        processor: ProcessorInterface=None,
+        context: ContextInterface=None,
+        error_http_code: HTTPStatus = HTTPStatus.BAD_REQUEST,
+        default_http_code: HTTPStatus = HTTPStatus.OK,
+    ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Any]:
+        processor = processor or MarshmallowInputFilesProcessor()
+        processor.schema = schema
+        context = context or self._context_getter
+
+        decoration = InputFilesControllerWrapper(
+            context=context,
+            processor=processor,
+            error_http_code=error_http_code,
+            default_http_code=default_http_code,
+        )
+
+        def decorator(func):
+            self._buffer.input_files = InputFilesDescription(decoration)
             return decoration.get_wrapper(func)
         return decorator
 
