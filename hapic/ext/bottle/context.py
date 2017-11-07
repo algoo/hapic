@@ -18,6 +18,7 @@ class BottleContext(ContextInterface):
             body_parameters=bottle.request.json,
             form_parameters=bottle.request.forms,
             header_parameters=bottle.request.headers,
+            files_parameters=bottle.request.files,
         )
 
     def get_response(
