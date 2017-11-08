@@ -156,6 +156,7 @@ class DocGenerator(object):
                 'apispec.ext.bottle',
                 'apispec.ext.marshmallow',
             ],
+            schema_name_resolver_callable=generate_schema_name,
         )
 
         schemas = []
@@ -220,3 +221,6 @@ class DocGenerator(object):
         #             # TODO: use description to feed apispec
         #             print(route.method, path, description)
         #             continue
+
+def generate_schema_name(schema):
+    return schema.__name__
