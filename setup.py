@@ -11,7 +11,10 @@ install_requires = [
     # TODO: marshmallow an extension too ? see #2
     'bottle',
     'marshmallow',
-    'apispec',
+    'apispec==0.25.4-algoo',
+]
+dependency_links = [
+    'git+https://github.com/algoo/apispec.git@dev-algoo#egg=apispec-0.25.4-algoo'
 ]
 tests_require = [
     'pytest',
@@ -55,6 +58,7 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=install_requires,
+    dependency_links=dependency_links,
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,
