@@ -222,5 +222,7 @@ class DocGenerator(object):
         #             print(route.method, path, description)
         #             continue
 
+
+# TODO BS 20171109: Must take care of already existing definition names
 def generate_schema_name(schema):
     return schema.__name__
