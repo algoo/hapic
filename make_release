@@ -1,0 +1,179 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import argparse
+import subprocess
+
+import requests
+
+
+def execute(*args, **kwargs):
+    try:
+        return subprocess.check_output(*args, **kwargs)
+    except subprocess.CalledProcessError as e:
+        print(e.output.decode('utf-8'))
+        exit(1)
+
+
+def check_setup_py_clean():
+    git_status = execute(['git', 'status'])
+    for line in git_status.decode('utf-8').split('\n'):
+        if 'setup.py' in line:
+            print('ERR: setup.py file seems to be already modified')
+            exit(1)
+
+
+def extract_version_from_setup_py_content():
+    with open('setup.py', 'r') as setup_file:
+        setup_file_content = setup_file.read()
+
+    for line in setup_file_content.split('\n'):
+        if line.strip().startswith('version='):
+            version_str = line.replace('\'', '')\
+                .replace('version=', '')\
+                .replace(',', '')
+
+            major_version_str = version_str.split('.')[0].strip()
+            minor_version_str = version_str.split('.')[1]
+
+            if minor_version_str is None:
+                print('ERR: No minor version found !')
+                exit(1)
+
+            try:
+                int(minor_version_str)
+            except ValueError:
+                print(
+                    'ERR: Error when read minor version, value found: "{}"'
+                    .format(minor_version_str)
+                )
+
+            return version_str.strip()
+
+    print('ERR: Version not found in setup.py')
+    exit(1)
+
+
+def get_last_pypi_version():
+    hapic_pypi_version_response = requests.get(
+        'https://pypi.python.org/pypi/hapic/json',
+    )
+    hapic_pypi_versions_data = hapic_pypi_version_response.json()
+    hapic_pypi_versions = hapic_pypi_versions_data['releases'].keys()
+    last_version = sorted(hapic_pypi_versions)[-1]
+    return last_version
+
+
+def get_new_hapic_version():
+    version_str = extract_version_from_setup_py_content()
+    major_version_str = version_str.split('.')[0].strip()
+    minor_version_str = version_str.split('.')[1]
+
+    next_version = '{}.{}'.format(major_version_str, int(minor_version_str)+1)
+    last_pypi_version = get_last_pypi_version()
+
+    last_version_major = last_pypi_version.split('.')[0]
+    last_version_minor = last_pypi_version.split('.')[1]
+    last_version_more_one = '{}.{}'.format(
+        last_version_major,
+        int(last_version_minor)+1,
+    )
+
+    if next_version != last_version_more_one:
+        if input(
+            'WARN: This script was preparing to create version {} but '
+            'last version on pypi is {}. Consider to use version {} '
+            '?(y/N)'.format(
+                next_version,
+                last_pypi_version,
+                last_version_more_one,
+            )
+        ) in ['y', 'Y']:
+            return last_version_more_one
+        else:
+            exit(1)
+
+    return last_version_more_one
+
+
+def rewrite_setup_py_file(new_version: str):
+    with open('setup.py', 'r') as setup_file:
+        setup_file_content = setup_file.read()
+
+    new_content_lines = []
+    for line in setup_file_content.split('\n'):
+        if line.strip().startswith('version='):
+            new_content_lines.append('    version=\'{}\','.format(
+                new_version
+            ))
+        else:
+            new_content_lines.append(line)
+
+    with open('setup.py', 'w') as setup_file:
+        setup_file.write('\n'.join(new_content_lines))
+
+
+def commit_setup_py():
+    execute(['git', 'reset'])
+    execute(['git', 'add', 'setup.py'])
+
+    version = extract_version_from_setup_py_content()
+    execute(
+        ['git', 'commit', '-m', 'v{}'.format(version)]
+    )
+
+
+def check_branch(must_be_branch):
+    current_branch = execute(
+        ['git', 'rev-parse', '--abbrev-ref', 'HEAD']
+    ).strip().decode('utf-8')
+
+    if current_branch != must_be_branch:
+        print('ERR: Your are actually on branch {} and must be {}'.format(
+            current_branch,
+            must_be_branch,
+        ))
+        exit(1)
+
+
+def push_on_github(remote_name):
+    execute(
+        ['git', 'push', remote_name, 'master']
+    )
+
+
+def push_on_pypi():
+    execute(
+        ['python', 'setup.py', 'sdist', 'upload']
+    )
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '--disable-version-increment',
+        '-d',
+        action='store_true',
+        dest='disable_version_increment',
+    )
+    args = parser.parse_args()
+
+    if not args.disable_version_increment:
+        must_be_branch = 'master'
+        remote_name = 'origin'
+
+        check_setup_py_clean()
+        check_branch(must_be_branch)
+
+        new_version_will_be = get_new_hapic_version()
+        actual_version = extract_version_from_setup_py_content()
+
+        if new_version_will_be != actual_version:
+            rewrite_setup_py_file(new_version_will_be)
+            commit_setup_py()
+            push_on_github(remote_name)
+
+    push_on_pypi()
+
+
+if __name__ == '__main__':
+    main()
