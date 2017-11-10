@@ -14,10 +14,13 @@ install_requires = [
     'apispec==0.25.4-algoo',
 ]
 dependency_links = [
-    'git+https://github.com/algoo/apispec.git@dev-algoo#egg=apispec-0.25.4-algoo'
+    'git+https://github.com/algoo/apispec.git@dev-algoo#egg=apispec-0.25.4-algoo'  # nopep8
 ]
 tests_require = [
     'pytest',
+]
+dev_require = [
+    'requests',
 ]
 
 setup(
@@ -66,6 +69,7 @@ setup(
     # $ pip install -e ".[test]"
     extras_require={
         'test': tests_require,
+        'dev': dev_require,
     },
 
     # If there are data files included in your packages that need to be
