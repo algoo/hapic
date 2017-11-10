@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import json
+import re
 import typing
 from http import HTTPStatus
 
@@ -8,6 +9,9 @@ import bottle
 from hapic.context import ContextInterface
 from hapic.exception import OutputValidationException
 from hapic.processor import RequestParameters, ProcessValidationError
+
+# Bottle regular expression to locate url parameters
+BOTTLE_RE_PATH_URL = re.compile(r'<(?:[^:<>]+:)?([^<>]+)>')
 
 
 class BottleContext(ContextInterface):

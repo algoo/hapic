@@ -1,18 +1,30 @@
 # -*- coding: utf-8 -*-
 import json
+import re
 import typing
 from http import HTTPStatus
 
 from pyramid.request import Request
 from pyramid.response import Response
-
+from pyramid.config import Configurator
 
 from hapic.context import ContextInterface
+from hapic.context import RouteRepresentation
+from hapic.decorator import DecoratedController
+from hapic.decorator import DECORATION_ATTRIBUTE_NAME
+from hapic.ext.bottle.context import BOTTLE_RE_PATH_URL
 from hapic.exception import OutputValidationException
-from hapic.processor import RequestParameters, ProcessValidationError
+from hapic.processor import RequestParameters
+from hapic.processor import ProcessValidationError
+
+# Bottle regular expression to locate url parameters
+PYRAMID_RE_PATH_URL = re.compile(r'')
 
 
 class PyramidContext(ContextInterface):
+    def __init__(self, configurator: Configurator):
+        self.configurator = configurator
+
     def get_request_parameters(self, *args, **kwargs) -> RequestParameters:
         req = args[-1]  # TODO : Check
         assert isinstance(req, Request)
@@ -67,3 +79,46 @@ class PyramidContext(ContextInterface):
             ],
             status=int(http_code),
         )
+
+    def find_route(
+        self,
+        decorated_controller: DecoratedController,
+    ) -> RouteRepresentation:
+        for category in self.configurator.introspector.get_category('views'):
+            view_intr = category['introspectable']
+            route_intr = category['related']
+
+            reference = decorated_controller.reference
+            route_token = getattr(
+                view_intr.get('callable'),
+                DECORATION_ATTRIBUTE_NAME,
+                None,
+            )
+
+            match_with_wrapper = view_intr.get('callable') == reference.wrapper
+            match_with_wrapped = view_intr.get('callable') == reference.wrapped
+            match_with_token = route_token == reference.token
+
+            if match_with_wrapper or match_with_wrapped or match_with_token:
+                # TODO BS 20171107: C'est une liste de route sous pyramid !!!
+                # Mais de toute maniere les framework womme pyramid, flask
+                # peuvent avoir un controlleur pour plusieurs routes doc
+                # .find_route doit retourner une liste au lieu d'une seule
+                # route
+                route_pattern = route_intr[0].get('pattern')
+                route_method = route_intr[0].get('request_methods')[0]
+
+                return RouteRepresentation(
+                    # TODO BS 20171107: ce code n'es pas du tout finis
+                    # (import bottle)
+                    rule=BOTTLE_RE_PATH_URL.sub(
+                        r'{\1}',
+                        route_pattern,
+                    ),
+                    method=route_method,
+                )
+
+    def get_swagger_path(self, contextualised_rule: str) -> str:
+        # TODO BS 20171110: Pyramid allow route like '/{foo:\d+}', so adapt
+        # and USE regular expression (see https://docs.pylonsproject.org/projects/pyramid/en/latest/narr/urldispatch.html#custom-route-predicates)  # nopep8
+        return contextualised_rule

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import re
 import typing
 
 import bottle
@@ -7,14 +6,12 @@ from apispec import APISpec
 from apispec import Path
 from apispec.ext.marshmallow.swagger import schema2jsonschema
 
-from hapic.decorator import DecoratedController
+from hapic.context import ContextInterface, RouteRepresentation
 from hapic.decorator import DECORATION_ATTRIBUTE_NAME
+from hapic.decorator import DecoratedController
 from hapic.description import ControllerDescription
 from hapic.exception import NoRoutesException
 from hapic.exception import RouteNotFound
-
-# Bottle regular expression to locate url parameters
-BOTTLE_RE_PATH_URL = re.compile(r'<(?:[^:<>]+:)?([^<>]+)>')
 
 
 def find_bottle_route(
@@ -48,7 +45,7 @@ def find_bottle_route(
 
 def bottle_generate_operations(
     spec,
-    bottle_route: bottle.Route,
+    route: RouteRepresentation,
     description: ControllerDescription,
 ):
     method_operations = dict()
@@ -110,7 +107,7 @@ def bottle_generate_operations(
             })
 
     operations = {
-        bottle_route.method.lower(): method_operations,
+        route.method.lower(): method_operations,
     }
 
     return operations
@@ -120,21 +117,13 @@ class DocGenerator(object):
     def get_doc(
         self,
         controllers: typing.List[DecoratedController],
-        app,
+        context: ContextInterface,
     ) -> dict:
-        # TODO: Découper, see #11
-        # TODO: bottle specific code !, see #11
-        if not app:
-            app = bottle.default_app()
-        else:
-            bottle.default_app.push(app)
-        flatten = lambda l: [item for sublist in l for item in sublist]
-
         spec = APISpec(
             title='Swagger Petstore',
             version='1.0.0',
             plugins=[
-                'apispec.ext.bottle',
+                # 'apispec.ext.bottle',
                 'apispec.ext.marshmallow',
             ],
         )
@@ -170,12 +159,12 @@ class DocGenerator(object):
         # with app.test_request_context():
         paths = {}
         for controller in controllers:
-            bottle_route = find_bottle_route(controller, app)
-            swagger_path = BOTTLE_RE_PATH_URL.sub(r'{\1}', bottle_route.rule)
+            route = context.find_route(controller)
+            swagger_path = context.get_swagger_path(route.rule)
 
             operations = bottle_generate_operations(
                 spec,
-                bottle_route,
+                route,
                 controller.description,
             )
 
@@ -189,15 +178,3 @@ class DocGenerator(object):
             spec.add_path(path)
 
         return spec.to_dict()
-
-        # route_by_callbacks = []
-        # routes = flatten(app.router.dyna_routes.values())
-        # for path, path_regex, route, func_ in routes:
-        #     route_by_callbacks.append(route.callback)
-        #
-        # for description in self._controllers:
-        #     for path, path_regex, route, func_ in routes:
-        #         if route.callback == description.reference:
-        #             # TODO: use description to feed apispec
-        #             print(route.method, path, description)
-        #             continue

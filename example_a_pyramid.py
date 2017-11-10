@@ -102,73 +102,24 @@ class Controllers(object):
             'name': name,
         }
 
-    def bind(self, app):
-        app.route('/hello/{name}', callback=self.hello)
-        app.route('/hello/{name}', callback=self.hello2, method='POST')
-        app.route('/hello3/{name}', callback=self.hello3)
-        app.config.include('pyramid_debugtoolbar')
+    def bind(self, configurator: Configurator):
+        configurator.add_route('hello', '/hello/{name}', request_method='GET')
+        configurator.add_view(self.hello, route_name='hello', renderer='json')
+
+        configurator.add_route('hello2', '/hello/{name}', request_method='POST')  # nopep8
+        configurator.add_view(self.hello2, route_name='hello2', renderer='json')  # nopep8
+
+        configurator.add_route('hello3', '/hello3/{name}', request_method='GET')  # nopep8
+        configurator.add_view(self.hello3, route_name='hello3', renderer='json')  # nopep8
 
 
-class PyramRoute(object):
-
-    def __init__(self, app, rule, method, callback, name, **options):
-        self.app = app
-        self.rule = rule
-        self.method = method
-        self.callback = callback
-        self.name = name
-
-        if not self.name:
-            self.name = str(uuid.uuid4())
-
-        with self.app.config as config:
-            config.add_route(self.name, self.rule, request_method=self.method)
-            config.add_view(
-                self.callback, route_name=self.name, renderer='json')
-        #import pdb; pdb.set_trace()
-
-
-class Pyramidapp(object):
-
-    def __init__(self):
-        self.config = Configurator()
-        self.routes = []
-
-    def route(self,
-              rule,
-              callback,
-              method='GET',
-              name=None,
-              **options):
-        r = PyramRoute(self, rule, method, callback, name, **options)
-        self.routes.append(r)
-
-    def run(self, host, port, debug):
-        server = make_server('0.0.0.0', port, self.config.make_wsgi_app())
-        server.serve_forever()
-
-
-app = Pyramidapp()
-
+configurator = Configurator(autocommit=True)
 controllers = Controllers()
-controllers.bind(app)
 
+controllers.bind(configurator)
 
-# time.sleep(1)
-# s = hapic.generate_doc(app)
-# ss = json.loads(json.dumps(s))
-# for path in ss['paths']:
-#     for method in ss['paths'][path]:
-#         for response_code in ss['paths'][path][method]['responses']:
-#             ss['paths'][path][method]['responses'][int(response_code)] = ss['paths'][path][method]['responses'][response_code]
-#             del ss['paths'][path][method]['responses'][int(response_code)]
-# print(yaml.dump(ss, default_flow_style=False))
-# time.sleep(1)
+hapic.set_context(hapic.ext.pyramid.PyramidContext(configurator))
+print(json.dumps(hapic.generate_doc()))
 
-# hapic.set_context(hapic.ext.bottle.BottleContext())
-hapic.set_context(hapic.ext.pyramid.PyramidContext())
-#import pdb; pdb.set_trace()
-print(json.dumps(hapic.generate_doc(app)))
-app.run('localhost', 8080, True)
-#server = make_server('0.0.0.0', 8080, app.config.make_wsgi_app())
-# server.serve_forever()
+server = make_server('0.0.0.0', 8080, configurator.make_wsgi_app())
+server.serve_forever()

@@ -1,13 +1,22 @@
 # -*- coding: utf-8 -*-
-import json
 import typing
 from http import HTTPStatus
 
-import bottle
+from hapic.processor import RequestParameters
+from hapic.processor import ProcessValidationError
 
-from hapic.exception import OutputValidationException
-# from hapic.hapic import _default_global_error_schema
-from hapic.processor import RequestParameters, ProcessValidationError
+if typing.TYPE_CHECKING:
+    from hapic.decorator import DecoratedController
+
+
+class RouteRepresentation(object):
+    def __init__(
+        self,
+        rule: str,
+        method: str,
+    ) -> None:
+        self.rule = rule
+        self.method = method
 
 
 class ContextInterface(object):
@@ -26,4 +35,18 @@ class ContextInterface(object):
         error: ProcessValidationError,
         http_code: HTTPStatus=HTTPStatus.BAD_REQUEST,
     ) -> typing.Any:
+        raise NotImplementedError()
+
+    def find_route(
+        self,
+        decorated_controller: 'DecoratedController',
+    ) -> RouteRepresentation:
+        raise NotImplementedError()
+
+    def get_swagger_path(self, contextualised_rule: str) -> str:
+        """
+        Return OpenAPI path with context path
+        :param contextualised_rule: path of original context
+        :return: OpenAPI path
+        """
         raise NotImplementedError()
