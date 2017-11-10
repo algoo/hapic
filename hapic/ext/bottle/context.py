@@ -14,7 +14,7 @@ class BottleContext(ContextInterface):
     def get_request_parameters(self, *args, **kwargs) -> RequestParameters:
         return RequestParameters(
             path_parameters=bottle.request.url_args,
-            query_parameters=bottle.request.params.dict,
+            query_parameters=bottle.request.query.dict,
             body_parameters=bottle.request.json,
             form_parameters=bottle.request.forms,
             header_parameters=bottle.request.headers,
