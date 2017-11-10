@@ -173,6 +173,8 @@ def main():
             push_on_github(remote_name)
 
     push_on_pypi()
+    actual_version = extract_version_from_setup_py_content()
+    print('Deployed version: {}'.format(actual_version))
 
 
 if __name__ == '__main__':
