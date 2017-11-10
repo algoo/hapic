@@ -75,8 +75,8 @@ def bottle_generate_operations(
             }
 
     if description.output_file:
-        method_operations.setdefault('produce', []).append(
-            description.output_file.wrapper.output_type
+        method_operations.setdefault('produces', []).extend(
+            description.output_file.wrapper.output_types
         )
         method_operations.setdefault('responses', {})\
             [int(description.output_file.wrapper.default_http_code)] = {
@@ -119,7 +119,7 @@ def bottle_generate_operations(
             })
 
     if description.input_files:
-        method_operations.setdefault('consume', []).append('multipart/form-data')
+        method_operations.setdefault('consumes', []).append('multipart/form-data')
         for field_name, field in description.input_files.wrapper.processor.schema.fields.items():
             method_operations.setdefault('parameters', []).append({
                 'in': 'formData',

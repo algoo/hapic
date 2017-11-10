@@ -9,7 +9,7 @@ from beaker.middleware import SessionMiddleware
 
 import hapic
 from example import HelloResponseSchema, HelloPathSchema, HelloJsonSchema, \
-    ErrorResponseSchema, HelloQuerySchema
+    ErrorResponseSchema, HelloQuerySchema, HelloFileSchema
 from hapic.data import HapicData
 
 # hapic.global_exception_handler(UnAuthExc, StandardErrorSchema)
@@ -96,10 +96,17 @@ class Controllers(object):
             'name': name,
         }
 
+    @hapic.with_api_doc()
+    @hapic.input_files(HelloFileSchema())
+    @hapic.output_file(['image/jpeg'])
+    def hellofile(self, hapic_data: HapicData):
+        return hapic_data.files['myfile']
+
     def bind(self, app):
         app.route('/hello/<name>', callback=self.hello)
         app.route('/hello/<name>', callback=self.hello2, method='POST')
         app.route('/hello3/<name>', callback=self.hello3)
+        app.route('/hellofile', callback=self.hellofile)
 
 app = bottle.Bottle()
 

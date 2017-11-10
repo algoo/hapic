@@ -153,14 +153,15 @@ class Hapic(object):
             return decoration.get_wrapper(func)
         return decorator
 
-    # TODO BS 20171102: Think about possibilities to validate output ? (with mime type, or validator)
+    # TODO BS 20171102: Think about possibilities to validate output ?
+    # (with mime type, or validator)
     def output_file(
         self,
-        output_type: str,
+        output_types: typing.List[str],
         default_http_code: HTTPStatus = HTTPStatus.OK,
     ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Any]:
         decoration = OutputFileControllerWrapper(
-            output_type=output_type,
+            output_types=output_types,
             default_http_code=default_http_code,
         )
 

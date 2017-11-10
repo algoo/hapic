@@ -31,3 +31,7 @@ class HelloJsonSchema(marshmallow.Schema):
         required=True,
         validate=marshmallow.validate.Length(min=3),
     )
+
+
+class HelloFileSchema(marshmallow.Schema):
+    myfile = marshmallow.fields.Raw(required=True)

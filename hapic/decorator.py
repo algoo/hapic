@@ -256,10 +256,10 @@ class OutputHeadersControllerWrapper(OutputControllerWrapper):
 class OutputFileControllerWrapper(ControllerWrapper):
     def __init__(
         self,
-        output_type: str,
+        output_types: typing.List[str],
         default_http_code: HTTPStatus=HTTPStatus.OK,
     ) -> None:
-        self.output_type = output_type
+        self.output_types = output_types
         self.default_http_code = default_http_code
 
 

@@ -27,8 +27,8 @@ class TestDocGeneration(Base):
 
         assert doc
         assert '/upload' in doc['paths']
-        assert 'consume' in doc['paths']['/upload']['post']
-        assert 'multipart/form-data' in doc['paths']['/upload']['post']['consume']
+        assert 'consumes' in doc['paths']['/upload']['post']
+        assert 'multipart/form-data' in doc['paths']['/upload']['post']['consumes']  # nopep8
         assert 'parameters' in doc['paths']['/upload']['post']
         assert {
                    'name': 'file_abc',
@@ -57,8 +57,8 @@ class TestDocGeneration(Base):
 
         assert doc
         assert '/upload' in doc['paths']
-        assert 'consume' in doc['paths']['/upload']['post']
-        assert 'multipart/form-data' in doc['paths']['/upload']['post']['consume']
+        assert 'consumes' in doc['paths']['/upload']['post']
+        assert 'multipart/form-data' in doc['paths']['/upload']['post']['consumes']  # nopep8
         assert 'parameters' in doc['paths']['/upload']['post']
         assert {
                    'name': 'file_abc',
@@ -79,7 +79,7 @@ class TestDocGeneration(Base):
         app = bottle.Bottle()
 
         @hapic.with_api_doc()
-        @hapic.output_file('image/jpeg')
+        @hapic.output_file(['image/jpeg'])
         def my_controller():
             return b'101010100101'
 
@@ -88,8 +88,8 @@ class TestDocGeneration(Base):
 
         assert doc
         assert '/avatar' in doc['paths']
-        assert 'produce' in doc['paths']['/avatar']['get']
-        assert 'image/jpeg' in doc['paths']['/avatar']['get']['produce']
+        assert 'produces' in doc['paths']['/avatar']['get']
+        assert 'image/jpeg' in doc['paths']['/avatar']['get']['produces']
         assert 200 in doc['paths']['/avatar']['get']['responses']
 
     def test_func__input_files_doc__ok__one_file_and_text(self):
@@ -115,8 +115,8 @@ class TestDocGeneration(Base):
 
         assert doc
         assert '/upload' in doc['paths']
-        assert 'consume' in doc['paths']['/upload']['post']
-        assert 'multipart/form-data' in doc['paths']['/upload']['post']['consume']
+        assert 'consumes' in doc['paths']['/upload']['post']
+        assert 'multipart/form-data' in doc['paths']['/upload']['post']['consumes']  # nopep8
         assert 'parameters' in doc['paths']['/upload']['post']
         assert {
                    'name': 'file_abc',
