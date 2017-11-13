@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import typing
 
+from multidict import MultiDict
+
 from hapic.exception import OutputValidationException
 from hapic.exception import ConfigurationException
 
@@ -8,13 +10,25 @@ from hapic.exception import ConfigurationException
 class RequestParameters(object):
     def __init__(
         self,
-        path_parameters,
-        query_parameters,
-        body_parameters,
-        form_parameters,
-        header_parameters,
-        files_parameters,
+        path_parameters: dict,
+        query_parameters: MultiDict,
+        body_parameters: dict,
+        form_parameters: MultiDict,
+        header_parameters: dict,
+        files_parameters: dict,
     ):
+        """
+        :param path_parameters:
+
+        TODO Documenter + example pour chaque
+        ex: /api/user/<user_id> -> {'user_id': 'abc'}
+        ex: /api/user/<user_id> -> {'user_id': 'abc'}
+        ?resource_id=abc&resource_id=def ->
+
+        """
+        assert isinstance(query_parameters, MultiDict)
+        assert isinstance(form_parameters, MultiDict)
+
         self.path_parameters = path_parameters
         self.query_parameters = query_parameters
         self.body_parameters = body_parameters

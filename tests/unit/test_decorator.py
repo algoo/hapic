@@ -3,9 +3,11 @@ import typing
 from http import HTTPStatus
 
 import marshmallow
+from multidict import MultiDict
 
 from hapic.data import HapicData
 from hapic.decorator import ExceptionHandlerControllerWrapper
+from hapic.decorator import InputQueryControllerWrapper
 from hapic.decorator import InputControllerWrapper
 from hapic.decorator import InputOutputControllerWrapper
 from hapic.decorator import OutputControllerWrapper
@@ -21,6 +23,22 @@ from tests.base import MyContext
 class MyProcessor(ProcessorInterface):
     def process(self, value):
         return value + 1
+
+    def get_validation_error(
+        self,
+        request_context: RequestParameters,
+    ) -> ProcessValidationError:
+        return ProcessValidationError(
+            details={
+                'original_request_context': request_context,
+            },
+            message='ERROR',
+        )
+
+
+class MySimpleProcessor(ProcessorInterface):
+    def process(self, value):
+        return value
 
     def get_validation_error(
         self,
@@ -115,9 +133,11 @@ class TestControllerWrapper(Base):
 
 class TestInputControllerWrapper(Base):
     def test_unit__input_data_wrapping__ok__nominal_case(self):
-        context = MyContext(fake_query_parameters={
-            'foo': 'bar',
-        })
+        context = MyContext(fake_query_parameters=MultiDict(
+            (
+                ('foo', 'bar',),
+            )
+        ))
         processor = MyProcessor()
         wrapper = MyInputQueryControllerWrapper(context, processor)
 
@@ -131,6 +151,55 @@ class TestInputControllerWrapper(Base):
 
         result = func(42)
         assert result == 42
+
+    def test_unit__multi_query_param_values__ok__use_as_list(self):
+        context = MyContext(fake_query_parameters=MultiDict(
+            (
+                ('user_id', 'abc'),
+                ('user_id', 'def'),
+            ),
+        ))
+        processor = MySimpleProcessor()
+        wrapper = InputQueryControllerWrapper(
+            context,
+            processor,
+            as_list=['user_id'],
+        )
+
+        @wrapper.get_wrapper
+        def func(hapic_data=None):
+            assert hapic_data
+            assert isinstance(hapic_data, HapicData)
+            # see MyControllerWrapper#before_wrapped_func
+            assert ['abc', 'def'] == hapic_data.query.get('user_id')
+            return hapic_data.query.get('user_id')
+
+        result = func()
+        assert result == ['abc', 'def']
+
+    def test_unit__multi_query_param_values__ok__without_as_list(self):
+        context = MyContext(fake_query_parameters=MultiDict(
+            (
+                ('user_id', 'abc'),
+                ('user_id', 'def'),
+            ),
+        ))
+        processor = MySimpleProcessor()
+        wrapper = InputQueryControllerWrapper(
+            context,
+            processor,
+        )
+
+        @wrapper.get_wrapper
+        def func(hapic_data=None):
+            assert hapic_data
+            assert isinstance(hapic_data, HapicData)
+            # see MyControllerWrapper#before_wrapped_func
+            assert 'abc' == hapic_data.query.get('user_id')
+            return hapic_data.query.get('user_id')
+
+        result = func()
+        assert result == 'abc'
 
 
 class TestOutputControllerWrapper(Base):

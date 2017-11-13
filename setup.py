@@ -12,6 +12,7 @@ install_requires = [
     'bottle',
     'marshmallow',
     'apispec==0.25.4-algoo',
+    'multidict'
 ]
 dependency_links = [
     'git+https://github.com/algoo/apispec.git@dev-algoo#egg=apispec-0.25.4-algoo'  # nopep8

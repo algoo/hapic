@@ -2,6 +2,8 @@
 import typing
 from http import HTTPStatus
 
+from multidict import MultiDict
+
 from hapic.context import ContextInterface
 from hapic.processor import RequestParameters
 from hapic.processor import ProcessValidationError
@@ -22,9 +24,9 @@ class MyContext(ContextInterface):
         fake_files_parameters=None,
     ) -> None:
         self.fake_path_parameters = fake_path_parameters or {}
-        self.fake_query_parameters = fake_query_parameters or {}
+        self.fake_query_parameters = fake_query_parameters or MultiDict()
         self.fake_body_parameters = fake_body_parameters or {}
-        self.fake_form_parameters = fake_form_parameters or {}
+        self.fake_form_parameters = fake_form_parameters or MultiDict()
         self.fake_header_parameters = fake_header_parameters or {}
         self.fake_files_parameters = fake_files_parameters or {}
 

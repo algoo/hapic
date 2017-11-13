@@ -6,6 +6,7 @@ from http import HTTPStatus
 # TODO BS 20171010: bottle specific !  # see #5
 import marshmallow
 from bottle import HTTPResponse
+from multidict import MultiDict
 
 from hapic.data import HapicData
 from hapic.description import ControllerDescription
@@ -270,18 +271,53 @@ class InputPathControllerWrapper(InputControllerWrapper):
     ) -> None:
         hapic_data.path = processed_data
 
-    def get_parameters_data(self, request_parameters: RequestParameters) -> dict:
+    def get_parameters_data(self, request_parameters: RequestParameters) -> dict:  # nopep8
         return request_parameters.path_parameters
 
 
 class InputQueryControllerWrapper(InputControllerWrapper):
+    def __init__(
+        self,
+        context: typing.Union[ContextInterface, typing.Callable[[], ContextInterface]],  # nopep8
+        processor: ProcessorInterface,
+        error_http_code: HTTPStatus=HTTPStatus.BAD_REQUEST,
+        default_http_code: HTTPStatus=HTTPStatus.OK,
+        as_list: typing.List[str]=None
+    ) -> None:
+        super().__init__(
+            context,
+            processor,
+            error_http_code,
+            default_http_code,
+        )
+        self.as_list = as_list or []  # FDV
+
     def update_hapic_data(
         self, hapic_data: HapicData,
         processed_data: typing.Any,
     ) -> None:
         hapic_data.query = processed_data
 
-    def get_parameters_data(self, request_parameters: RequestParameters) -> dict:
+    def get_parameters_data(self, request_parameters: RequestParameters) -> MultiDict:  # nopep8
+        # Parameters are updated considering eventual as_list parameters
+        if self.as_list:
+            query_parameters = MultiDict()
+            for parameter_name in request_parameters.query_parameters.keys():
+                if parameter_name in query_parameters:
+                    continue
+
+                if parameter_name in self.as_list:
+                    query_parameters[parameter_name] = \
+                        request_parameters.query_parameters.getall(
+                            parameter_name,
+                        )
+                else:
+                    query_parameters[parameter_name] = \
+                        request_parameters.query_parameters.get(
+                            parameter_name,
+                        )
+            return query_parameters
+
         return request_parameters.query_parameters
 
 
@@ -292,7 +328,7 @@ class InputBodyControllerWrapper(InputControllerWrapper):
     ) -> None:
         hapic_data.body = processed_data
 
-    def get_parameters_data(self, request_parameters: RequestParameters) -> dict:
+    def get_parameters_data(self, request_parameters: RequestParameters) -> dict:  # nopep8
         return request_parameters.body_parameters
 
 
@@ -303,7 +339,7 @@ class InputHeadersControllerWrapper(InputControllerWrapper):
     ) -> None:
         hapic_data.headers = processed_data
 
-    def get_parameters_data(self, request_parameters: RequestParameters) -> dict:
+    def get_parameters_data(self, request_parameters: RequestParameters) -> dict:  # nopep8
         return request_parameters.header_parameters
 
 
@@ -314,7 +350,7 @@ class InputFormsControllerWrapper(InputControllerWrapper):
     ) -> None:
         hapic_data.forms = processed_data
 
-    def get_parameters_data(self, request_parameters: RequestParameters) -> dict:
+    def get_parameters_data(self, request_parameters: RequestParameters) -> dict:  # nopep8
         return request_parameters.form_parameters
 
 
@@ -325,7 +361,7 @@ class InputFilesControllerWrapper(InputControllerWrapper):
     ) -> None:
         hapic_data.files = processed_data
 
-    def get_parameters_data(self, request_parameters: RequestParameters) -> dict:
+    def get_parameters_data(self, request_parameters: RequestParameters) -> dict:  # nopep8
         return request_parameters.files_parameters
 
 
