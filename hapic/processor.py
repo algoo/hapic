@@ -18,13 +18,33 @@ class RequestParameters(object):
         files_parameters: dict,
     ):
         """
-        :param path_parameters:
+        :param path_parameters: Parameters found in path, example:
+            (for '/users/<user_id>') '/users/42' =>{'user_id': '42'}
 
-        TODO Documenter + example pour chaque
-        ex: /api/user/<user_id> -> {'user_id': 'abc'}
-        ex: /api/user/<user_id> -> {'user_id': 'abc'}
-        ?resource_id=abc&resource_id=def ->
+        :param query_parameters: Parameters found in query, example:
+            '/foo?group_id=1&group_id=2&deleted=false' => MultiDict(
+                (
+                    ('group_id', '1'),
+                    ('group_id', '2'),
+                    ('deleted', 'false'),
+                )
+            )
 
+        :param body_parameters: Body content in dict format, example:
+            JSON body '{"user": {"name":"bob"}}' => {'user': {'name':'bob'}}
+
+        :param form_parameters: Form parameters, example:
+            <input type="text" name="name" value="bob"/> => {'name': 'bob'}
+
+        :param header_parameters: headers in dict format, example:
+            Connection: keep-alive
+            Content-Type: text/plain => {
+                                            'Connection': 'keep-alive',
+                                            'Content-Type': 'text/plain',
+                                        }
+
+        :param files_parameters: TODO BS 20171113: Specify type of file
+        storage ?
         """
         assert isinstance(query_parameters, MultiDict)
         assert isinstance(form_parameters, MultiDict)
