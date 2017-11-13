@@ -46,9 +46,6 @@ class RequestParameters(object):
         :param files_parameters: TODO BS 20171113: Specify type of file
         storage ?
         """
-        assert isinstance(query_parameters, MultiDict)
-        assert isinstance(form_parameters, MultiDict)
-
         self.path_parameters = path_parameters
         self.query_parameters = query_parameters
         self.body_parameters = body_parameters
