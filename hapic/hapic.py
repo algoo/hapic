@@ -225,6 +225,7 @@ class Hapic(object):
         context: ContextInterface = None,
         error_http_code: HTTPStatus = HTTPStatus.BAD_REQUEST,
         default_http_code: HTTPStatus = HTTPStatus.OK,
+        as_list: typing.List[str]=None,
     ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Any]:
         processor = processor or MarshmallowInputProcessor()
         processor.schema = schema
@@ -235,6 +236,7 @@ class Hapic(object):
             processor=processor,
             error_http_code=error_http_code,
             default_http_code=default_http_code,
+            as_list=as_list,
         )
 
         def decorator(func):
