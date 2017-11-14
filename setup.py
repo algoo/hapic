@@ -37,7 +37,7 @@ setup(
     long_description='',
 
     # The project's main homepage.
-    url='http://gitlab.algoo.fr:10080/algoo/hapic.git',
+    url='https://github.com/algoo/hapic',
 
     # Author details
     author='Algoo Development Team',
