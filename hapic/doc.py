@@ -199,6 +199,12 @@ class DocGenerator(object):
                 controller.description,
             )
 
+            # TODO BS 20171114: TMP code waiting refact of doc
+            doc_string = controller.reference.get_doc_string()
+            if doc_string:
+                for method in operations.keys():
+                    operations[method]['description'] = doc_string
+
             path = Path(path=swagger_path, operations=operations)
 
             if swagger_path in paths:

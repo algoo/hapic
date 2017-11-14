@@ -124,3 +124,26 @@ class TestDocGeneration(Base):
                    'in': 'formData',
                    'type': 'file',
                } in doc['paths']['/upload']['post']['parameters']
+
+    def test_func__docstring__ok__simple_case(self):
+        hapic = Hapic()
+        hapic.set_context(MyContext())
+        app = bottle.Bottle()
+
+        # TODO BS 20171113: Make this test non-bottle
+        @hapic.with_api_doc()
+        def my_controller(hapic_data=None):
+            """
+            Hello doc
+            """
+            assert hapic_data
+            assert hapic_data.files
+
+        app.route('/upload', method='POST', callback=my_controller)
+        doc = hapic.generate_doc(app)
+
+        assert doc.get('paths')
+        assert '/upload' in doc['paths']
+        assert 'post' in doc['paths']['/upload']
+        assert 'description' in doc['paths']['/upload']['post']
+        assert 'Hello doc' == doc['paths']['/upload']['post']['description']

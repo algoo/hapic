@@ -45,6 +45,15 @@ class ControllerReference(object):
         self.wrapped = wrapped
         self.token = token
 
+    def get_doc_string(self) -> str:
+        if self.wrapper.__doc__:
+            return self.wrapper.__doc__.strip()
+
+        if self.wrapped.__doc__:
+            return self.wrapper.__doc__.strip()
+
+        return ''
+
 
 class ControllerWrapper(object):
     def before_wrapped_func(
