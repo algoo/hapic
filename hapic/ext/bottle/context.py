@@ -4,6 +4,7 @@ import typing
 from http import HTTPStatus
 
 import bottle
+from multidict import MultiDict
 
 from hapic.context import ContextInterface
 from hapic.exception import OutputValidationException
@@ -13,9 +14,9 @@ from hapic.processor import RequestParameters, ProcessValidationError
 class BottleContext(ContextInterface):
     def get_request_parameters(self, *args, **kwargs) -> RequestParameters:
         path_parameters = dict(bottle.request.url_args)
-        query_parameters = bottle.MultiDict(bottle.request.query.allitems())
+        query_parameters = MultiDict(bottle.request.query.allitems())
         body_parameters = dict(bottle.request.json or {})
-        form_parameters = bottle.MultiDict(bottle.request.forms.allitems())
+        form_parameters = MultiDict(bottle.request.forms.allitems())
         header_parameters = dict(bottle.request.headers)
         files_parameters = dict(bottle.request.files)
 
