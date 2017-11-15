@@ -6,6 +6,7 @@ from http import HTTPStatus
 # TODO BS 20171010: bottle specific !  # see #5
 import marshmallow
 from bottle import HTTPResponse
+from multidict import MultiDict
 
 from hapic.data import HapicData
 from hapic.description import ControllerDescription
@@ -43,6 +44,15 @@ class ControllerReference(object):
         self.wrapper = wrapper
         self.wrapped = wrapped
         self.token = token
+
+    def get_doc_string(self) -> str:
+        if self.wrapper.__doc__:
+            return self.wrapper.__doc__.strip()
+
+        if self.wrapped.__doc__:
+            return self.wrapper.__doc__.strip()
+
+        return ''
 
 
 class ControllerWrapper(object):
@@ -150,6 +160,11 @@ class InputControllerWrapper(InputOutputControllerWrapper):
         self,
         request_parameters: RequestParameters,
     ) -> typing.Any:
+        parameters_data = self.get_parameters_data(request_parameters)
+        processed_data = self.processor.process(parameters_data)
+        return processed_data
+
+    def get_parameters_data(self, request_parameters: RequestParameters) -> dict:
         raise NotImplementedError()
 
     def update_hapic_data(
@@ -163,9 +178,8 @@ class InputControllerWrapper(InputOutputControllerWrapper):
         self,
         request_parameters: RequestParameters,
     ) -> typing.Any:
-        error = self.processor.get_validation_error(
-            request_parameters.body_parameters,
-        )
+        parameters_data = self.get_parameters_data(request_parameters)
+        error = self.processor.get_validation_error(parameters_data)
         error_response = self.context.get_validation_error_response(
             error,
             http_code=self.error_http_code,
@@ -249,6 +263,16 @@ class OutputHeadersControllerWrapper(OutputControllerWrapper):
     pass
 
 
+class OutputFileControllerWrapper(ControllerWrapper):
+    def __init__(
+        self,
+        output_types: typing.List[str],
+        default_http_code: HTTPStatus=HTTPStatus.OK,
+    ) -> None:
+        self.output_types = output_types
+        self.default_http_code = default_http_code
+
+
 class InputPathControllerWrapper(InputControllerWrapper):
     def update_hapic_data(
         self, hapic_data: HapicData,
@@ -256,31 +280,54 @@ class InputPathControllerWrapper(InputControllerWrapper):
     ) -> None:
         hapic_data.path = processed_data
 
-    def get_processed_data(
-        self,
-        request_parameters: RequestParameters,
-    ) -> typing.Any:
-        processed_data = self.processor.process(
-            request_parameters.path_parameters,
-        )
-        return processed_data
+    def get_parameters_data(self, request_parameters: RequestParameters) -> dict:  # nopep8
+        return request_parameters.path_parameters
 
 
 class InputQueryControllerWrapper(InputControllerWrapper):
+    def __init__(
+        self,
+        context: typing.Union[ContextInterface, typing.Callable[[], ContextInterface]],  # nopep8
+        processor: ProcessorInterface,
+        error_http_code: HTTPStatus=HTTPStatus.BAD_REQUEST,
+        default_http_code: HTTPStatus=HTTPStatus.OK,
+        as_list: typing.List[str]=None
+    ) -> None:
+        super().__init__(
+            context,
+            processor,
+            error_http_code,
+            default_http_code,
+        )
+        self.as_list = as_list or []  # FDV
+
     def update_hapic_data(
         self, hapic_data: HapicData,
         processed_data: typing.Any,
     ) -> None:
         hapic_data.query = processed_data
 
-    def get_processed_data(
-        self,
-        request_parameters: RequestParameters,
-    ) -> typing.Any:
-        processed_data = self.processor.process(
-            request_parameters.query_parameters,
-        )
-        return processed_data
+    def get_parameters_data(self, request_parameters: RequestParameters) -> MultiDict:  # nopep8
+        # Parameters are updated considering eventual as_list parameters
+        if self.as_list:
+            query_parameters = MultiDict()
+            for parameter_name in request_parameters.query_parameters.keys():
+                if parameter_name in query_parameters:
+                    continue
+
+                if parameter_name in self.as_list:
+                    query_parameters[parameter_name] = \
+                        request_parameters.query_parameters.getall(
+                            parameter_name,
+                        )
+                else:
+                    query_parameters[parameter_name] = \
+                        request_parameters.query_parameters.get(
+                            parameter_name,
+                        )
+            return query_parameters
+
+        return request_parameters.query_parameters
 
 
 class InputBodyControllerWrapper(InputControllerWrapper):
@@ -290,14 +337,8 @@ class InputBodyControllerWrapper(InputControllerWrapper):
     ) -> None:
         hapic_data.body = processed_data
 
-    def get_processed_data(
-        self,
-        request_parameters: RequestParameters,
-    ) -> typing.Any:
-        processed_data = self.processor.process(
-            request_parameters.body_parameters,
-        )
-        return processed_data
+    def get_parameters_data(self, request_parameters: RequestParameters) -> dict:  # nopep8
+        return request_parameters.body_parameters
 
 
 class InputHeadersControllerWrapper(InputControllerWrapper):
@@ -307,14 +348,8 @@ class InputHeadersControllerWrapper(InputControllerWrapper):
     ) -> None:
         hapic_data.headers = processed_data
 
-    def get_processed_data(
-        self,
-        request_parameters: RequestParameters,
-    ) -> typing.Any:
-        processed_data = self.processor.process(
-            request_parameters.header_parameters,
-        )
-        return processed_data
+    def get_parameters_data(self, request_parameters: RequestParameters) -> dict:  # nopep8
+        return request_parameters.header_parameters
 
 
 class InputFormsControllerWrapper(InputControllerWrapper):
@@ -324,14 +359,19 @@ class InputFormsControllerWrapper(InputControllerWrapper):
     ) -> None:
         hapic_data.forms = processed_data
 
-    def get_processed_data(
-        self,
-        request_parameters: RequestParameters,
-    ) -> typing.Any:
-        processed_data = self.processor.process(
-            request_parameters.form_parameters,
-        )
-        return processed_data
+    def get_parameters_data(self, request_parameters: RequestParameters) -> dict:  # nopep8
+        return request_parameters.form_parameters
+
+
+class InputFilesControllerWrapper(InputControllerWrapper):
+    def update_hapic_data(
+        self, hapic_data: HapicData,
+        processed_data: typing.Any,
+    ) -> None:
+        hapic_data.files = processed_data
+
+    def get_parameters_data(self, request_parameters: RequestParameters) -> dict:  # nopep8
+        return request_parameters.files_parameters
 
 
 class ExceptionHandlerControllerWrapper(ControllerWrapper):

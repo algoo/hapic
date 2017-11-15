@@ -19,7 +19,7 @@ def find_bottle_route(
     app: bottle.Bottle,
 ):
     if not app.routes:
-        raise NoRoutesException('There is no routes in yout bottle app')
+        raise NoRoutesException('There is no routes in your bottle app')
 
     reference = decorated_controller.reference
     for route in app.routes:
@@ -71,6 +71,15 @@ def bottle_generate_operations(
                 }
             }
 
+    if description.output_file:
+        method_operations.setdefault('produces', []).extend(
+            description.output_file.wrapper.output_types
+        )
+        method_operations.setdefault('responses', {})\
+            [int(description.output_file.wrapper.default_http_code)] = {
+            'description': str(description.output_file.wrapper.default_http_code),  # nopep8
+        }
+
     if description.errors:
         for error in description.errors:
             schema_class = type(error.wrapper.schema)
@@ -106,6 +115,16 @@ def bottle_generate_operations(
                 'type': schema['type']
             })
 
+    if description.input_files:
+        method_operations.setdefault('consumes', []).append('multipart/form-data')
+        for field_name, field in description.input_files.wrapper.processor.schema.fields.items():
+            method_operations.setdefault('parameters', []).append({
+                'in': 'formData',
+                'name': field_name,
+                'required': field.required,
+                'type': 'file',
+            })
+
     operations = {
         route.method.lower(): method_operations,
     }
@@ -126,6 +145,7 @@ class DocGenerator(object):
                 # 'apispec.ext.bottle',
                 'apispec.ext.marshmallow',
             ],
+            schema_name_resolver_callable=generate_schema_name,
         )
 
         schemas = []
@@ -168,6 +188,12 @@ class DocGenerator(object):
                 controller.description,
             )
 
+            # TODO BS 20171114: TMP code waiting refact of doc
+            doc_string = controller.reference.get_doc_string()
+            if doc_string:
+                for method in operations.keys():
+                    operations[method]['description'] = doc_string
+
             path = Path(path=swagger_path, operations=operations)
 
             if swagger_path in paths:
@@ -178,3 +204,8 @@ class DocGenerator(object):
             spec.add_path(path)
 
         return spec.to_dict()
+
+
+# TODO BS 20171109: Must take care of already existing definition names
+def generate_schema_name(schema):
+    return schema.__name__

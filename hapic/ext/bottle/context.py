@@ -5,6 +5,7 @@ import typing
 from http import HTTPStatus
 
 import bottle
+from multidict import MultiDict
 
 from hapic.context import ContextInterface
 from hapic.exception import OutputValidationException
@@ -16,12 +17,20 @@ BOTTLE_RE_PATH_URL = re.compile(r'<(?:[^:<>]+:)?([^<>]+)>')
 
 class BottleContext(ContextInterface):
     def get_request_parameters(self, *args, **kwargs) -> RequestParameters:
+        path_parameters = dict(bottle.request.url_args)
+        query_parameters = MultiDict(bottle.request.query.allitems())
+        body_parameters = dict(bottle.request.json or {})
+        form_parameters = MultiDict(bottle.request.forms.allitems())
+        header_parameters = dict(bottle.request.headers)
+        files_parameters = dict(bottle.request.files)
+
         return RequestParameters(
-            path_parameters=bottle.request.url_args,
-            query_parameters=bottle.request.params, ## query?
-            body_parameters=bottle.request.json,
-            form_parameters=bottle.request.forms,
-            header_parameters=bottle.request.headers,
+            path_parameters=path_parameters,
+            query_parameters=query_parameters, ## query?
+            body_parameters=body_parameters,
+            form_parameters=form_parameters,
+            header_parameters=header_parameters,
+            files_parameters=files_parameters,
         )
 
     def get_response(

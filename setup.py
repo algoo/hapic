@@ -11,10 +11,17 @@ install_requires = [
     # TODO: marshmallow an extension too ? see #2
     'bottle',
     'marshmallow',
-    'apispec',
+    'apispec==0.25.4-algoo',
+    'multidict'
+]
+dependency_links = [
+    'git+https://github.com/algoo/apispec.git@dev-algoo#egg=apispec-0.25.4-algoo'  # nopep8
 ]
 tests_require = [
     'pytest',
+]
+dev_require = [
+    'requests',
 ]
 
 setup(
@@ -23,14 +30,14 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='0.4.2',
+    version='0.14',
 
     description='HTTP api input/output manager',
     # long_description=long_description,
     long_description='',
 
     # The project's main homepage.
-    url='http://gitlab.algoo.fr:10080/algoo/hapic.git',
+    url='https://github.com/algoo/hapic',
 
     # Author details
     author='Algoo Development Team',
@@ -55,6 +62,7 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=install_requires,
+    dependency_links=dependency_links,
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,
@@ -62,6 +70,7 @@ setup(
     # $ pip install -e ".[test]"
     extras_require={
         'test': tests_require,
+        'dev': dev_require,
     },
 
     # If there are data files included in your packages that need to be
