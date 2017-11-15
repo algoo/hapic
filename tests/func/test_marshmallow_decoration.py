@@ -11,9 +11,12 @@ from tests.base import MyContext
 class TestMarshmallowDecoration(Base):
     def test_unit__input_files__ok__file_is_present(self):
         hapic = Hapic()
-        hapic.set_context(MyContext(fake_files_parameters={
-            'file_abc': '10101010101',
-        }))
+        hapic.set_context(MyContext(
+            app=None,
+            fake_files_parameters={
+                'file_abc': '10101010101',
+            }
+        ))
 
         class MySchema(marshmallow.Schema):
             file_abc = marshmallow.fields.Raw(required=True)
@@ -30,9 +33,12 @@ class TestMarshmallowDecoration(Base):
 
     def test_unit__input_files__ok__file_is_not_present(self):
         hapic = Hapic()
-        hapic.set_context(MyContext(fake_files_parameters={
-            # No file here
-        }))
+        hapic.set_context(MyContext(
+            app=None,
+            fake_files_parameters={
+                # No file here
+            }
+        ))
 
         class MySchema(marshmallow.Schema):
             file_abc = marshmallow.fields.Raw(required=True)
@@ -53,9 +59,12 @@ class TestMarshmallowDecoration(Base):
 
     def test_unit__input_files__ok__file_is_empty_string(self):
         hapic = Hapic()
-        hapic.set_context(MyContext(fake_files_parameters={
-            'file_abc': '',
-        }))
+        hapic.set_context(MyContext(
+            app=None,
+            fake_files_parameters={
+                'file_abc': '',
+            }
+        ))
 
         class MySchema(marshmallow.Schema):
             file_abc = marshmallow.fields.Raw(required=True)

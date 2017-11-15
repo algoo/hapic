@@ -90,7 +90,7 @@ class MySchema(marshmallow.Schema):
 
 class TestControllerWrapper(Base):
     def test_unit__base_controller_wrapper__ok__no_behaviour(self):
-        context = MyContext()
+        context = MyContext(app=None)
         processor = MyProcessor()
         wrapper = InputOutputControllerWrapper(context, processor)
 
@@ -102,7 +102,7 @@ class TestControllerWrapper(Base):
         assert result == 42
 
     def test_unit__base_controller__ok__replaced_response(self):
-        context = MyContext()
+        context = MyContext(app=None)
         processor = MyProcessor()
         wrapper = MyControllerWrapper(context, processor)
 
@@ -116,7 +116,7 @@ class TestControllerWrapper(Base):
         assert {'error_response': 'we are testing'} == result
 
     def test_unit__controller_wrapper__ok__overload_input(self):
-        context = MyContext()
+        context = MyContext(app=None)
         processor = MyProcessor()
         wrapper = MyControllerWrapper(context, processor)
 
@@ -133,11 +133,14 @@ class TestControllerWrapper(Base):
 
 class TestInputControllerWrapper(Base):
     def test_unit__input_data_wrapping__ok__nominal_case(self):
-        context = MyContext(fake_query_parameters=MultiDict(
-            (
-                ('foo', 'bar',),
+        context = MyContext(
+            app=None,
+            fake_query_parameters=MultiDict(
+                (
+                    ('foo', 'bar',),
+                )
             )
-        ))
+        )
         processor = MyProcessor()
         wrapper = MyInputQueryControllerWrapper(context, processor)
 
@@ -153,12 +156,15 @@ class TestInputControllerWrapper(Base):
         assert result == 42
 
     def test_unit__multi_query_param_values__ok__use_as_list(self):
-        context = MyContext(fake_query_parameters=MultiDict(
-            (
-                ('user_id', 'abc'),
-                ('user_id', 'def'),
-            ),
-        ))
+        context = MyContext(
+            app=None,
+            fake_query_parameters=MultiDict(
+                (
+                    ('user_id', 'abc'),
+                    ('user_id', 'def'),
+                ),
+            )
+        )
         processor = MySimpleProcessor()
         wrapper = InputQueryControllerWrapper(
             context,
@@ -178,12 +184,15 @@ class TestInputControllerWrapper(Base):
         assert result == ['abc', 'def']
 
     def test_unit__multi_query_param_values__ok__without_as_list(self):
-        context = MyContext(fake_query_parameters=MultiDict(
-            (
-                ('user_id', 'abc'),
-                ('user_id', 'def'),
-            ),
-        ))
+        context = MyContext(
+            app=None,
+            fake_query_parameters=MultiDict(
+                (
+                    ('user_id', 'abc'),
+                    ('user_id', 'def'),
+                ),
+            )
+        )
         processor = MySimpleProcessor()
         wrapper = InputQueryControllerWrapper(
             context,
@@ -204,7 +213,7 @@ class TestInputControllerWrapper(Base):
 
 class TestOutputControllerWrapper(Base):
     def test_unit__output_data_wrapping__ok__nominal_case(self):
-        context = MyContext()
+        context = MyContext(app=None)
         processor = MyProcessor()
         wrapper = OutputControllerWrapper(context, processor)
 
@@ -222,7 +231,7 @@ class TestOutputControllerWrapper(Base):
                } == result
 
     def test_unit__output_data_wrapping__fail__error_response(self):
-        context = MyContext()
+        context = MyContext(app=None)
         processor = MarshmallowOutputProcessor()
         processor.schema = MySchema()
         wrapper = OutputControllerWrapper(context, processor)
@@ -244,7 +253,7 @@ class TestOutputControllerWrapper(Base):
 
 class TestExceptionHandlerControllerWrapper(Base):
     def test_unit__exception_handled__ok__nominal_case(self):
-        context = MyContext()
+        context = MyContext(app=None)
         wrapper = ExceptionHandlerControllerWrapper(
             ZeroDivisionError,
             context,
@@ -272,7 +281,7 @@ class TestExceptionHandlerControllerWrapper(Base):
                 super().__init__(*args, **kwargs)
                 self.error_dict = {}
 
-        context = MyContext()
+        context = MyContext(app=None)
         wrapper = ExceptionHandlerControllerWrapper(
             MyException,
             context,

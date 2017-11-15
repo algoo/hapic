@@ -1,46 +1,14 @@
 # -*- coding: utf-8 -*-
 import typing
 
-import bottle
 from apispec import APISpec
 from apispec import Path
 from apispec.ext.marshmallow.swagger import schema2jsonschema
 
-from hapic.context import ContextInterface, RouteRepresentation
-from hapic.decorator import DECORATION_ATTRIBUTE_NAME
+from hapic.context import ContextInterface
+from hapic.context import RouteRepresentation
 from hapic.decorator import DecoratedController
 from hapic.description import ControllerDescription
-from hapic.exception import NoRoutesException
-from hapic.exception import RouteNotFound
-
-
-def find_bottle_route(
-    decorated_controller: DecoratedController,
-    app: bottle.Bottle,
-):
-    if not app.routes:
-        raise NoRoutesException('There is no routes in your bottle app')
-
-    reference = decorated_controller.reference
-    for route in app.routes:
-        route_token = getattr(
-            route.callback,
-            DECORATION_ATTRIBUTE_NAME,
-            None,
-        )
-
-        match_with_wrapper = route.callback == reference.wrapper
-        match_with_wrapped = route.callback == reference.wrapped
-        match_with_token = route_token == reference.token
-
-        if match_with_wrapper or match_with_wrapped or match_with_token:
-            return route
-    # TODO BS 20171010: Raise exception or print error ? see #10
-    raise RouteNotFound(
-        'Decorated route "{}" was not found in bottle routes'.format(
-            decorated_controller.name,
-        )
-    )
 
 
 def bottle_generate_operations(

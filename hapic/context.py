@@ -14,9 +14,11 @@ class RouteRepresentation(object):
         self,
         rule: str,
         method: str,
+        original_route_object: typing.Any=None,
     ) -> None:
         self.rule = rule
         self.method = method
+        self.original_route_object = original_route_object
 
 
 class ContextInterface(object):

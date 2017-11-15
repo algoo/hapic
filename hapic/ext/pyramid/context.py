@@ -4,10 +4,6 @@ import re
 import typing
 from http import HTTPStatus
 
-from pyramid.request import Request
-from pyramid.response import Response
-from pyramid.config import Configurator
-
 from hapic.context import ContextInterface
 from hapic.context import RouteRepresentation
 from hapic.decorator import DecoratedController
@@ -17,17 +13,20 @@ from hapic.exception import OutputValidationException
 from hapic.processor import RequestParameters
 from hapic.processor import ProcessValidationError
 
+if typing.TYPE_CHECKING:
+    from pyramid.response import Response
+    from pyramid.config import Configurator
+
 # Bottle regular expression to locate url parameters
 PYRAMID_RE_PATH_URL = re.compile(r'')
 
 
 class PyramidContext(ContextInterface):
-    def __init__(self, configurator: Configurator):
+    def __init__(self, configurator: 'Configurator'):
         self.configurator = configurator
 
     def get_request_parameters(self, *args, **kwargs) -> RequestParameters:
         req = args[-1]  # TODO : Check
-        assert isinstance(req, Request)
         # TODO : move this code to check_json
         # same idea as in : https://bottlepy.org/docs/dev/_modules/bottle.html#BaseRequest.json
         if req.body and req.content_type in ('application/json', 'application/json-rpc'):
@@ -48,7 +47,8 @@ class PyramidContext(ContextInterface):
         self,
         response: dict,
         http_code: int,
-    ) -> Response:
+    ) -> 'Response':
+        from pyramid.response import Response
         return Response(
             body=json.dumps(response),
             headers=[
@@ -63,6 +63,7 @@ class PyramidContext(ContextInterface):
         http_code: HTTPStatus=HTTPStatus.BAD_REQUEST,
     ) -> typing.Any:
         # TODO BS 20171010: Manage error schemas, see #4
+        from pyramid.response import Response
         from hapic.hapic import _default_global_error_schema
         unmarshall = _default_global_error_schema.dump(error)
         if unmarshall.errors:
@@ -109,13 +110,9 @@ class PyramidContext(ContextInterface):
                 route_method = route_intr[0].get('request_methods')[0]
 
                 return RouteRepresentation(
-                    # TODO BS 20171107: ce code n'es pas du tout finis
-                    # (import bottle)
-                    rule=BOTTLE_RE_PATH_URL.sub(
-                        r'{\1}',
-                        route_pattern,
-                    ),
+                    rule=self.get_swagger_path(route_pattern),
                     method=route_method,
+                    original_route_object=route_intr[0],
                 )
 
     def get_swagger_path(self, contextualised_rule: str) -> str:

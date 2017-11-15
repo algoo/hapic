@@ -10,8 +10,8 @@ from tests.base import MyContext
 class TestDocGeneration(Base):
     def test_func__input_files_doc__ok__one_file(self):
         hapic = Hapic()
-        hapic.set_context(MyContext())
         app = bottle.Bottle()
+        hapic.set_context(MyContext(app=app))
 
         class MySchema(marshmallow.Schema):
             file_abc = marshmallow.fields.Raw(required=True)
@@ -23,7 +23,7 @@ class TestDocGeneration(Base):
             assert hapic_data.files
 
         app.route('/upload', method='POST', callback=my_controller)
-        doc = hapic.generate_doc(app)
+        doc = hapic.generate_doc()
 
         assert doc
         assert '/upload' in doc['paths']
@@ -39,8 +39,8 @@ class TestDocGeneration(Base):
 
     def test_func__input_files_doc__ok__two_file(self):
         hapic = Hapic()
-        hapic.set_context(MyContext())
         app = bottle.Bottle()
+        hapic.set_context(MyContext(app=app))
 
         class MySchema(marshmallow.Schema):
             file_abc = marshmallow.fields.Raw(required=True)
@@ -53,7 +53,7 @@ class TestDocGeneration(Base):
             assert hapic_data.files
 
         app.route('/upload', method='POST', callback=my_controller)
-        doc = hapic.generate_doc(app)
+        doc = hapic.generate_doc()
 
         assert doc
         assert '/upload' in doc['paths']
@@ -75,8 +75,8 @@ class TestDocGeneration(Base):
 
     def test_func__output_file_doc__ok__nominal_case(self):
         hapic = Hapic()
-        hapic.set_context(MyContext())
         app = bottle.Bottle()
+        hapic.set_context(MyContext(app=app))
 
         @hapic.with_api_doc()
         @hapic.output_file(['image/jpeg'])
@@ -84,7 +84,7 @@ class TestDocGeneration(Base):
             return b'101010100101'
 
         app.route('/avatar', method='GET', callback=my_controller)
-        doc = hapic.generate_doc(app)
+        doc = hapic.generate_doc()
 
         assert doc
         assert '/avatar' in doc['paths']
@@ -94,8 +94,8 @@ class TestDocGeneration(Base):
 
     def test_func__input_files_doc__ok__one_file_and_text(self):
         hapic = Hapic()
-        hapic.set_context(MyContext())
         app = bottle.Bottle()
+        hapic.set_context(MyContext(app=app))
 
         class MySchema(marshmallow.Schema):
             name = marshmallow.fields.String(required=True)
@@ -111,7 +111,7 @@ class TestDocGeneration(Base):
             assert hapic_data.files
 
         app.route('/upload', method='POST', callback=my_controller)
-        doc = hapic.generate_doc(app)
+        doc = hapic.generate_doc()
 
         assert doc
         assert '/upload' in doc['paths']
@@ -127,8 +127,8 @@ class TestDocGeneration(Base):
 
     def test_func__docstring__ok__simple_case(self):
         hapic = Hapic()
-        hapic.set_context(MyContext())
         app = bottle.Bottle()
+        hapic.set_context(MyContext(app=app))
 
         # TODO BS 20171113: Make this test non-bottle
         @hapic.with_api_doc()
@@ -140,7 +140,7 @@ class TestDocGeneration(Base):
             assert hapic_data.files
 
         app.route('/upload', method='POST', callback=my_controller)
-        doc = hapic.generate_doc(app)
+        doc = hapic.generate_doc()
 
         assert doc.get('paths')
         assert '/upload' in doc['paths']
