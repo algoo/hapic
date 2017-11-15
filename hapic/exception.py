@@ -5,6 +5,10 @@ class HapicException(Exception):
     pass
 
 
+class ConfigurationException(HapicException):
+    pass
+
+
 class WorkflowException(HapicException):
     pass
 

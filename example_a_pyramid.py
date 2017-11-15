@@ -2,14 +2,17 @@
 import json
 from http import HTTPStatus
 
-import bottle
+#import bottle
+from pyramid.config import Configurator
+from wsgiref.simple_server import make_server
 import time
 import yaml
+import uuid
 from beaker.middleware import SessionMiddleware
 
 import hapic
 from example import HelloResponseSchema, HelloPathSchema, HelloJsonSchema, \
-    ErrorResponseSchema, HelloQuerySchema, HelloFileSchema
+    ErrorResponseSchema, HelloQuerySchema
 from hapic.data import HapicData
 
 # hapic.global_exception_handler(UnAuthExc, StandardErrorSchema)
@@ -45,7 +48,7 @@ class Controllers(object):
     @hapic.input_path(HelloPathSchema())
     @hapic.input_query(HelloQuerySchema())
     @hapic.output_body(HelloResponseSchema())
-    def hello(self, name: str, hapic_data: HapicData):
+    def hello(self, context, request, hapic_data: HapicData):
         """
         my endpoint hello
         ---
@@ -61,6 +64,7 @@ class Controllers(object):
                     description: A pet to be returned
                     schema: HelloResponseSchema
         """
+        name = request.matchdict.get('name', None)
         if name == 'zero':
             raise ZeroDivisionError('Don\'t call him zero !')
 
@@ -76,7 +80,8 @@ class Controllers(object):
     @hapic.input_body(HelloJsonSchema())
     @hapic.output_body(HelloResponseSchema())
     @bob
-    def hello2(self, name: str, hapic_data: HapicData):
+    def hello2(self, context, request, hapic_data: HapicData):
+        name = request.matchdict.get('name', None)
         return {
             'sentence': 'Hello !',
             'name': name,
@@ -90,42 +95,31 @@ class Controllers(object):
     # @hapic.error_schema(ErrorResponseSchema())
     @hapic.input_path(HelloPathSchema())
     @hapic.output_body(HelloResponseSchema())
-    def hello3(self, name: str):
+    def hello3(self, context, request, hapic_data: HapicData):
+        name = request.matchdict.get('name', None)
         return {
             'sentence': 'Hello !',
             'name': name,
         }
 
-    @hapic.with_api_doc()
-    @hapic.input_files(HelloFileSchema())
-    @hapic.output_file(['image/jpeg'])
-    def hellofile(self, hapic_data: HapicData):
-        return hapic_data.files['myfile']
+    def bind(self, configurator: Configurator):
+        configurator.add_route('hello', '/hello/{name}', request_method='GET')
+        configurator.add_view(self.hello, route_name='hello', renderer='json')
 
-    def bind(self, app):
-        app.route('/hello/<name>', callback=self.hello)
-        app.route('/hello/<name>', callback=self.hello2, method='POST')
-        app.route('/hello3/<name>', callback=self.hello3)
-        app.route('/hellofile', callback=self.hellofile)
+        configurator.add_route('hello2', '/hello/{name}', request_method='POST')  # nopep8
+        configurator.add_view(self.hello2, route_name='hello2', renderer='json')  # nopep8
 
-app = bottle.Bottle()
+        configurator.add_route('hello3', '/hello3/{name}', request_method='GET')  # nopep8
+        configurator.add_view(self.hello3, route_name='hello3', renderer='json')  # nopep8
 
+
+configurator = Configurator(autocommit=True)
 controllers = Controllers()
-controllers.bind(app)
 
+controllers.bind(configurator)
 
-# time.sleep(1)
-# s = hapic.generate_doc(app)
-# ss = json.loads(json.dumps(s))
-# for path in ss['paths']:
-#     for method in ss['paths'][path]:
-#         for response_code in ss['paths'][path][method]['responses']:
-#             ss['paths'][path][method]['responses'][int(response_code)] = ss['paths'][path][method]['responses'][response_code]
-#             del ss['paths'][path][method]['responses'][int(response_code)]
-# print(yaml.dump(ss, default_flow_style=False))
-# time.sleep(1)
+hapic.set_context(hapic.ext.pyramid.PyramidContext(configurator))
+print(json.dumps(hapic.generate_doc()))
 
-hapic.set_context(hapic.ext.bottle.BottleContext())
-print(json.dumps(hapic.generate_doc(app)))
-
-app.run(host='localhost', port=8080, debug=True)
+server = make_server('0.0.0.0', 8080, configurator.make_wsgi_app())
+server.serve_forever()

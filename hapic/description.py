@@ -27,11 +27,18 @@ class InputHeadersDescription(Description):
 
 
 class InputFormsDescription(Description):
-    def __init__(self, wrapper: 'ControllerWrapper') -> None:
-        self.wrapper = wrapper
+    pass
+
+
+class InputFilesDescription(Description):
+    pass
 
 
 class OutputBodyDescription(Description):
+    pass
+
+
+class OutputFileDescription(Description):
     pass
 
 
@@ -51,7 +58,9 @@ class ControllerDescription(object):
         input_body: InputBodyDescription=None,
         input_headers: InputHeadersDescription=None,
         input_forms: InputFormsDescription=None,
+        input_files: InputFilesDescription=None,
         output_body: OutputBodyDescription=None,
+        output_file: OutputFileDescription=None,
         output_headers: OutputHeadersDescription=None,
         errors: typing.List[ErrorDescription]=None,
     ):
@@ -60,6 +69,8 @@ class ControllerDescription(object):
         self.input_body = input_body
         self.input_headers = input_headers
         self.input_forms = input_forms
+        self.input_files = input_files
         self.output_body = output_body
+        self.output_file = output_file
         self.output_headers = output_headers
         self.errors = errors or []

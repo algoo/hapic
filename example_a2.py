@@ -2,14 +2,16 @@
 import json
 from http import HTTPStatus
 
-import bottle
+from pyramid.view import view_config
+from pyramid.config import Configurator
+from wsgiref.simple_server import make_server
 import time
 import yaml
 from beaker.middleware import SessionMiddleware
 
 import hapic
 from example import HelloResponseSchema, HelloPathSchema, HelloJsonSchema, \
-    ErrorResponseSchema, HelloQuerySchema, HelloFileSchema
+    ErrorResponseSchema, HelloQuerySchema
 from hapic.data import HapicData
 
 # hapic.global_exception_handler(UnAuthExc, StandardErrorSchema)
@@ -37,15 +39,15 @@ def bob(f):
         return f(*args, **kwargs)
     return boby
 
-
 class Controllers(object):
+    
     @hapic.with_api_doc()
     # @hapic.ext.bottle.bottle_context()
     @hapic.handle_exception(ZeroDivisionError, http_code=HTTPStatus.BAD_REQUEST)
     @hapic.input_path(HelloPathSchema())
     @hapic.input_query(HelloQuerySchema())
     @hapic.output_body(HelloResponseSchema())
-    def hello(self, name: str, hapic_data: HapicData):
+    def hello(self,context,request,hapic_data: HapicData):
         """
         my endpoint hello
         ---
@@ -61,57 +63,61 @@ class Controllers(object):
                     description: A pet to be returned
                     schema: HelloResponseSchema
         """
+        name = request.matchdict.get('name', None)
         if name == 'zero':
             raise ZeroDivisionError('Don\'t call him zero !')
 
         return {
             'sentence': 'Hello !',
             'name': name,
-        }
+       }
 
-    @hapic.with_api_doc()
-    # @hapic.ext.bottle.bottle_context()
-    # @hapic.error_schema(ErrorResponseSchema())
-    @hapic.input_path(HelloPathSchema())
-    @hapic.input_body(HelloJsonSchema())
-    @hapic.output_body(HelloResponseSchema())
-    @bob
-    def hello2(self, name: str, hapic_data: HapicData):
-        return {
-            'sentence': 'Hello !',
-            'name': name,
-            'color': hapic_data.body.get('color'),
-        }
+    
+    # @hapic.with_api_doc()
+    # # @hapic.ext.bottle.bottle_context()
+    # # @hapic.error_schema(ErrorResponseSchema())
+    # #@hapic.input_path(HelloPathSchema())
+    # #@hapic.input_body(HelloJsonSchema())
+    # #@hapic.output_body(HelloResponseSchema())
+    # @bob
+    # def hello2(self, name: str, hapic_data: HapicData):
+    #     return {
+    #         'sentence': 'Hello !',
+    #         'name': name,
+    #         'color': hapic_data.body.get('color'),
+    #     }
 
-    kwargs = {'validated_data': {'name': 'bob'}, 'name': 'bob'}
+    # kwargs = {'validated_data': {'name': 'bob'}, 'name': 'bob'}
 
-    @hapic.with_api_doc()
-    # @hapic.ext.bottle.bottle_context()
-    # @hapic.error_schema(ErrorResponseSchema())
-    @hapic.input_path(HelloPathSchema())
-    @hapic.output_body(HelloResponseSchema())
-    def hello3(self, name: str):
-        return {
-            'sentence': 'Hello !',
-            'name': name,
-        }
+    
+    # @view_config(renderer='json')
+    # @hapic.with_api_doc()
+    # # @hapic.ext.bottle.bottle_context()
+    # # @hapic.error_schema(ErrorResponseSchema())
+    # @hapic.input_path(HelloPathSchema())
+    # @hapic.output_body(HelloResponseSchema())
+    # def hello3(self, name: str):
+    #     return {
+    #         'sentence': 'Hello !',
+    #         'name': name,
+    #     }
 
-    @hapic.with_api_doc()
-    @hapic.input_files(HelloFileSchema())
-    @hapic.output_file(['image/jpeg'])
-    def hellofile(self, hapic_data: HapicData):
-        return hapic_data.files['myfile']
+    def bind(self, config):
+        config.add_route('hello', '/hello/{name}', request_method='GET')
+        #config.add_route('hello2', '/hello/{name}', request_method='POST')
+        #config.add_route('hello3', '/hello/{name}', request_method='GET')
+        config.add_view(self.hello, route_name='hello', renderer='json')
+        #config.add_view(self.hello2, route_name='hello2')
+        #config.add_view(self.hello3, route_name='hello3')
 
-    def bind(self, app):
-        app.route('/hello/<name>', callback=self.hello)
-        app.route('/hello/<name>', callback=self.hello2, method='POST')
-        app.route('/hello3/<name>', callback=self.hello3)
-        app.route('/hellofile', callback=self.hellofile)
 
-app = bottle.Bottle()
+with Configurator() as config:
+    controllers = Controllers()
+    controllers.bind(config)
+    config.include('pyramid_debugtoolbar')
+    app = config
 
-controllers = Controllers()
-controllers.bind(app)
+
 
 
 # time.sleep(1)
@@ -125,7 +131,9 @@ controllers.bind(app)
 # print(yaml.dump(ss, default_flow_style=False))
 # time.sleep(1)
 
-hapic.set_context(hapic.ext.bottle.BottleContext())
-print(json.dumps(hapic.generate_doc(app)))
-
-app.run(host='localhost', port=8080, debug=True)
+hapic.set_context(hapic.ext.pyramid.PyramidContext())
+import pdb; pdb.set_trace()
+#print(json.dumps(hapic.generate_doc(app)))
+# app.run(host='localhost', port=8080, debug=True)
+server = make_server('0.0.0.0', 6543, app.make_wsgi_app())
+server.serve_forever()
