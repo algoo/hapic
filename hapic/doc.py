@@ -149,16 +149,15 @@ class DocGenerator(object):
             app = bottle.default_app()
         else:
             bottle.default_app.push(app)
-        flatten = lambda l: [item for sublist in l for item in sublist]
 
         spec = APISpec(
             title=title,
             description=description,
             version='1.0.0',
-            plugins=[
+            plugins=(
                 'apispec.ext.bottle',
                 'apispec.ext.marshmallow',
-            ],
+            ),
             schema_name_resolver_callable=generate_schema_name,
         )
 
