@@ -337,10 +337,15 @@ class Hapic(object):
             return decoration.get_wrapper(func)
         return decorator
 
-    def generate_doc(self, app):
+    def generate_doc(self, app, title: str='', description: str=''):
         # FIXME: j'ai du tricher avec app, see #11
         # FIXME @Damien bottle specific code ! see #11
         # rendre ca generique
         app = app or self._context.get_app()
         doc_generator = DocGenerator()
-        return doc_generator.get_doc(self._controllers, app)
+        return doc_generator.get_doc(
+            self._controllers,
+            app,
+            title=title,
+            description=description,
+        )

@@ -140,6 +140,8 @@ class DocGenerator(object):
         self,
         controllers: typing.List[DecoratedController],
         app,
+        title: str='',
+        description: str='',
     ) -> dict:
         # TODO: Découper, see #11
         # TODO: bottle specific code !, see #11
@@ -150,7 +152,8 @@ class DocGenerator(object):
         flatten = lambda l: [item for sublist in l for item in sublist]
 
         spec = APISpec(
-            title='Swagger Petstore',
+            title=title,
+            description=description,
             version='1.0.0',
             plugins=[
                 'apispec.ext.bottle',
