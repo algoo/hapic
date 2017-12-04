@@ -74,6 +74,10 @@ class Hapic(object):
     def context(self) -> ContextInterface:
         return self._context
 
+    def set_context(self, context: ContextInterface) -> None:
+        assert not self._context
+        self._context = context
+
     def with_api_doc(self):
         def decorator(func):
             @functools.wraps(func)
@@ -101,10 +105,6 @@ class Hapic(object):
             return wrapper
 
         return decorator
-
-    def set_context(self, context: ContextInterface) -> None:
-        assert not self._context
-        self._context = context
 
     def output_body(
         self,
