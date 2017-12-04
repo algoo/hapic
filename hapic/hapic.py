@@ -78,6 +78,9 @@ class Hapic(object):
         assert not self._context
         self._context = context
 
+    def reset_context(self) -> None:
+        self._context = None
+
     def with_api_doc(self):
         def decorator(func):
             @functools.wraps(func)
