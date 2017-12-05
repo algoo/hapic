@@ -119,7 +119,7 @@ class Controllers(object):
     # @hapic.error_schema(ErrorResponseSchema())
     @hapic.input_path(HelloPathSchema())
     @hapic.output_body(HelloResponseSchema())
-    def hello3(self, name: str):
+    def hello3(self, name: str,hapic_data: HapicData ):
         return {
             'sentence': 'Hello !',
             'name': name,
@@ -150,7 +150,7 @@ controllers.bind(app)
 # print(yaml.dump(ss, default_flow_style=False))
 # time.sleep(1)
 
-hapic.set_context(hapic.ext.flask.FlaskContext())
-print(json.dumps(hapic.generate_doc(app)))
+hapic.set_context(hapic.ext.flask.FlaskContext(app))
+print(json.dumps(hapic.generate_doc()))
 #import pdb; pdb.set_trace()
 app.run(host='localhost', port=8080, debug=True)
