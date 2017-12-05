@@ -113,19 +113,20 @@ app = bottle.Bottle()
 controllers = Controllers()
 controllers.bind(app)
 
-
-# time.sleep(1)
-# s = hapic.generate_doc(app)
-# ss = json.loads(json.dumps(s))
-# for path in ss['paths']:
-#     for method in ss['paths'][path]:
-#         for response_code in ss['paths'][path][method]['responses']:
-#             ss['paths'][path][method]['responses'][int(response_code)] = ss['paths'][path][method]['responses'][response_code]
-#             del ss['paths'][path][method]['responses'][int(response_code)]
-# print(yaml.dump(ss, default_flow_style=False))
-# time.sleep(1)
-
 hapic.set_context(hapic.ext.bottle.BottleContext(app))
-print(json.dumps(hapic.generate_doc()))
+
+time.sleep(1)
+s = hapic.generate_doc()
+ss = json.loads(json.dumps(s))
+for path in ss['paths']:
+    for method in ss['paths'][path]:
+        for response_code in ss['paths'][path][method]['responses']:
+            ss['paths'][path][method]['responses'][int(response_code)] = ss['paths'][path][method]['responses'][response_code]
+            del ss['paths'][path][method]['responses'][int(response_code)]
+print(yaml.dump(ss, default_flow_style=False))
+time.sleep(1)
+
+
+#print(json.dumps(hapic.generate_doc()))
 
 app.run(host='localhost', port=8080, debug=True)
