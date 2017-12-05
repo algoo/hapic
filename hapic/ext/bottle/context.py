@@ -18,7 +18,7 @@ from hapic.processor import RequestParameters
 from hapic.processor import ProcessValidationError
 
 # Bottle regular expression to locate url parameters
-BOTTLE_RE_PATH_URL = re.compile(r'<(?:[^:<>]+:)?([^<>]+)>')
+BOTTLE_RE_PATH_URL = re.compile(r'<([^:<>]+)(?::[^<>]+)?>')
 
 
 class BottleContext(ContextInterface):
