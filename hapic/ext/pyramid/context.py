@@ -41,6 +41,7 @@ class PyramidContext(ContextInterface):
             body_parameters=json_body,
             form_parameters=req.POST,
             header_parameters=req.headers,
+            files_parameters={},  # TODO - G.M - 2017-11-05 - Code it
         )
 
     def get_response(
