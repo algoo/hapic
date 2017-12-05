@@ -49,6 +49,7 @@ class FlaskContext(ContextInterface):
                     str(unmarshall.errors)
                 )
             )
+        from flask import Response
         return Response(
             response=json.dumps(unmarshall.data),
             mimetype='application/json',
