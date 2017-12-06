@@ -11,11 +11,11 @@ install_requires = [
     # TODO: marshmallow an extension too ? see #2
     'bottle',
     'marshmallow',
-    'apispec==0.25.4-algoo',
+    'apispec==0.25.5-algoo',
     'multidict'
 ]
 dependency_links = [
-    'git+https://github.com/algoo/apispec.git@dev-algoo#egg=apispec-0.25.4-algoo'  # nopep8
+    'git+https://github.com/algoo/apispec.git@dev-algoo#egg=apispec-0.25.5-algoo'  # nopep8
 ]
 tests_require = [
     'pytest',
