@@ -14,7 +14,7 @@ class NoContentException(Exception):
     pass
 
 
-class Controllers(object):
+class BottleController(object):
     @hapic.with_api_doc()
     @hapic.output_body(AboutResponseSchema())
     def about(self):
@@ -23,7 +23,7 @@ class Controllers(object):
         """
         return {
             'version': '1.2.3',
-            'datetime': datetime.now(),
+            'datetime': datetime(2017, 12, 7, 10, 55, 8, 488996),
         }
 
     @hapic.with_api_doc()
@@ -109,7 +109,7 @@ class Controllers(object):
 
 if __name__ == "__main__":
     app = bottle.Bottle()
-    controllers = Controllers()
+    controllers = BottleController()
     controllers.bind(app)
     hapic.set_context(hapic.ext.bottle.BottleContext(app))
     time.sleep(1)
