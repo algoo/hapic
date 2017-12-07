@@ -113,7 +113,7 @@ class DocGenerator(object):
                 # 'apispec.ext.bottle',
                 'apispec.ext.marshmallow',
             ],
-            schema_name_resolver_callable=generate_schema_name,
+            schema_name_resolver=generate_schema_name,
         )
 
         schemas = []
