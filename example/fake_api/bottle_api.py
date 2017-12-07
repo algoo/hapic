@@ -107,15 +107,15 @@ class Controllers(object):
         app.route('/users/', callback=self.add_user,  method='POST')
         app.route('/users/<id>', callback=self.del_user, method='DELETE')
 
-
-app = bottle.Bottle()
-controllers = Controllers()
-controllers.bind(app)
-hapic.set_context(hapic.ext.bottle.BottleContext(app))
-time.sleep(1)
-s = json.dumps(hapic.generate_doc())
-time.sleep(1)
-# print swagger doc
-print(s)
-# Run app
-app.run(host='localhost', port=8081, debug=True)
+if __name__ == "__main__":
+    app = bottle.Bottle()
+    controllers = Controllers()
+    controllers.bind(app)
+    hapic.set_context(hapic.ext.bottle.BottleContext(app))
+    time.sleep(1)
+    s = json.dumps(hapic.generate_doc())
+    time.sleep(1)
+    # print swagger doc
+    print(s)
+    # Run app
+    app.run(host='localhost', port=8081, debug=True)

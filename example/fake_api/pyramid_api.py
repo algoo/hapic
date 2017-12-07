@@ -117,15 +117,16 @@ class Controllers(object):
         configurator.add_route('del_user', '/users/{id}', request_method='DELETE')  # nopep8
         configurator.add_view(self.del_user, route_name='del_user', renderer='json')  # nopep8
 
-configurator = Configurator(autocommit=True)
-controllers = Controllers()
-controllers.bind(configurator)
-hapic.set_context(hapic.ext.pyramid.PyramidContext(configurator))
-time.sleep(1)
-s = json.dumps(hapic.generate_doc())
-time.sleep(1)
-# print swagger doc
-print(s)
-# Run app
-server = make_server('0.0.0.0', 8083, configurator.make_wsgi_app())
-server.serve_forever()
+if __name__ == "__main__":
+    configurator = Configurator(autocommit=True)
+    controllers = Controllers()
+    controllers.bind(configurator)
+    hapic.set_context(hapic.ext.pyramid.PyramidContext(configurator))
+    time.sleep(1)
+    s = json.dumps(hapic.generate_doc())
+    time.sleep(1)
+    # print swagger doc
+    print(s)
+    # Run app
+    server = make_server('0.0.0.0', 8083, configurator.make_wsgi_app())
+    server.serve_forever()

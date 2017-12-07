@@ -114,15 +114,15 @@ class Controllers(object):
                          view_func=self.del_user,
                          methods=['DELETE'])
 
-
-app = flask.Flask(__name__)
-controllers = Controllers()
-controllers.bind(app)
-hapic.set_context(hapic.ext.flask.FlaskContext(app))
-time.sleep(1)
-s = json.dumps(hapic.generate_doc())
-time.sleep(1)
-# print swagger doc
-print(s)
-# Run app
-app.run(host='localhost', port=8082, debug=True)
+if __name__ == "__main__":
+    app = flask.Flask(__name__)
+    controllers = Controllers()
+    controllers.bind(app)
+    hapic.set_context(hapic.ext.flask.FlaskContext(app))
+    time.sleep(1)
+    s = json.dumps(hapic.generate_doc())
+    time.sleep(1)
+    # print swagger doc
+    print(s)
+    # Run app
+    app.run(host='localhost', port=8082, debug=True)
