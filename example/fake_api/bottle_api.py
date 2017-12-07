@@ -5,13 +5,12 @@ from http import HTTPStatus
 import bottle
 import time
 from datetime import datetime
-import hapic
+from hapic import Hapic
 from example.fake_api.schema import *
 from hapic.data import HapicData
+from hapic.ext.bottle import BottleContext
 
-
-class NoContentException(Exception):
-    pass
+hapic = Hapic()
 
 
 class BottleController(object):
@@ -111,7 +110,7 @@ if __name__ == "__main__":
     app = bottle.Bottle()
     controllers = BottleController()
     controllers.bind(app)
-    hapic.set_context(hapic.ext.bottle.BottleContext(app))
+    hapic.set_context(BottleContext(app))
     time.sleep(1)
     s = json.dumps(hapic.generate_doc())
     time.sleep(1)

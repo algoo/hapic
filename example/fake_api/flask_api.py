@@ -5,13 +5,13 @@ from http import HTTPStatus
 import flask
 import time
 from datetime import datetime
-import hapic
+from hapic import Hapic
+
 from example.fake_api.schema import *
+from hapic.ext.flask import FlaskContext
 from hapic.data import HapicData
 
-
-class NoContentException(Exception):
-    pass
+hapic = Hapic()
 
 
 class FlaskController(object):
@@ -118,7 +118,7 @@ if __name__ == "__main__":
     app = flask.Flask(__name__)
     controllers = FlaskController()
     controllers.bind(app)
-    hapic.set_context(hapic.ext.flask.FlaskContext(app))
+    hapic.set_context(FlaskContext(app))
     time.sleep(1)
     s = json.dumps(hapic.generate_doc())
     time.sleep(1)

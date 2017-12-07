@@ -6,13 +6,13 @@ from pyramid.config import Configurator
 from wsgiref.simple_server import make_server
 import time
 from datetime import datetime
-import hapic
+from hapic import Hapic
 from example.fake_api.schema import *
+
 from hapic.data import HapicData
+from hapic.ext.pyramid import PyramidContext
 
-
-class NoContentException(Exception):
-    pass
+hapic = Hapic()
 
 
 class PyramidController(object):
@@ -121,7 +121,7 @@ if __name__ == "__main__":
     configurator = Configurator(autocommit=True)
     controllers = PyramidController()
     controllers.bind(configurator)
-    hapic.set_context(hapic.ext.pyramid.PyramidContext(configurator))
+    hapic.set_context(PyramidContext(configurator))
     time.sleep(1)
     s = json.dumps(hapic.generate_doc())
     time.sleep(1)
