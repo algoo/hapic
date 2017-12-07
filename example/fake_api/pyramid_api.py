@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
 from http import HTTPStatus
-
+from pyramid.response import Response
 from pyramid.config import Configurator
 from wsgiref.simple_server import make_server
 import time
@@ -96,8 +96,8 @@ class Controllers(object):
 
         # TODO - G.M - 2017-12-05 - Add better
         #  way to doc response of this function, using response object ?
-        # return bottle.Response(
-        #     status=204,
+        # return Response(
+        #     status_code=204,
         # )
         raise NoContentException
 

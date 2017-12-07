@@ -95,12 +95,12 @@ class Controllers(object):
 
         # TODO - G.M - 2017-12-05 - Add better
         #  way to doc response of this function, using response object ?
-        # return bottle.Response(
+        # return flask.Response(
         #     status=204,
         # )
         raise NoContentException
 
-    def bind(self, app:flask.Flask):
+    def bind(self, app: flask.Flask):
         app.add_url_rule('/about',
                          view_func=self.about)
         app.add_url_rule('/users',
