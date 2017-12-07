@@ -127,5 +127,5 @@ time.sleep(1)
 # print swagger doc
 print(s)
 # Run app
-server = make_server('0.0.0.0', 8081, configurator.make_wsgi_app())
+server = make_server('0.0.0.0', 8083, configurator.make_wsgi_app())
 server.serve_forever()
