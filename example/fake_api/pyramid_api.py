@@ -87,19 +87,14 @@ class PyramidController(object):
         }
 
     @hapic.with_api_doc()
-    @hapic.handle_exception(NoContentException, http_code=HTTPStatus.NO_CONTENT)
+    @hapic.output_body(NoContentSchema(),
+                       default_http_code=204)
     @hapic.input_path(UserPathSchema())
     def del_user(self, context, request, hapic_data: HapicData):
         """
         delete user
         """
-
-        # TODO - G.M - 2017-12-05 - Add better
-        #  way to doc response of this function, using response object ?
-        # return Response(
-        #     status_code=204,
-        # )
-        raise NoContentException
+        return NoContentSchema()
 
     def bind(self, configurator: Configurator):
         configurator.add_route('about', '/about', request_method='GET')

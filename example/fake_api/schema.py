@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import marshmallow
 
+class NoContentSchema(marshmallow.Schema):
+    pass
 
 class AboutResponseSchema(marshmallow.Schema):
     version = marshmallow.fields.String(required=True,)
@@ -47,8 +49,6 @@ class ListsUserSchema(marshmallow.Schema):
     # Can't add doc for nested Schema properly
     # When schema item isn't added through their own method
     # Ex : Pagination Schema doesn't work here but UserSchema is ok.
-    pagination = {
-        'first_id': marshmallow.fields.Int(required=True),
-        'last_id': marshmallow.fields.Int(required=True),
-        'current_id': marshmallow.fields.Int(required=True),
-    }
+    pagination = marshmallow.fields.Nested(
+        PaginationSchema
+    )

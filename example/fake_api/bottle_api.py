@@ -85,19 +85,14 @@ class BottleController(object):
         }
 
     @hapic.with_api_doc()
-    @hapic.handle_exception(NoContentException, http_code=HTTPStatus.NO_CONTENT)
+    @hapic.output_body(NoContentSchema(),
+                       default_http_code=204)
     @hapic.input_path(UserPathSchema())
     def del_user(self, id, hapic_data: HapicData):
         """
         delete user
         """
-
-        # TODO - G.M - 2017-12-05 - Add better
-        #  way to doc response of this function, using response object ?
-        # return bottle.Response(
-        #     status=204,
-        # )
-        raise NoContentException
+        return NoContentSchema()
 
     def bind(self, app:bottle.Bottle):
         app.route('/about', callback=self.about)
