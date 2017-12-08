@@ -152,7 +152,7 @@ class DocGenerator(object):
 
         spec = APISpec(
             title=title,
-            description=description,
+            info=dict(description=description),
             version='1.0.0',
             plugins=(
                 'apispec.ext.bottle',
