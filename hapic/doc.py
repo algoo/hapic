@@ -105,14 +105,16 @@ class DocGenerator(object):
         self,
         controllers: typing.List[DecoratedController],
         context: ContextInterface,
+        title: str='',
+        description: str='',
     ) -> dict:
         spec = APISpec(
-            title='Swagger Petstore',
+            title=title,
+            info=dict(description=description),
             version='1.0.0',
-            plugins=[
-                # 'apispec.ext.bottle',
+            plugins=(
                 'apispec.ext.marshmallow',
-            ],
+            ),
             schema_name_resolver=generate_schema_name,
         )
 

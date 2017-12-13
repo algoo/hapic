@@ -11,11 +11,11 @@ install_requires = [
     # TODO: marshmallow an extension too ? see #2
     'bottle',
     'marshmallow',
-    'apispec==0.25.4-algoo',
+    'apispec==0.27.1-algoo',
     'multidict'
 ]
 dependency_links = [
-    'git+https://github.com/algoo/apispec.git@dev-algoo#egg=apispec-0.25.4-algoo'  # nopep8
+    'git+https://github.com/algoo/apispec.git@dev-fork#egg=apispec-0.27.1-algoo'  # nopep8
 ]
 tests_require = [
     'pytest',
@@ -30,7 +30,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='0.14',
+    version='0.20',
 
     description='HTTP api input/output manager',
     # long_description=long_description,

@@ -75,6 +75,13 @@ class Hapic(object):
     def context(self) -> ContextInterface:
         return self._context
 
+    def set_context(self, context: ContextInterface) -> None:
+        assert not self._context
+        self._context = context
+
+    def reset_context(self) -> None:
+        self._context = None
+
     def with_api_doc(self):
         def decorator(func):
             @functools.wraps(func)
@@ -102,10 +109,6 @@ class Hapic(object):
             return wrapper
 
         return decorator
-
-    def set_context(self, context: ContextInterface) -> None:
-        assert not self._context
-        self._context = context
 
     def output_body(
         self,
@@ -338,5 +341,9 @@ class Hapic(object):
             return decoration.get_wrapper(func)
         return decorator
 
-    def generate_doc(self):
-        return self.doc_generator.get_doc(self._controllers, self.context)
+    def generate_doc(self, title: str='', description: str=''):
+        return self.doc_generator.get_doc(
+            self._controllers,
+            self.context,
+            title=title,
+            description=description)
