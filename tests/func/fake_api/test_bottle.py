@@ -14,7 +14,10 @@ def test_func_bottle_fake_api():
 
     hapic.set_context(BottleContext(bottle_app))
     app = TestApp(bottle_app)
-    doc = hapic.generate_doc()
+    doc = hapic.generate_doc(
+        title='Fake API',
+        description='just an example of hapic API'
+    )
 
     assert doc == SWAGGER_DOC_API
     resp = app.get('/about')

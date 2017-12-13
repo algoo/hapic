@@ -12,7 +12,10 @@ def test_func_flask_fake_api():
     controllers.bind(flask_app)
     hapic.set_context(FlaskContext(flask_app))
     app = TestApp(flask_app)
-    doc = hapic.generate_doc()
+    doc =  hapic.generate_doc(
+        title='Fake API',
+        description='just an example of hapic API'
+    )
 
     assert doc == SWAGGER_DOC_API
     resp = app.get('/about')

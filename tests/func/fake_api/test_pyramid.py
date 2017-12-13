@@ -13,7 +13,10 @@ def test_func_pyramid_fake_api_doc():
     controllers.bind(configurator)
     hapic.set_context(PyramidContext(configurator))
     app = TestApp(configurator.make_wsgi_app())
-    doc = hapic.generate_doc()
+    doc = hapic.generate_doc(
+        title='Fake API',
+        description='just an example of hapic API'
+    )
 
     assert doc == SWAGGER_DOC_API
     resp = app.get('/about')

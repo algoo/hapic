@@ -115,7 +115,12 @@ if __name__ == "__main__":
     controllers.bind(app)
     hapic.set_context(FlaskContext(app))
     time.sleep(1)
-    s = json.dumps(hapic.generate_doc())
+    s = json.dumps(
+        hapic.generate_doc(
+            title='Fake API',
+            description='just an example of hapic API'
+        )
+    )
     time.sleep(1)
     # print swagger doc
     print(s)
