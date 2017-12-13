@@ -19,6 +19,10 @@ dependency_links = [
 ]
 tests_require = [
     'pytest',
+    'bottle',
+    'flask',
+    'pyramid',
+    'webtest',
 ]
 dev_require = [
     'requests',
