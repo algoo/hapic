@@ -37,34 +37,7 @@ def bob(f):
         return f(*args, **kwargs)
     return boby
 
-
-class FlaskRoute(object):
-
-    def __init__(self, app, rule, method, callback, name, **options):
-        self.app = app
-        self.rule = rule
-        self.method = method
-        self.callback = callback
-        self.name = name
-
-
-class Flaskapp(Flask):
-    @property
-    def routes(self):
-        result = []
-        for r in self.url_map.iter_rules():
-            rule = r.rule
-            callback = self.view_functions[r.endpoint]
-            method = [x for x in r.methods if x not in [
-                'OPTIONS', 'HEAD']][0]  # TODO : other solution ?
-            name = r.endpoint
-            app = self
-            f = FlaskRoute(self, rule, method, callback, name)
-            result.append(f)
-        return result
-
-
-app = Flaskapp(__name__)
+app = Flask(__name__)
 
 
 class Controllers(object):
