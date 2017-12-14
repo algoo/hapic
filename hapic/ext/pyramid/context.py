@@ -33,7 +33,7 @@ class PyramidContext(ContextInterface):
             json_body = req.json_body
             # TODO : raise exception if not correct , return 400 if uncorrect instead ?
         else:
-            json_body = None
+            json_body = {}
 
         return RequestParameters(
             path_parameters=req.matchdict,
