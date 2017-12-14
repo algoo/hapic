@@ -5,31 +5,12 @@ from http import HTTPStatus
 import bottle
 import time
 import yaml
-from beaker.middleware import SessionMiddleware
 
 import hapic
+from hapic.ext.bottle.context import BottleContext
 from example import HelloResponseSchema, HelloPathSchema, HelloJsonSchema, \
     ErrorResponseSchema, HelloQuerySchema, HelloFileSchema
 from hapic.data import HapicData
-
-# hapic.global_exception_handler(UnAuthExc, StandardErrorSchema)
-# hapic.global_exception_handler(UnAuthExc2, StandardErrorSchema)
-# hapic.global_exception_handler(UnAuthExc3, StandardErrorSchema)
-# bottle.default_app.push(app)
-
-# session_opts = {
-#     'session.type': 'file',
-#     'session.data_dir': '/tmp',
-#     'session.cookie_expires': 3600,
-#     'session.auto': True
-# }
-# session_middleware = SessionMiddleware(
-#     app,
-#     session_opts,
-#     environ_key='beaker.session',
-#     key='beaker.session.id',
-# )
-# app = session_middleware.wrap_app
 
 
 def bob(f):
@@ -113,20 +94,11 @@ app = bottle.Bottle()
 controllers = Controllers()
 controllers.bind(app)
 
-hapic.set_context(hapic.ext.bottle.BottleContext(app))
+hapic.set_context(BottleContext(app))
 
-time.sleep(1)
-s = hapic.generate_doc()
-ss = json.loads(json.dumps(s))
-for path in ss['paths']:
-    for method in ss['paths'][path]:
-        for response_code in ss['paths'][path][method]['responses']:
-            ss['paths'][path][method]['responses'][int(response_code)] = ss['paths'][path][method]['responses'][response_code]
-            del ss['paths'][path][method]['responses'][int(response_code)]
-print(yaml.dump(ss, default_flow_style=False))
-time.sleep(1)
-
-
-#print(json.dumps(hapic.generate_doc()))
+print(yaml.dump(
+    json.loads(json.dumps(hapic.generate_doc())),
+    default_flow_style=False,
+))
 
 app.run(host='localhost', port=8080, debug=True)
