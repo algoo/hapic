@@ -16,6 +16,7 @@ dependency_links = [
 ]
 tests_require = [
     'pytest',
+    'pytest-cov',
     'bottle',
     'flask',
     'pyramid',
