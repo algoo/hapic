@@ -3,33 +3,11 @@ import json
 from http import HTTPStatus
 
 from flask import Flask
-import time
-import yaml
-from beaker.middleware import SessionMiddleware
-
 import hapic
 from example import HelloResponseSchema, HelloPathSchema, HelloJsonSchema, \
     ErrorResponseSchema, HelloQuerySchema
 from hapic.data import HapicData
-
-# hapic.global_exception_handler(UnAuthExc, StandardErrorSchema)
-# hapic.global_exception_handler(UnAuthExc2, StandardErrorSchema)
-# hapic.global_exception_handler(UnAuthExc3, StandardErrorSchema)
-# bottle.default_app.push(app)
-
-# session_opts = {
-#     'session.type': 'file',
-#     'session.data_dir': '/tmp',
-#     'session.cookie_expires': 3600,
-#     'session.auto': True
-# }
-# session_middleware = SessionMiddleware(
-#     app,
-#     session_opts,
-#     environ_key='beaker.session',
-#     key='beaker.session.id',
-# )
-# app = session_middleware.wrap_app
+from hapic.ext.flask import FlaskContext
 
 
 def bob(f):
@@ -105,25 +83,9 @@ class Controllers(object):
                          self.hello2, methods=['POST', ])
         app.add_url_rule('/hello3/<name>', "hello3", self.hello3)
 
-#app = bottle.Bottle()
-
-
 controllers = Controllers()
 controllers.bind(app)
 
-
-# time.sleep(1)
-# s = hapic.generate_doc(app)
-# ss = json.loads(json.dumps(s))
-# for path in ss['paths']:
-#     for method in ss['paths'][path]:
-#         for response_code in ss['paths'][path][method]['responses']:
-#             ss['paths'][path][method]['responses'][int(response_code)] = ss['paths'][path][method]['responses'][response_code]
-#             del ss['paths'][path][method]['responses'][int(response_code)]
-# print(yaml.dump(ss, default_flow_style=False))
-# time.sleep(1)
-
-hapic.set_context(hapic.ext.flask.FlaskContext(app))
+hapic.set_context(FlaskContext(app))
 print(json.dumps(hapic.generate_doc()))
-#import pdb; pdb.set_trace()
 app.run(host='localhost', port=8080, debug=True)
