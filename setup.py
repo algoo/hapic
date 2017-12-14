@@ -23,6 +23,7 @@ tests_require = [
     'webtest',
 ]
 dev_require = [
+    'requests',
 ] + tests_require
 
 setup(
