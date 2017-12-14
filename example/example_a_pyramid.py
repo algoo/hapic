@@ -2,37 +2,14 @@
 import json
 from http import HTTPStatus
 
-#import bottle
 from pyramid.config import Configurator
 from wsgiref.simple_server import make_server
-import time
-import yaml
-import uuid
-from beaker.middleware import SessionMiddleware
 
 import hapic
 from example import HelloResponseSchema, HelloPathSchema, HelloJsonSchema, \
     ErrorResponseSchema, HelloQuerySchema
 from hapic.data import HapicData
-
-# hapic.global_exception_handler(UnAuthExc, StandardErrorSchema)
-# hapic.global_exception_handler(UnAuthExc2, StandardErrorSchema)
-# hapic.global_exception_handler(UnAuthExc3, StandardErrorSchema)
-# bottle.default_app.push(app)
-
-# session_opts = {
-#     'session.type': 'file',
-#     'session.data_dir': '/tmp',
-#     'session.cookie_expires': 3600,
-#     'session.auto': True
-# }
-# session_middleware = SessionMiddleware(
-#     app,
-#     session_opts,
-#     environ_key='beaker.session',
-#     key='beaker.session.id',
-# )
-# app = session_middleware.wrap_app
+from hapic.ext.pyramid import PyramidContext
 
 
 def bob(f):
@@ -118,7 +95,7 @@ controllers = Controllers()
 
 controllers.bind(configurator)
 
-hapic.set_context(hapic.ext.pyramid.PyramidContext(configurator))
+hapic.set_context(PyramidContext(configurator))
 print(json.dumps(hapic.generate_doc()))
 
 server = make_server('0.0.0.0', 8080, configurator.make_wsgi_app())
