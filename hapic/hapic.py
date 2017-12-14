@@ -55,6 +55,7 @@ class Hapic(object):
         self._buffer = DecorationBuffer()
         self._controllers = []  # type: typing.List[DecoratedController]
         self._context = None  # type: ContextInterface
+        self.doc_generator = DocGenerator()
 
         # This local function will be pass to different components
         # who will need context but declared (like with decorator)
@@ -340,15 +341,9 @@ class Hapic(object):
             return decoration.get_wrapper(func)
         return decorator
 
-    def generate_doc(self, app, title: str='', description: str=''):
-        # FIXME: j'ai du tricher avec app, see #11
-        # FIXME @Damien bottle specific code ! see #11
-        # rendre ca generique
-        app = app or self._context.get_app()
-        doc_generator = DocGenerator()
-        return doc_generator.get_doc(
+    def generate_doc(self, title: str='', description: str=''):
+        return self.doc_generator.get_doc(
             self._controllers,
-            app,
+            self.context,
             title=title,
-            description=description,
-        )
+            description=description)

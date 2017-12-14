@@ -1,54 +1,19 @@
 # -*- coding: utf-8 -*-
-import re
 import typing
 
-import bottle
 from apispec import APISpec
 from apispec import Path
 from apispec.ext.marshmallow.swagger import schema2jsonschema
 
+from hapic.context import ContextInterface
+from hapic.context import RouteRepresentation
 from hapic.decorator import DecoratedController
-from hapic.decorator import DECORATION_ATTRIBUTE_NAME
 from hapic.description import ControllerDescription
-from hapic.exception import NoRoutesException
-from hapic.exception import RouteNotFound
-
-# Bottle regular expression to locate url parameters
-BOTTLE_RE_PATH_URL = re.compile(r'<(?:[^:<>]+:)?([^<>]+)>')
-
-
-def find_bottle_route(
-    decorated_controller: DecoratedController,
-    app: bottle.Bottle,
-):
-    if not app.routes:
-        raise NoRoutesException('There is no routes in your bottle app')
-
-    reference = decorated_controller.reference
-    for route in app.routes:
-        route_token = getattr(
-            route.callback,
-            DECORATION_ATTRIBUTE_NAME,
-            None,
-        )
-
-        match_with_wrapper = route.callback == reference.wrapper
-        match_with_wrapped = route.callback == reference.wrapped
-        match_with_token = route_token == reference.token
-
-        if match_with_wrapper or match_with_wrapped or match_with_token:
-            return route
-    # TODO BS 20171010: Raise exception or print error ? see #10
-    raise RouteNotFound(
-        'Decorated route "{}" was not found in bottle routes'.format(
-            decorated_controller.name,
-        )
-    )
 
 
 def bottle_generate_operations(
     spec,
-    bottle_route: bottle.Route,
+    route: RouteRepresentation,
     description: ControllerDescription,
 ):
     method_operations = dict()
@@ -129,7 +94,7 @@ def bottle_generate_operations(
             })
 
     operations = {
-        bottle_route.method.lower(): method_operations,
+        route.method.lower(): method_operations,
     }
 
     return operations
@@ -139,23 +104,15 @@ class DocGenerator(object):
     def get_doc(
         self,
         controllers: typing.List[DecoratedController],
-        app,
+        context: ContextInterface,
         title: str='',
         description: str='',
     ) -> dict:
-        # TODO: Découper, see #11
-        # TODO: bottle specific code !, see #11
-        if not app:
-            app = bottle.default_app()
-        else:
-            bottle.default_app.push(app)
-
         spec = APISpec(
             title=title,
             info=dict(description=description),
             version='1.0.0',
             plugins=(
-                'apispec.ext.bottle',
                 'apispec.ext.marshmallow',
             ),
             schema_name_resolver=generate_schema_name,
@@ -192,12 +149,12 @@ class DocGenerator(object):
         # with app.test_request_context():
         paths = {}
         for controller in controllers:
-            bottle_route = find_bottle_route(controller, app)
-            swagger_path = BOTTLE_RE_PATH_URL.sub(r'{\1}', bottle_route.rule)
+            route = context.find_route(controller)
+            swagger_path = context.get_swagger_path(route.rule)
 
             operations = bottle_generate_operations(
                 spec,
-                bottle_route,
+                route,
                 controller.description,
             )
 
@@ -217,18 +174,6 @@ class DocGenerator(object):
             spec.add_path(path)
 
         return spec.to_dict()
-
-        # route_by_callbacks = []
-        # routes = flatten(app.router.dyna_routes.values())
-        # for path, path_regex, route, func_ in routes:
-        #     route_by_callbacks.append(route.callback)
-        #
-        # for description in self._controllers:
-        #     for path, path_regex, route, func_ in routes:
-        #         if route.callback == description.reference:
-        #             # TODO: use description to feed apispec
-        #             print(route.method, path, description)
-        #             continue
 
 
 # TODO BS 20171109: Must take care of already existing definition names

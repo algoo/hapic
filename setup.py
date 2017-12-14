@@ -7,9 +7,6 @@ from os import path
 here = path.abspath(path.dirname(__file__))
 
 install_requires = [
-    # TODO: Bottle will be an extension in future, see #1
-    # TODO: marshmallow an extension too ? see #2
-    'bottle',
     'marshmallow',
     'apispec==0.27.1-algoo',
     'multidict'
@@ -19,10 +16,14 @@ dependency_links = [
 ]
 tests_require = [
     'pytest',
+    'pytest-cov',
+    'bottle',
+    'flask',
+    'pyramid',
+    'webtest',
 ]
 dev_require = [
-    'requests',
-]
+] + tests_require
 
 setup(
     name='hapic',

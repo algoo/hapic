@@ -2,40 +2,20 @@
 import json
 from http import HTTPStatus
 
-import bottle
-import time
-import yaml
-from beaker.middleware import SessionMiddleware
-
+from flask import Flask
 import hapic
 from example import HelloResponseSchema, HelloPathSchema, HelloJsonSchema, \
-    ErrorResponseSchema, HelloQuerySchema, HelloFileSchema
+    ErrorResponseSchema, HelloQuerySchema
 from hapic.data import HapicData
-
-# hapic.global_exception_handler(UnAuthExc, StandardErrorSchema)
-# hapic.global_exception_handler(UnAuthExc2, StandardErrorSchema)
-# hapic.global_exception_handler(UnAuthExc3, StandardErrorSchema)
-# bottle.default_app.push(app)
-
-# session_opts = {
-#     'session.type': 'file',
-#     'session.data_dir': '/tmp',
-#     'session.cookie_expires': 3600,
-#     'session.auto': True
-# }
-# session_middleware = SessionMiddleware(
-#     app,
-#     session_opts,
-#     environ_key='beaker.session',
-#     key='beaker.session.id',
-# )
-# app = session_middleware.wrap_app
+from hapic.ext.flask import FlaskContext
 
 
 def bob(f):
     def boby(*args, **kwargs):
         return f(*args, **kwargs)
     return boby
+
+app = Flask(__name__)
 
 
 class Controllers(object):
@@ -90,42 +70,22 @@ class Controllers(object):
     # @hapic.error_schema(ErrorResponseSchema())
     @hapic.input_path(HelloPathSchema())
     @hapic.output_body(HelloResponseSchema())
-    def hello3(self, name: str):
+    def hello3(self, name: str,hapic_data: HapicData ):
         return {
             'sentence': 'Hello !',
             'name': name,
         }
 
-    @hapic.with_api_doc()
-    @hapic.input_files(HelloFileSchema())
-    @hapic.output_file(['image/jpeg'])
-    def hellofile(self, hapic_data: HapicData):
-        return hapic_data.files['myfile']
-
     def bind(self, app):
-        app.route('/hello/<name>', callback=self.hello)
-        app.route('/hello/<name>', callback=self.hello2, method='POST')
-        app.route('/hello3/<name>', callback=self.hello3)
-        app.route('/hellofile', callback=self.hellofile)
-
-app = bottle.Bottle()
+        pass
+        app.add_url_rule('/hello/<name>', "hello", self.hello)
+        app.add_url_rule('/hello/<name>', "hello2",
+                         self.hello2, methods=['POST', ])
+        app.add_url_rule('/hello3/<name>', "hello3", self.hello3)
 
 controllers = Controllers()
 controllers.bind(app)
 
-
-# time.sleep(1)
-# s = hapic.generate_doc(app)
-# ss = json.loads(json.dumps(s))
-# for path in ss['paths']:
-#     for method in ss['paths'][path]:
-#         for response_code in ss['paths'][path][method]['responses']:
-#             ss['paths'][path][method]['responses'][int(response_code)] = ss['paths'][path][method]['responses'][response_code]
-#             del ss['paths'][path][method]['responses'][int(response_code)]
-# print(yaml.dump(ss, default_flow_style=False))
-# time.sleep(1)
-
-hapic.set_context(hapic.ext.bottle.BottleContext())
-print(json.dumps(hapic.generate_doc(app)))
-
+hapic.set_context(FlaskContext(app))
+print(json.dumps(hapic.generate_doc()))
 app.run(host='localhost', port=8080, debug=True)

@@ -4,7 +4,7 @@ from http import HTTPStatus
 
 from multidict import MultiDict
 
-from hapic.context import ContextInterface
+from hapic.ext.bottle import BottleContext
 from hapic.processor import RequestParameters
 from hapic.processor import ProcessValidationError
 
@@ -13,9 +13,11 @@ class Base(object):
     pass
 
 
-class MyContext(ContextInterface):
+# TODO BS 20171105: Make this bottle agnostic !
+class MyContext(BottleContext):
     def __init__(
         self,
+        app,
         fake_path_parameters=None,
         fake_query_parameters=None,
         fake_body_parameters=None,
@@ -23,6 +25,7 @@ class MyContext(ContextInterface):
         fake_header_parameters=None,
         fake_files_parameters=None,
     ) -> None:
+        super().__init__(app=app)
         self.fake_path_parameters = fake_path_parameters or {}
         self.fake_query_parameters = fake_query_parameters or MultiDict()
         self.fake_body_parameters = fake_body_parameters or {}
