@@ -5,6 +5,8 @@ from http import HTTPStatus
 import bottle
 import time
 from datetime import datetime
+
+from example.fake_api.model import User
 from hapic import Hapic
 from example.fake_api.schema import *
 from hapic.data import HapicData
@@ -31,15 +33,16 @@ class BottleController(object):
         """
         Obtain users list.
         """
+        some_user = User(
+            id=4,
+            username='some_user',
+            display_name='Damien Accorsi',
+            company='Algoo',
+        )
         return {
             'item_nb': 1,
             'items': [
-                {
-                    'id': 4,
-                    'username': 'some_user',
-                    'display_name': 'Damien Accorsi',
-                    'company': 'Algoo',
-                },
+                some_user,
             ],
             'pagination': {
                 'first_id': 0,
