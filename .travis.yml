@@ -6,7 +6,7 @@ python:
 
 install:
   - python setup.py develop
-  - pip install pytest pytest-cov python-coveralls
+  - pip install -e ."[test]"
 
 script: 
   - pytest --cov=hapic tests

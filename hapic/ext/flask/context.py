@@ -101,3 +101,6 @@ class FlaskContext(ContextInterface):
     def get_swagger_path(self, contextualised_rule: str) -> str:
         # TODO - G.M - 2017-12-05 Check if all route path are handled correctly
         return FLASK_RE_PATH_URL.sub(r'{\1}', contextualised_rule)
+
+    def by_pass_output_wrapping(self, response: typing.Any) -> bool:
+        return False

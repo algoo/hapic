@@ -52,3 +52,12 @@ class ContextInterface(object):
         :return: OpenAPI path
         """
         raise NotImplementedError()
+
+    def by_pass_output_wrapping(self, response: typing.Any) -> bool:
+        """
+        Return True if the controller response is in final state: we do not
+        have to apply output wrapper on it.
+        :param response: the original response of controller
+        :return:
+        """
+        raise NotImplementedError()

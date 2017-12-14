@@ -120,3 +120,6 @@ class PyramidContext(ContextInterface):
         # TODO BS 20171110: Pyramid allow route like '/{foo:\d+}', so adapt
         # and USE regular expression (see https://docs.pylonsproject.org/projects/pyramid/en/latest/narr/urldispatch.html#custom-route-predicates)  # nopep8
         return contextualised_rule
+
+    def by_pass_output_wrapping(self, response: typing.Any) -> bool:
+        return False

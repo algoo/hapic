@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from hapic.hapic import Hapic
 from hapic.data import HapicData
-from hapic import ext
 
 _hapic_default = Hapic()
 

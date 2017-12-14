@@ -112,3 +112,8 @@ class BottleContext(ContextInterface):
 
     def get_swagger_path(self, contextualised_rule: str) -> str:
         return BOTTLE_RE_PATH_URL.sub(r'{\1}', contextualised_rule)
+
+    def by_pass_output_wrapping(self, response: typing.Any) -> bool:
+        if isinstance(response, bottle.HTTPResponse):
+            return True
+        return False

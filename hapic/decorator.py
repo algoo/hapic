@@ -5,7 +5,6 @@ from http import HTTPStatus
 
 # TODO BS 20171010: bottle specific !  # see #5
 import marshmallow
-from bottle import HTTPResponse
 from multidict import MultiDict
 
 from hapic.data import HapicData
@@ -215,7 +214,7 @@ class OutputControllerWrapper(InputOutputControllerWrapper):
 
     def after_wrapped_function(self, response: typing.Any) -> typing.Any:
         try:
-            if isinstance(response, HTTPResponse):
+            if self.context.by_pass_output_wrapping(response):
                 return response
 
             processed_response = self.processor.process(response)
