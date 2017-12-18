@@ -28,7 +28,7 @@ The separation of concerns between REST APIs layer and Business Stuff layer is i
 
 Hapic is licenced under the MIT licence. You can use it in your projects, closed or open sourced.
 
-## Status, contributions
+## Status, contributions
 
 Hapic source code is ready for production. Some refactoring are identified and required for maintainability, but public APIs are stable so you can rely on Hapic for your developments.
 
@@ -46,7 +46,7 @@ source venv/bin/activate
 python setup.py develop
 ```
  
-## Give it a try
+## Give it a try
 
 ### A complete user API
 
