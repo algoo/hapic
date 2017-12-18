@@ -8,7 +8,6 @@ from hapic.context import ContextInterface
 from hapic.context import RouteRepresentation
 from hapic.decorator import DecoratedController
 from hapic.decorator import DECORATION_ATTRIBUTE_NAME
-from hapic.ext.bottle.context import BOTTLE_RE_PATH_URL
 from hapic.exception import OutputValidationException
 from hapic.processor import RequestParameters
 from hapic.processor import ProcessValidationError
