@@ -8,11 +8,8 @@ here = path.abspath(path.dirname(__file__))
 
 install_requires = [
     'marshmallow',
-    'apispec==0.27.1-algoo',
+    'apispec',
     'multidict'
-]
-dependency_links = [
-    'git+https://github.com/algoo/apispec.git@dev-fork#egg=apispec-0.27.1-algoo'  # nopep8
 ]
 tests_require = [
     'pytest',
@@ -32,7 +29,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='0.21',
+    version='0.22',
 
     description='HTTP api input/output manager',
     # long_description=long_description,
@@ -64,7 +61,6 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=install_requires,
-    dependency_links=dependency_links,
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,
