@@ -48,6 +48,91 @@ python setup.py develop
  
 ## Give it a try
 
+### Fast Flask example
+
+```
+from datetime import datetime
+import flask
+import marshmallow
+import hapic
+from hapic.ext.flask import FlaskContext
+import json
+
+hapic = hapic.Hapic()
+app = flask.Flask(__name__)
+
+
+class UriPathSchema(marshmallow.Schema):  # schema describing the URI and allowed values
+    name = marshmallow.fields.String(required=True)
+    age = marshmallow.fields.Integer(required=False)
+
+
+class HelloResponseSchema(marshmallow.Schema): # schema of the API response
+    name = marshmallow.fields.String(required=True)
+    now = marshmallow.fields.DateTime(required=False)
+    greetings = marshmallow.fields.String(required=False)
+
+
+@app.route('/hello/<name>')  # flask route. must always be before hapic decorators
+@hapic.with_api_doc()  # the first hapic decorator. Register the method for auto-documentation
+@hapic.input_path(UriPathSchema())  # validate the URI structure
+@hapic.output_body(HelloResponseSchema())  # define output structure
+def hello(name='<No name>', hapic_data=None):
+    return {
+        'name': name,
+        'now': datetime.now(),
+        'dummy': { 'some': 'dummy' }  # will be ignored
+    }
+
+class UriPathSchemaWithAge(marshmallow.Schema):  # schema describing the URI and allowed values
+    name = marshmallow.fields.String(required=True)
+    age = marshmallow.fields.Integer(required=False)
+
+
+@app.route('/hello/<name>/age/<age>')
+@hapic.with_api_doc()
+@hapic.input_path(UriPathSchemaWithAge())
+@hapic.output_body(HelloResponseSchema())
+def hello2(name='<No name>', age=42, hapic_data=None):
+    return {
+        'name': name,
+        'age': age,
+        'greetings': 'Hello {name}, it looks like you are {age}'.format(
+            name=name,
+            age=age
+        ),
+        'now': datetime.now(),
+        'dummy': { 'some': 'dummy' }  # will be ignored
+    }
+
+
+hapic.set_context(FlaskContext(app))
+print(json.dumps(hapic.generate_doc(title='API Doc', description='doc desc.')))  # Generate the documentation
+app.run('127.0.0.1', 8080, debug=True)
+```
+
+How to use it:
+
+Nominal cases:
+
+```
+$ curl "http://127.0.0.1:8080/hello/michel"
+# {"now": "2017-12-18T12:37:10.751623+00:00", "name": "michel"}
+```
+
+```
+$ curl "http://127.0.0.1:8080/hello/michel/age/17"
+# {"name": "damien", "greetings": "Hello damien, it looks like you are 17", "now": "2017-12-18T12:41:58.229679+00:00"}
+```
+
+Error case (returns a 400):
+
+```
+$ curl "http://127.0.0.1:8080/hello/michel/age/mistaken"
+# {"details": {"age": ["Not a valid integer."]}, "message": "Validation error of input data"}
+```
+
+
 ### A complete user API
 
 In the `example/usermanagement` directory you can find a complete example of an API allowing to manage users.
