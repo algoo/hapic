@@ -45,9 +45,8 @@ virtualenv -p /usr/bin/python3 venv
 source venv/bin/activate
 python setup.py develop
 ```
-
+ 
 ## Give it a try
-
 
 ### A complete user API
 
