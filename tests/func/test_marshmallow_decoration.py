@@ -1,5 +1,8 @@
 # coding: utf-8
-from http import HTTPStatus
+try:  # Python 3.5+
+    from http import HTTPStatus
+except ImportError:
+    from http import client as HTTPStatus
 
 import marshmallow
 

@@ -33,7 +33,7 @@ def bottle_generate_operations(
         schema_class = type(description.output_body.wrapper.processor.schema)
         method_operations.setdefault('responses', {})\
             [int(description.output_body.wrapper.default_http_code)] = {
-                'description': str(description.output_body.wrapper.default_http_code),  # nopep8
+                'description': int(description.output_body.wrapper.default_http_code),  # nopep8
                 'schema': {
                     '$ref': '#/definitions/{}'.format(schema_class.__name__)
                 }
@@ -45,7 +45,7 @@ def bottle_generate_operations(
         )
         method_operations.setdefault('responses', {})\
             [int(description.output_file.wrapper.default_http_code)] = {
-            'description': str(description.output_file.wrapper.default_http_code),  # nopep8
+            'description': int(description.output_file.wrapper.default_http_code),  # nopep8
         }
 
     if description.errors:
@@ -53,7 +53,7 @@ def bottle_generate_operations(
             schema_class = type(error.wrapper.schema)
             method_operations.setdefault('responses', {})\
                 [int(error.wrapper.http_code)] = {
-                    'description': str(error.wrapper.http_code),
+                    'description': int(error.wrapper.http_code),
                     'schema': {
                         '$ref': '#/definitions/{}'.format(schema_class.__name__)  # nopep8
                     }

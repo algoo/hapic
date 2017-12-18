@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 import json
-from http import HTTPStatus
-from pyramid.response import Response
 from pyramid.config import Configurator
 from wsgiref.simple_server import make_server
 import time

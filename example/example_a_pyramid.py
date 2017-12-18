@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 import json
-from http import HTTPStatus
+try:  # Python 3.5+
+    from http import HTTPStatus
+except ImportError:
+    from http import client as HTTPStatus
 
 from pyramid.config import Configurator
 from wsgiref.simple_server import make_server

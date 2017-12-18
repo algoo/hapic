@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 import functools
 import typing
-from http import HTTPStatus
+try:  # Python 3.5+
+    from http import HTTPStatus
+except ImportError:
+    from http import client as HTTPStatus
 
 # TODO BS 20171010: bottle specific !  # see #5
 import marshmallow

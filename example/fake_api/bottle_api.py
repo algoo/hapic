@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import json
-from http import HTTPStatus
 
 import bottle
 import time

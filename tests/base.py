@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 import typing
-from http import HTTPStatus
+try:  # Python 3.5+
+    from http import HTTPStatus
+except ImportError:
+    from http import client as HTTPStatus
 
 from multidict import MultiDict
 

@@ -51,13 +51,13 @@ SWAGGER_DOC_API = {
          'get': {
            'description': 'General information about this API.',
            'responses': {200: {
-               'description': 'HTTPStatus.OK',
+               'description': 200,
                'schema': {'$ref': '#/definitions/AboutResponseSchema'}}}}}),
       ('/users', {
          'get': {
            'description': 'Obtain users list.',
            'responses': {200: {
-               'description': 'HTTPStatus.OK',
+               'description': 200,
                'schema': {'$ref': '#/definitions/ListsUserSchema'}}}}}),
       ('/users/{id}', {
          'delete': {
@@ -67,7 +67,7 @@ SWAGGER_DOC_API = {
                            'required': True,
                            'type': 'integer'}],
            'responses': {204: {
-               'description': '204',
+               'description': 204,
                'schema': {'$ref': '#/definitions/NoContentSchema'}}}},
          'get': {
              'description': 'Obtain one user',
@@ -76,7 +76,7 @@ SWAGGER_DOC_API = {
                              'required': True,
                              'type': 'integer'}],
              'responses': {200: {
-                 'description': 'HTTPStatus.OK',
+                 'description': 200,
                  'schema': {'$ref': '#/definitions/UserSchema'}}}}}),
       ('/users/', {
          'post': {
@@ -85,7 +85,7 @@ SWAGGER_DOC_API = {
                              'name': 'body',
                              'schema': {'$ref': '#/definitions/UserSchema'}}],
              'responses': {200: {
-                 'description': 'HTTPStatus.OK',
+                 'description': 200,
                  'schema': {'$ref': '#/definitions/UserSchema'}}}}})]),
  'swagger': '2.0',
  'tags': []
