@@ -3,6 +3,7 @@
 from setuptools import setup
 from setuptools import find_packages
 from os import path
+import sys
 
 here = path.abspath(path.dirname(__file__))
 
@@ -22,6 +23,11 @@ tests_require = [
 dev_require = [
     'requests',
 ] + tests_require
+
+
+# Python 3.4 require
+if sys.version_info.major == 3 and sys.version_info.minor == 4:
+    install_requires.append('typing')
 
 setup(
     name='hapic',

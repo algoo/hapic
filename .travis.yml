@@ -8,7 +8,6 @@ python:
 install:
   - python setup.py develop
   - pip install -e ."[test]"
-  - pip install typing
 
 script: 
   - pytest --cov=hapic tests
