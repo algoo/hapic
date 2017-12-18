@@ -115,7 +115,7 @@ class Hapic(object):
         schema: typing.Any,
         processor: ProcessorInterface = None,
         context: ContextInterface = None,
-        error_http_code: HTTPStatus = HTTPStatus.BAD_REQUEST,
+        error_http_code: HTTPStatus = HTTPStatus.INTERNAL_SERVER_ERROR,
         default_http_code: HTTPStatus = HTTPStatus.OK,
     ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Any]:
         processor = processor or MarshmallowOutputProcessor()
