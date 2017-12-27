@@ -106,4 +106,4 @@ class FlaskContext(ContextInterface):
         return FLASK_RE_PATH_URL.sub(r'{\1}', contextualised_rule)
 
     def by_pass_output_wrapping(self, response: typing.Any) -> bool:
-        return False
+        return isinstance(response, Response)
