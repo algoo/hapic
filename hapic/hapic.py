@@ -87,6 +87,21 @@ class Hapic(object):
         self._context = None
 
     def with_api_doc(self, tags: typing.List['str']=None):
+        """
+        Permit to generate doc about a controller. Use as a decorator:
+
+        ```
+        @hapic.with_api_doc()
+        def my_controller(self):
+            # ...
+        ```
+
+        What it do: Register this controller with all previous given
+        information like `@hapic.input_path(...)` etc.
+
+        :param tags: list of string tags (OpenApi)
+        :return: The decorator
+        """
         # FIXME BS 20171228: Documenter sur ce que ça fait vraiment (tester:
         # on peut l'enlever si on veut pas generer la doc ?)
         tags = tags or []  # FDV
@@ -350,9 +365,16 @@ class Hapic(object):
             return decoration.get_wrapper(func)
         return decorator
 
-    def generate_doc(self, title: str='', description: str=''):
+    def generate_doc(self, title: str='', description: str='') -> dict:
+        """
+        See hapic.doc.DocGenerator#get_doc docstring
+        :param title: Title of generated doc
+        :param description: Description of generated doc
+        :return: dict containing apispec doc
+        """
         return self.doc_generator.get_doc(
             self._controllers,
             self.context,
             title=title,
-            description=description)
+            description=description,
+        )

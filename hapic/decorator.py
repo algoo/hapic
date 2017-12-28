@@ -377,6 +377,11 @@ class InputFilesControllerWrapper(InputControllerWrapper):
 
 
 class ExceptionHandlerControllerWrapper(ControllerWrapper):
+    """
+    This wrapper is used to wrap a controller and catch given exception if
+    raised. An error will be generated in collaboration with context and
+    returned.
+    """
     def __init__(
         self,
         handled_exception_class: typing.Type[Exception],

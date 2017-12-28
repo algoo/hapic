@@ -10,6 +10,7 @@ from tests.base import MyContext
 class TestDocGeneration(Base):
     def test_func__input_files_doc__ok__one_file(self):
         hapic = Hapic()
+        # TODO BS 20171113: Make this test non-bottle
         app = bottle.Bottle()
         hapic.set_context(MyContext(app=app))
 
@@ -39,6 +40,7 @@ class TestDocGeneration(Base):
 
     def test_func__input_files_doc__ok__two_file(self):
         hapic = Hapic()
+        # TODO BS 20171113: Make this test non-bottle
         app = bottle.Bottle()
         hapic.set_context(MyContext(app=app))
 
@@ -75,6 +77,7 @@ class TestDocGeneration(Base):
 
     def test_func__output_file_doc__ok__nominal_case(self):
         hapic = Hapic()
+        # TODO BS 20171113: Make this test non-bottle
         app = bottle.Bottle()
         hapic.set_context(MyContext(app=app))
 
@@ -94,6 +97,7 @@ class TestDocGeneration(Base):
 
     def test_func__input_files_doc__ok__one_file_and_text(self):
         hapic = Hapic()
+        # TODO BS 20171113: Make this test non-bottle
         app = bottle.Bottle()
         hapic.set_context(MyContext(app=app))
 

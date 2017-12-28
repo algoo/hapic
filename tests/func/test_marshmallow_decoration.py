@@ -24,7 +24,6 @@ class TestMarshmallowDecoration(Base):
         class MySchema(marshmallow.Schema):
             file_abc = marshmallow.fields.Raw(required=True)
 
-        @hapic.with_api_doc()
         @hapic.input_files(MySchema())
         def my_controller(hapic_data=None):
             assert hapic_data
@@ -46,7 +45,6 @@ class TestMarshmallowDecoration(Base):
         class MySchema(marshmallow.Schema):
             file_abc = marshmallow.fields.Raw(required=True)
 
-        @hapic.with_api_doc()
         @hapic.input_files(MySchema())
         def my_controller(hapic_data=None):
             assert hapic_data
@@ -72,7 +70,6 @@ class TestMarshmallowDecoration(Base):
         class MySchema(marshmallow.Schema):
             file_abc = marshmallow.fields.Raw(required=True)
 
-        @hapic.with_api_doc()
         @hapic.input_files(MySchema())
         def my_controller(hapic_data=None):
             assert hapic_data

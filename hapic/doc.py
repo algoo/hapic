@@ -111,6 +111,16 @@ class DocGenerator(object):
         title: str='',
         description: str='',
     ) -> dict:
+        """
+        Generate an OpenApi 2.0 documentation. Th given context will be used
+        to found controllers matching with given DecoratedController.
+        :param controllers: List of DecoratedController to match with context
+        controllers
+        :param context: a context instance
+        :param title: The generated doc title
+        :param description: The generated doc description
+        :return: a apispec documentation dict
+        """
         spec = APISpec(
             title=title,
             info=dict(description=description),

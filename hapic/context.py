@@ -30,6 +30,7 @@ class ContextInterface(object):
 
     def get_response(
         self,
+        # TODO BS 20171228: rename into response_content
         response: dict,
         http_code: int,
     ) -> typing.Any:
@@ -48,18 +49,21 @@ class ContextInterface(object):
     ) -> RouteRepresentation:
         raise NotImplementedError()
 
+    # TODO BS 20171228: rename into openapi !
     def get_swagger_path(self, contextualised_rule: str) -> str:
         """
         Return OpenAPI path with context path
+        TODO BS 20171228: Give example
         :param contextualised_rule: path of original context
         :return: OpenAPI path
         """
         raise NotImplementedError()
 
+    # TODO BS 20171228: rename into "bypass"
     def by_pass_output_wrapping(self, response: typing.Any) -> bool:
         """
-        Return True if the controller response is in final state: we do not
-        have to apply output wrapper on it.
+        Return True if the controller response is the final response object:
+        we do not have to apply any processing on it.
         :param response: the original response of controller
         :return:
         """
