@@ -1,14 +1,11 @@
 # -*- coding: utf-8 -*-
 import typing
 import uuid
+import functools
 try:  # Python 3.5+
     from http import HTTPStatus
 except ImportError:
     from http import client as HTTPStatus
-
-import functools
-
-import marshmallow
 
 from hapic.buffer import DecorationBuffer
 from hapic.context import ContextInterface
@@ -39,15 +36,7 @@ from hapic.processor import ProcessorInterface
 from hapic.processor import MarshmallowInputProcessor
 from hapic.processor import MarshmallowInputFilesProcessor
 from hapic.processor import MarshmallowOutputProcessor
-
-
-class ErrorResponseSchema(marshmallow.Schema):
-    message = marshmallow.fields.String(required=True)
-    details = marshmallow.fields.Dict(required=False, missing={})
-    code = marshmallow.fields.Raw(missing=None)
-
-
-_default_global_error_schema = ErrorResponseSchema()
+from hapic.error import ErrorBuilderInterface
 
 
 # TODO: Gérer les cas ou c'est une liste la réponse (items, item_nb), see #12
@@ -59,6 +48,7 @@ class Hapic(object):
         self._buffer = DecorationBuffer()
         self._controllers = []  # type: typing.List[DecoratedController]
         self._context = None  # type: ContextInterface
+        self._error_builder = None  # type: ErrorBuilderInterface
         self.doc_generator = DocGenerator()
 
         # This local function will be pass to different components
@@ -67,7 +57,14 @@ class Hapic(object):
         def context_getter():
             return self._context
 
+        # This local function will be pass to different components
+        # who will need error_builder but declared (like with decorator)
+        # before error_builder declaration
+        def error_builder_getter():
+            return self._context.get_default_error_builder()
+
         self._context_getter = context_getter
+        self._error_builder_getter = error_builder_getter
 
         # TODO: Permettre la surcharge des classes utilisés ci-dessous, see #14
 
@@ -346,17 +343,18 @@ class Hapic(object):
 
     def handle_exception(
         self,
-        handled_exception_class: typing.Type[Exception],
+        handled_exception_class: typing.Type[Exception]=Exception,
         http_code: HTTPStatus = HTTPStatus.INTERNAL_SERVER_ERROR,
+        error_builder: ErrorBuilderInterface=None,
         context: ContextInterface = None,
     ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Any]:
         context = context or self._context_getter
+        error_builder = error_builder or self._error_builder_getter
 
         decoration = ExceptionHandlerControllerWrapper(
             handled_exception_class,
             context,
-            # TODO BS 20171013: Permit schema overriding, see #15
-            schema=_default_global_error_schema,
+            error_builder=error_builder,
             http_code=http_code,
         )
 

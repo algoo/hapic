@@ -2,6 +2,7 @@
 import json
 import re
 import typing
+
 try:  # Python 3.5+
     from http import HTTPStatus
 except ImportError:
@@ -10,7 +11,7 @@ except ImportError:
 import bottle
 from multidict import MultiDict
 
-from hapic.context import ContextInterface
+from hapic.context import BaseContext
 from hapic.context import RouteRepresentation
 from hapic.decorator import DecoratedController
 from hapic.decorator import DECORATION_ATTRIBUTE_NAME
@@ -19,14 +20,22 @@ from hapic.exception import NoRoutesException
 from hapic.exception import RouteNotFound
 from hapic.processor import RequestParameters
 from hapic.processor import ProcessValidationError
+from hapic.error import DefaultErrorBuilder
+from hapic.error import ErrorBuilderInterface
 
 # Bottle regular expression to locate url parameters
 BOTTLE_RE_PATH_URL = re.compile(r'<([^:<>]+)(?::[^<>]+)?>')
 
 
-class BottleContext(ContextInterface):
-    def __init__(self, app: bottle.Bottle):
+class BottleContext(BaseContext):
+    def __init__(
+        self,
+        app: bottle.Bottle,
+        default_error_builder: ErrorBuilderInterface=None,
+    ):
         self.app = app
+        self.default_error_builder = \
+            default_error_builder or DefaultErrorBuilder()  # FDV
 
     def get_request_parameters(self, *args, **kwargs) -> RequestParameters:
         path_parameters = dict(bottle.request.url_args)
@@ -63,9 +72,13 @@ class BottleContext(ContextInterface):
         error: ProcessValidationError,
         http_code: HTTPStatus=HTTPStatus.BAD_REQUEST,
     ) -> typing.Any:
-        # TODO BS 20171010: Manage error schemas, see #4
-        from hapic.hapic import _default_global_error_schema
-        unmarshall = _default_global_error_schema.dump(error)
+        error_content = self.default_error_builder.build_from_validation_error(
+            error,
+        )
+
+        # Check error
+        dumped = self.default_error_builder.dump(error).data
+        unmarshall = self.default_error_builder.load(dumped)
         if unmarshall.errors:
             raise OutputValidationException(
                 'Validation error during dump of error response: {}'.format(
@@ -74,7 +87,7 @@ class BottleContext(ContextInterface):
             )
 
         return bottle.HTTPResponse(
-            body=json.dumps(unmarshall.data),
+            body=json.dumps(error_content),
             headers=[
                 ('Content-Type', 'application/json'),
             ],

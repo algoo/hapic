@@ -6,16 +6,15 @@ try:  # Python 3.5+
 except ImportError:
     from http import client as HTTPStatus
 
-# TODO BS 20171010: bottle specific !  # see #5
-import marshmallow
 from multidict import MultiDict
-
 from hapic.data import HapicData
 from hapic.description import ControllerDescription
 from hapic.exception import ProcessException
+from hapic.exception import OutputValidationException
 from hapic.context import ContextInterface
 from hapic.processor import ProcessorInterface
 from hapic.processor import RequestParameters
+from hapic.error import ErrorBuilderInterface
 
 # TODO: Ensure usage of DECORATION_ATTRIBUTE_NAME is documented and
 # var names correctly choose.  see #6
@@ -386,19 +385,25 @@ class ExceptionHandlerControllerWrapper(ControllerWrapper):
         self,
         handled_exception_class: typing.Type[Exception],
         context: typing.Union[ContextInterface, typing.Callable[[], ContextInterface]],  # nopep8
-        schema: marshmallow.Schema,
+        error_builder: typing.Union[ErrorBuilderInterface, typing.Callable[[], ErrorBuilderInterface]],  # nopep8
         http_code: HTTPStatus=HTTPStatus.INTERNAL_SERVER_ERROR,
     ) -> None:
         self.handled_exception_class = handled_exception_class
         self._context = context
         self.http_code = http_code
-        self.schema = schema
+        self._error_builder = error_builder
 
     @property
     def context(self) -> ContextInterface:
         if callable(self._context):
             return self._context()
         return self._context
+
+    @property
+    def error_builder(self) -> ErrorBuilderInterface:
+        if callable(self._error_builder):
+            return self._error_builder()
+        return self._error_builder
 
     def _execute_wrapped_function(
         self,
@@ -413,17 +418,21 @@ class ExceptionHandlerControllerWrapper(ControllerWrapper):
                 func_kwargs,
             )
         except self.handled_exception_class as exc:
-            # TODO: "error_detail" attribute name should be configurable
-            # TODO BS 20171013: use overrideable mechanism, error object given
-            #  to schema ? see #15
-            raw_response = {
-                'message': str(exc),
-                'code': None,
-                'detail': getattr(exc, 'error_detail', {}),
-            }
+            response_content = self.error_builder.build_from_exception(exc)
+
+            # Check error format
+            dumped = self.error_builder.dump(response_content).data
+            unmarshall = self.error_builder.load(dumped)
+            if unmarshall.errors:
+                raise OutputValidationException(
+                    'Validation error during dump of error response: {}'
+                    .format(
+                        str(unmarshall.errors)
+                    )
+                )
 
             error_response = self.context.get_response(
-                raw_response,
+                response_content,
                 self.http_code,
             )
             return error_response

@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
+import pytest
 import typing
+
+from hapic.exception import OutputValidationException
+
 try:  # Python 3.5+
     from http import HTTPStatus
 except ImportError:
@@ -14,7 +18,7 @@ from hapic.decorator import InputQueryControllerWrapper
 from hapic.decorator import InputControllerWrapper
 from hapic.decorator import InputOutputControllerWrapper
 from hapic.decorator import OutputControllerWrapper
-from hapic.hapic import ErrorResponseSchema
+from hapic.error import DefaultErrorBuilder
 from hapic.processor import MarshmallowOutputProcessor
 from hapic.processor import ProcessValidationError
 from hapic.processor import ProcessorInterface
@@ -260,7 +264,7 @@ class TestExceptionHandlerControllerWrapper(Base):
         wrapper = ExceptionHandlerControllerWrapper(
             ZeroDivisionError,
             context,
-            schema=ErrorResponseSchema(),
+            error_builder=DefaultErrorBuilder(),
             http_code=HTTPStatus.INTERNAL_SERVER_ERROR,
         )
 
@@ -275,7 +279,7 @@ class TestExceptionHandlerControllerWrapper(Base):
         assert response['original_response'] == {
             'message': 'We are testing',
             'code': None,
-            'detail': {},
+            'details': {},
         }
 
     def test_unit__exception_handled__ok__exception_error_dict(self):
@@ -288,7 +292,7 @@ class TestExceptionHandlerControllerWrapper(Base):
         wrapper = ExceptionHandlerControllerWrapper(
             MyException,
             context,
-            schema=ErrorResponseSchema(),
+            error_builder=DefaultErrorBuilder(),
             http_code=HTTPStatus.INTERNAL_SERVER_ERROR,
         )
 
@@ -305,5 +309,28 @@ class TestExceptionHandlerControllerWrapper(Base):
         assert response['original_response'] == {
             'message': 'We are testing',
             'code': None,
-            'detail': {'foo': 'bar'},
+            'details': {'foo': 'bar'},
         }
+
+    def test_unit__exception_handler__error__error_content_malformed(self):
+        class MyException(Exception):
+            pass
+
+        class MyErrorBuilder(DefaultErrorBuilder):
+            def build_from_exception(self, exception: Exception) -> dict:
+                # this is not matching with DefaultErrorBuilder schema
+                return {}
+
+        context = MyContext(app=None)
+        wrapper = ExceptionHandlerControllerWrapper(
+            MyException,
+            context,
+            error_builder=MyErrorBuilder(),
+        )
+
+        def raise_it():
+            raise MyException()
+
+        wrapper = wrapper.get_wrapper(raise_it)
+        with pytest.raises(OutputValidationException):
+            wrapper()

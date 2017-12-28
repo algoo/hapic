@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 import typing
+
+from hapic.error import ErrorBuilderInterface
+
 try:  # Python 3.5+
     from http import HTTPStatus
 except ImportError:
@@ -68,3 +71,16 @@ class ContextInterface(object):
         :return:
         """
         raise NotImplementedError()
+
+    def get_default_error_builder(self) -> ErrorBuilderInterface:
+        """
+        Return a ErrorBuilder who will be used to build default errors
+        :return: ErrorBuilderInterface instance
+        """
+        raise NotImplementedError()
+
+
+class BaseContext(ContextInterface):
+    def get_default_error_builder(self) -> ErrorBuilderInterface:
+        """ see hapic.context.ContextInterface#get_default_error_builder"""
+        return self.default_error_builder

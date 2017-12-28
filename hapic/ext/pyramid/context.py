@@ -2,18 +2,21 @@
 import json
 import re
 import typing
+
 try:  # Python 3.5+
     from http import HTTPStatus
 except ImportError:
     from http import client as HTTPStatus
 
-from hapic.context import ContextInterface
+from hapic.context import BaseContext
 from hapic.context import RouteRepresentation
 from hapic.decorator import DecoratedController
 from hapic.decorator import DECORATION_ATTRIBUTE_NAME
 from hapic.exception import OutputValidationException
 from hapic.processor import RequestParameters
 from hapic.processor import ProcessValidationError
+from hapic.error import DefaultErrorBuilder
+from hapic.error import ErrorBuilderInterface
 
 if typing.TYPE_CHECKING:
     from pyramid.response import Response
@@ -23,9 +26,15 @@ if typing.TYPE_CHECKING:
 PYRAMID_RE_PATH_URL = re.compile(r'')
 
 
-class PyramidContext(ContextInterface):
-    def __init__(self, configurator: 'Configurator'):
+class PyramidContext(BaseContext):
+    def __init__(
+        self,
+        configurator: 'Configurator',
+        default_error_builder: ErrorBuilderInterface = None,
+    ):
         self.configurator = configurator
+        self.default_error_builder = \
+            default_error_builder or DefaultErrorBuilder()  # FDV
 
     def get_request_parameters(self, *args, **kwargs) -> RequestParameters:
         req = args[-1]  # TODO : Check
@@ -65,10 +74,15 @@ class PyramidContext(ContextInterface):
         error: ProcessValidationError,
         http_code: HTTPStatus=HTTPStatus.BAD_REQUEST,
     ) -> typing.Any:
-        # TODO BS 20171010: Manage error schemas, see #4
         from pyramid.response import Response
-        from hapic.hapic import _default_global_error_schema
-        unmarshall = _default_global_error_schema.dump(error)
+
+        error_content = self.default_error_builder.build_from_validation_error(
+            error,
+        )
+
+        # Check error
+        dumped = self.default_error_builder.dump(error).data
+        unmarshall = self.default_error_builder.load(dumped)
         if unmarshall.errors:
             raise OutputValidationException(
                 'Validation error during dump of error response: {}'.format(
@@ -77,7 +91,7 @@ class PyramidContext(ContextInterface):
             )
 
         return Response(
-            body=json.dumps(unmarshall.data),
+            body=json.dumps(error_content),
             headers=[
                 ('Content-Type', 'application/json'),
             ],

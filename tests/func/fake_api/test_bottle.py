@@ -59,6 +59,7 @@ def test_func_bottle_fake_api():
     resp = app.post('/users/', status='*')
     assert resp.status_int == 400
     assert resp.json == {
+        'code': None,
         'details': {
             'email_address': ['Missing data for required field.'],
             'username': ['Missing data for required field.'],

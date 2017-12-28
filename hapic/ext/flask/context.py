@@ -2,17 +2,21 @@
 import json
 import re
 import typing
+
 try:  # Python 3.5+
     from http import HTTPStatus
 except ImportError:
     from http import client as HTTPStatus
 
-from hapic.context import ContextInterface
+from hapic.context import BaseContext
 from hapic.context import RouteRepresentation
 from hapic.decorator import DecoratedController
 from hapic.decorator import DECORATION_ATTRIBUTE_NAME
 from hapic.exception import OutputValidationException
-from hapic.processor import RequestParameters, ProcessValidationError
+from hapic.processor import RequestParameters
+from hapic.processor import ProcessValidationError
+from hapic.error import DefaultErrorBuilder
+from hapic.error import ErrorBuilderInterface
 from flask import Flask
 
 if typing.TYPE_CHECKING:
@@ -22,9 +26,15 @@ if typing.TYPE_CHECKING:
 FLASK_RE_PATH_URL = re.compile(r'<(?:[^:<>]+:)?([^<>]+)>')
 
 
-class FlaskContext(ContextInterface):
-    def __init__(self, app: Flask):
+class FlaskContext(BaseContext):
+    def __init__(
+        self,
+        app: Flask,
+        default_error_builder: ErrorBuilderInterface=None,
+    ):
         self.app = app
+        self.default_error_builder = \
+            default_error_builder or DefaultErrorBuilder()  # FDV
 
     def get_request_parameters(self, *args, **kwargs) -> RequestParameters:
         from flask import request
@@ -34,7 +44,7 @@ class FlaskContext(ContextInterface):
             body_parameters=request.get_json(),  # TODO: Check
             form_parameters=request.form,
             header_parameters=request.headers,
-            files_parameters={},  # TODO: BS 20171115: Code it
+            files_parameters=request.files,
         )
 
     def get_response(
@@ -54,9 +64,14 @@ class FlaskContext(ContextInterface):
         error: ProcessValidationError,
         http_code: HTTPStatus=HTTPStatus.BAD_REQUEST,
     ) -> typing.Any:
-        # TODO BS 20171010: Manage error schemas, see #4
-        from hapic.hapic import _default_global_error_schema
-        unmarshall = _default_global_error_schema.dump(error)
+        error_content = self.default_error_builder.build_from_validation_error(
+            error,
+        )
+
+        # Check error
+        dumped = self.default_error_builder.dump(error).data
+        unmarshall = self.default_error_builder.load(dumped)
+
         if unmarshall.errors:
             raise OutputValidationException(
                 'Validation error during dump of error response: {}'.format(
@@ -65,7 +80,7 @@ class FlaskContext(ContextInterface):
             )
         from flask import Response
         return Response(
-            response=json.dumps(unmarshall.data),
+            response=json.dumps(error_content),
             mimetype='application/json',
             status=int(http_code),
         )
