@@ -93,6 +93,9 @@ def bottle_generate_operations(
                 'type': 'file',
             })
 
+    if description.tags:
+        method_operations['tags'] = description.tags
+
     operations = {
         route.method.lower(): method_operations,
     }

@@ -147,3 +147,22 @@ class TestDocGeneration(Base):
         assert 'post' in doc['paths']['/upload']
         assert 'description' in doc['paths']['/upload']['post']
         assert 'Hello doc' == doc['paths']['/upload']['post']['description']
+
+    def test_func__tags__ok__nominal_case(self):
+        hapic = Hapic()
+        app = bottle.Bottle()
+        hapic.set_context(MyContext(app=app))
+
+        @hapic.with_api_doc(tags=['foo', 'bar'])
+        def my_controller(hapic_data=None):
+            assert hapic_data
+            assert hapic_data.files
+
+        app.route('/upload', method='POST', callback=my_controller)
+        doc = hapic.generate_doc()
+
+        assert doc.get('paths')
+        assert '/upload' in doc['paths']
+        assert 'post' in doc['paths']['/upload']
+        assert 'tags' in doc['paths']['/upload']['post']
+        assert ['foo', 'bar'] == doc['paths']['/upload']['post']['tags']

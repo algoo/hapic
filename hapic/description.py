@@ -63,6 +63,7 @@ class ControllerDescription(object):
         output_file: OutputFileDescription=None,
         output_headers: OutputHeadersDescription=None,
         errors: typing.List[ErrorDescription]=None,
+        tags: typing.List[str]=None
     ):
         self.input_path = input_path
         self.input_query = input_query
@@ -74,3 +75,4 @@ class ControllerDescription(object):
         self.output_file = output_file
         self.output_headers = output_headers
         self.errors = errors or []
+        self.tags = tags or []

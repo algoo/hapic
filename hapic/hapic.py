@@ -86,7 +86,11 @@ class Hapic(object):
     def reset_context(self) -> None:
         self._context = None
 
-    def with_api_doc(self):
+    def with_api_doc(self, tags: typing.List['str']=None):
+        # FIXME BS 20171228: Documenter sur ce que ça fait vraiment (tester:
+        # on peut l'enlever si on veut pas generer la doc ?)
+        tags = tags or []  # FDV
+
         def decorator(func):
             @functools.wraps(func)
             def wrapper(*args, **kwargs):
@@ -97,6 +101,7 @@ class Hapic(object):
             setattr(func, DECORATION_ATTRIBUTE_NAME, token)
 
             description = self._buffer.get_description()
+            description.tags = tags
 
             reference = ControllerReference(
                 wrapper=wrapper,
