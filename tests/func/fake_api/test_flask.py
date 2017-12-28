@@ -18,7 +18,7 @@ def test_func_flask_fake_api():
     )
 
     assert doc == SWAGGER_DOC_API
-    resp = app.get('/about')
+    resp = app.get('/about', status='*')
     assert resp.status_int == 200
     assert resp.json == {'datetime': '2017-12-07T10:55:08.488996+00:00',
                          'version': '1.2.3'}
