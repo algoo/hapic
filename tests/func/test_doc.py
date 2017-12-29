@@ -190,7 +190,7 @@ class TestDocGeneration(Base):
         assert 'responses' in doc['paths']['/upload']['post']
         assert 500 in doc['paths']['/upload']['post']['responses']
         assert {
-            'description': 500,
+            'description': "500",
             'schema': {
                 '$ref': '#/definitions/DefaultErrorBuilder'
             }
