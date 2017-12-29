@@ -50,7 +50,7 @@ def bottle_generate_operations(
 
     if description.errors:
         for error in description.errors:
-            schema_class = type(error.wrapper.schema)
+            schema_class = type(error.wrapper.error_builder)
             method_operations.setdefault('responses', {})\
                 [int(error.wrapper.http_code)] = {
                     'description': int(error.wrapper.http_code),
@@ -153,7 +153,7 @@ class DocGenerator(object):
 
             if description.errors:
                 for error in description.errors:
-                    schemas.append(type(error.wrapper.schema))
+                    schemas.append(type(error.wrapper.error_builder))
 
         for schema in set(schemas):
             spec.definition(schema.__name__, schema=schema)

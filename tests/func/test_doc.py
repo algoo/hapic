@@ -170,3 +170,28 @@ class TestDocGeneration(Base):
         assert 'post' in doc['paths']['/upload']
         assert 'tags' in doc['paths']['/upload']['post']
         assert ['foo', 'bar'] == doc['paths']['/upload']['post']['tags']
+
+    def test_func__errors__nominal_case(self):
+        hapic = Hapic()
+        app = bottle.Bottle()
+        hapic.set_context(MyContext(app=app))
+
+        @hapic.with_api_doc()
+        @hapic.handle_exception()
+        def my_controller(hapic_data=None):
+            assert hapic_data
+
+        app.route('/upload', method='POST', callback=my_controller)
+        doc = hapic.generate_doc()
+
+        assert doc.get('paths')
+        assert '/upload' in doc['paths']
+        assert 'post' in doc['paths']['/upload']
+        assert 'responses' in doc['paths']['/upload']['post']
+        assert 500 in doc['paths']['/upload']['post']['responses']
+        assert {
+            'description': 500,
+            'schema': {
+                '$ref': '#/definitions/DefaultErrorBuilder'
+            }
+        } == doc['paths']['/upload']['post']['responses'][500]
