@@ -280,8 +280,8 @@ class TestExceptionHandlerControllerWrapper(Base):
         assert 'original_response' in response
         assert response['original_response'] == json.dumps({
             'message': 'We are testing',
-            'code': None,
             'details': {},
+            'code': None,
         })
 
     def test_unit__exception_handled__ok__exception_error_dict(self):
@@ -310,8 +310,8 @@ class TestExceptionHandlerControllerWrapper(Base):
         assert 'original_response' in response
         assert response['original_response'] == json.dumps({
             'message': 'We are testing',
-            'code': None,
             'details': {'foo': 'bar'},
+            'code': None,
         })
 
     def test_unit__exception_handler__error__error_content_malformed(self):
