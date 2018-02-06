@@ -8,7 +8,7 @@ import sys
 here = path.abspath(path.dirname(__file__))
 
 install_requires = [
-    'marshmallow',
+    'marshmallow >2.0.0,<3.0.0a1',
     'apispec',
     'multidict'
 ]

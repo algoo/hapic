@@ -92,7 +92,12 @@ class FlaskController(object):
         """
         delete user
         """
-        return NoContentSchema()
+        resp = flask.Response(
+            status=204,
+        )
+        # See tests.func.fake_api.test_flask.test_func_flask_fake_api
+        del resp.headers['Content-Type']
+        return resp
 
     def bind(self, app: flask.Flask):
         app.add_url_rule('/about',
