@@ -48,8 +48,9 @@ class MyContext(BottleContext):
 
     def get_response(
         self,
-        response: dict,
+        response: str,
         http_code: int,
+        mimetype: str='application/json',
     ) -> typing.Any:
         return {
             'original_response': response,

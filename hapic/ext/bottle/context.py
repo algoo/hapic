@@ -56,13 +56,14 @@ class BottleContext(BaseContext):
 
     def get_response(
         self,
-        response: dict,
+        response: str,
         http_code: int,
+        mimetype: str='application/json',
     ) -> bottle.HTTPResponse:
         return bottle.HTTPResponse(
-            body=json.dumps(response),
+            body=response,
             headers=[
-                ('Content-Type', 'application/json'),
+                ('Content-Type', mimetype),
             ],
             status=http_code,
         )

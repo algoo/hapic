@@ -34,8 +34,9 @@ class ContextInterface(object):
     def get_response(
         self,
         # TODO BS 20171228: rename into response_content
-        response: dict,
+        response: str,
         http_code: int,
+        mimetype: str='application/json',
     ) -> typing.Any:
         raise NotImplementedError()
 
@@ -76,6 +77,32 @@ class ContextInterface(object):
         """
         Return a ErrorBuilder who will be used to build default errors
         :return: ErrorBuilderInterface instance
+        """
+        raise NotImplementedError()
+
+    def add_view(
+        self,
+        route: str,
+        http_method: str,
+        view_func: typing.Callable[..., typing.Any],
+    ) -> None:
+        """
+        This method must permit to add a view in current context
+        :param route: The route depending of framework format, ex "/foo"
+        :param http_method: HTTP method like GET, POST, etc ...
+        :param view_func: The view callable
+        """
+        raise NotImplementedError()
+
+    def serve_directory(
+        self,
+        route_prefix: str,
+        directory_path: str,
+    ) -> None:
+        """
+        Configure a path to serve a directory content
+        :param route_prefix: The base url for serve the directory, eg /static
+        :param directory_path: The file system path
         """
         raise NotImplementedError()
 

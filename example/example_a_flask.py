@@ -90,5 +90,6 @@ controllers = Controllers()
 controllers.bind(app)
 
 hapic.set_context(FlaskContext(app))
+hapic.add_documentation_view('/api-doc', 'DOC', 'Generated doc')
 print(json.dumps(hapic.generate_doc()))
 app.run(host='localhost', port=8080, debug=True)

@@ -18,6 +18,7 @@ from hapic.processor import ProcessValidationError
 from hapic.error import DefaultErrorBuilder
 from hapic.error import ErrorBuilderInterface
 from flask import Flask
+from flask import send_from_directory
 
 if typing.TYPE_CHECKING:
     from flask import Response
@@ -49,13 +50,14 @@ class FlaskContext(BaseContext):
 
     def get_response(
         self,
-        response: dict,
+        response: str,
         http_code: int,
+        mimetype: str='application/json',
     ) -> 'Response':
         from flask import Response
         return Response(
-            response=json.dumps(response),
-            mimetype='application/json',
+            response=response,
+            mimetype=mimetype,
             status=http_code,
         )
 
@@ -123,3 +125,34 @@ class FlaskContext(BaseContext):
     def by_pass_output_wrapping(self, response: typing.Any) -> bool:
         from flask import Response
         return isinstance(response, Response)
+
+    def add_view(
+        self,
+        route: str,
+        http_method: str,
+        view_func: typing.Callable[..., typing.Any],
+    ) -> None:
+        self.app.add_url_rule(
+            rule=route,
+            view_func=view_func,
+        )
+
+    def serve_directory(
+        self,
+        route_prefix: str,
+        directory_path: str,
+    ) -> None:
+        if not route_prefix.endswith('/'):
+            route_prefix = '{}/'.format(route_prefix)
+
+        @self.app.route(
+            route_prefix,
+            defaults={
+                'path': 'index.html',
+            }
+        )
+        @self.app.route(
+            '{}<path:path>'.format(route_prefix),
+        )
+        def api_doc(path):
+            return send_from_directory(directory_path, path)

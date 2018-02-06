@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import json
+
 import functools
 import typing
 try:  # Python 3.5+
@@ -221,7 +223,7 @@ class OutputControllerWrapper(InputOutputControllerWrapper):
 
             processed_response = self.processor.process(response)
             prepared_response = self.context.get_response(
-                processed_response,
+                json.dumps(processed_response),
                 self.default_http_code,
             )
             return prepared_response
@@ -432,7 +434,7 @@ class ExceptionHandlerControllerWrapper(ControllerWrapper):
                 )
 
             error_response = self.context.get_response(
-                response_content,
+                json.dumps(response_content),
                 self.http_code,
             )
             return error_response

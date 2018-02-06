@@ -1,0 +1,94 @@
+definitions:
+  DefaultErrorBuilder:
+    properties:
+      code:
+        type: string
+        x-nullable: true
+      details:
+        type: object
+      message:
+        type: string
+    required:
+    - message
+    type: object
+  HelloJsonSchema:
+    properties:
+      color:
+        minLength: 3
+        type: string
+    required:
+    - color
+    type: object
+  HelloResponseSchema:
+    properties:
+      color:
+        type: string
+      name:
+        type: string
+      sentence:
+        type: string
+    required:
+    - name
+    - sentence
+    type: object
+info:
+  description: ''
+  title: ''
+  version: 1.0.0
+parameters: {}
+paths:
+  /hello/{name}:
+    get:
+      description: "my endpoint hello\n        ---\n        get:\n            description:\
+        \ my description\n            parameters:\n                - in: \"path\"\n\
+        \                  description: \"hello\"\n                  name: \"name\"\
+        \n                  type: \"string\"\n            responses:\n           \
+        \     200:\n                    description: A pet to be returned\n      \
+        \              schema: HelloResponseSchema"
+      parameters:
+      - in: path
+        name: name
+        required: true
+        type: string
+      - in: query
+        name: alive
+        required: false
+        type: boolean
+      responses:
+        '200':
+          description: '200'
+          schema:
+            $ref: '#/definitions/HelloResponseSchema'
+        '400':
+          description: '400'
+          schema:
+            $ref: '#/definitions/DefaultErrorBuilder'
+    post:
+      parameters:
+      - in: body
+        name: body
+        schema:
+          $ref: '#/definitions/HelloJsonSchema'
+      - in: path
+        name: name
+        required: true
+        type: string
+      responses:
+        '200':
+          description: '200'
+          schema:
+            $ref: '#/definitions/HelloResponseSchema'
+  /hello3/{name}:
+    get:
+      parameters:
+      - in: path
+        name: name
+        required: true
+        type: string
+      responses:
+        '200':
+          description: '200'
+          schema:
+            $ref: '#/definitions/HelloResponseSchema'
+swagger: '2.0'
+tags: []

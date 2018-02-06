@@ -16,4 +16,5 @@ output_body = _hapic_default.output_body
 output_file = _hapic_default.output_file
 generate_doc = _hapic_default.generate_doc
 set_context = _hapic_default.set_context
+add_documentation_view = _hapic_default.add_documentation_view
 handle_exception = _hapic_default.handle_exception

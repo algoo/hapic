@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import typing
 import uuid
 import functools
@@ -375,4 +376,74 @@ class Hapic(object):
             self.context,
             title=title,
             description=description,
+        )
+
+    def save_doc_in_file(
+        self,
+        file_path: str,
+        title: str='',
+        description: str='',
+    ) -> None:
+        """
+        See hapic.doc.DocGenerator#get_doc docstring
+        :param file_path: The file path to write doc in YAML format
+        :param title: Title of generated doc
+        :param description: Description of generated doc
+        """
+        self.doc_generator.save_in_file(
+            file_path,
+            controllers=self._controllers,
+            context=self.context,
+            title=title,
+            description=description,
+        )
+
+    def add_documentation_view(
+        self,
+        route: str,
+        title: str='',
+        description: str='',
+    ) -> None:
+        # Ensure "/" at end of route, else web browser will not consider it as
+        # a path
+        if not route.endswith('/'):
+            route = '{}/'.format(route)
+
+        # Add swagger directory as served static dir
+        swaggerui_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            'static',
+            'swaggerui',
+        )
+        self.context.serve_directory(
+            route,
+            swaggerui_path,
+        )
+
+        # Generate documentation file
+        doc_page_path = os.path.join(swaggerui_path, 'spec.yml')
+        self.save_doc_in_file(doc_page_path)
+
+        # Prepare views html content
+        doc_index_path = os.path.join(swaggerui_path, 'index.html')
+        with open(doc_index_path, 'r') as doc_page:
+            doc_page_content = doc_page.read()
+        doc_page_content = doc_page_content.replace(
+            '{{ spec_uri }}',
+            'spec.yml',
+        )
+
+        # Declare the swaggerui view
+        def api_doc_view():
+            return self.context.get_response(
+                doc_page_content,
+                http_code=HTTPStatus.OK,
+                mimetype='text/html',
+            )
+
+        # Add a view to generate the html index page of swaggerui
+        self.context.add_view(
+            route=route,
+            http_method='GET',
+            view_func=api_doc_view,
         )

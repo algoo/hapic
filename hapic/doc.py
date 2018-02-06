@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
+import json
+
 import typing
+import yaml
 
 from apispec import APISpec
 from apispec import Path
@@ -187,6 +190,30 @@ class DocGenerator(object):
             spec.add_path(path)
 
         return spec.to_dict()
+
+    def save_in_file(
+        self,
+        doc_file_path: str,
+        controllers: typing.List[DecoratedController],
+        context: ContextInterface,
+        title: str='',
+        description: str='',
+    ) -> None:
+        # generate this file
+        dict_doc = self.get_doc(
+            controllers=controllers,
+            context=context,
+            title=title,
+            description=description,
+        )
+        json_doc = json.dumps(dict_doc)
+
+        # We dump then load with json to use real scalar dict.
+        # If not, yaml dump dict-like objects
+        clean_dict_doc = json.loads(json_doc)
+        yaml_doc = yaml.dump(clean_dict_doc, default_flow_style=False)
+        with open(doc_file_path, 'w+') as doc_file:
+            doc_file.write(yaml_doc)
 
 
 # TODO BS 20171109: Must take care of already existing definition names

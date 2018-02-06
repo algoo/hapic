@@ -57,14 +57,15 @@ class PyramidContext(BaseContext):
 
     def get_response(
         self,
-        response: dict,
+        response: str,
         http_code: int,
+        mimetype: str='application/json',
     ) -> 'Response':
         from pyramid.response import Response
         return Response(
-            body=json.dumps(response),
+            body=response,
             headers=[
-                ('Content-Type', 'application/json'),
+                ('Content-Type', mimetype),
             ],
             status=http_code,
         )
