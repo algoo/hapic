@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import json
+
 import pytest
 import typing
 
@@ -234,7 +236,7 @@ class TestOutputControllerWrapper(Base):
         # see MyProcessor#process
         assert {
                    'http_code': HTTPStatus.OK,
-                   'original_response': 43,
+                   'original_response': '43',
                } == result
 
     def test_unit__output_data_wrapping__fail__error_response(self):
@@ -276,11 +278,11 @@ class TestExceptionHandlerControllerWrapper(Base):
         assert 'http_code' in response
         assert response['http_code'] == HTTPStatus.INTERNAL_SERVER_ERROR
         assert 'original_response' in response
-        assert response['original_response'] == {
+        assert response['original_response'] == json.dumps({
             'message': 'We are testing',
             'code': None,
             'details': {},
-        }
+        })
 
     def test_unit__exception_handled__ok__exception_error_dict(self):
         class MyException(Exception):
@@ -306,11 +308,11 @@ class TestExceptionHandlerControllerWrapper(Base):
         assert 'http_code' in response
         assert response['http_code'] == HTTPStatus.INTERNAL_SERVER_ERROR
         assert 'original_response' in response
-        assert response['original_response'] == {
+        assert response['original_response'] == json.dumps({
             'message': 'We are testing',
             'code': None,
             'details': {'foo': 'bar'},
-        }
+        })
 
     def test_unit__exception_handler__error__error_content_malformed(self):
         class MyException(Exception):
