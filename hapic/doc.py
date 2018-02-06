@@ -191,15 +191,13 @@ class DocGenerator(object):
 
         return spec.to_dict()
 
-    def save_in_file(
+    def get_doc_yaml(
         self,
-        doc_file_path: str,
         controllers: typing.List[DecoratedController],
         context: ContextInterface,
-        title: str='',
-        description: str='',
-    ) -> None:
-        # generate this file
+        title: str = '',
+        description: str = '',
+    ) -> str:
         dict_doc = self.get_doc(
             controllers=controllers,
             context=context,
@@ -211,9 +209,24 @@ class DocGenerator(object):
         # We dump then load with json to use real scalar dict.
         # If not, yaml dump dict-like objects
         clean_dict_doc = json.loads(json_doc)
-        yaml_doc = yaml.dump(clean_dict_doc, default_flow_style=False)
+        return yaml.dump(clean_dict_doc, default_flow_style=False)
+
+    def save_in_file(
+        self,
+        doc_file_path: str,
+        controllers: typing.List[DecoratedController],
+        context: ContextInterface,
+        title: str='',
+        description: str='',
+    ) -> None:
+        doc_yaml = self.get_doc_yaml(
+            controllers=controllers,
+            context=context,
+            title=title,
+            description=description,
+        )
         with open(doc_file_path, 'w+') as doc_file:
-            doc_file.write(yaml_doc)
+            doc_file.write(doc_yaml)
 
 
 # TODO BS 20171109: Must take care of already existing definition names

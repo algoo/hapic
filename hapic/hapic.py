@@ -420,9 +420,20 @@ class Hapic(object):
             swaggerui_path,
         )
 
-        # Generate documentation file
-        doc_page_path = os.path.join(swaggerui_path, 'spec.yml')
-        self.save_doc_in_file(doc_page_path)
+        # Documentation file view
+        doc_yaml = self.doc_generator.get_doc_yaml(
+            controllers=self._controllers,
+            context=self.context,
+            title=title,
+            description=description,
+        )
+
+        def spec_yaml_view():
+            return self.context.get_response(
+                doc_yaml,
+                mimetype='text/x-yaml',
+                http_code=HTTPStatus.OK,
+            )
 
         # Prepare views html content
         doc_index_path = os.path.join(swaggerui_path, 'index.html')
@@ -446,4 +457,11 @@ class Hapic(object):
             route=route,
             http_method='GET',
             view_func=api_doc_view,
+        )
+
+        # Add a doc yaml view
+        self.context.add_view(
+            route=os.path.join(route, 'spec.yml'),
+            http_method='GET',
+            view_func=spec_yaml_view,
         )
