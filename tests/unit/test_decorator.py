@@ -278,11 +278,11 @@ class TestExceptionHandlerControllerWrapper(Base):
         assert 'http_code' in response
         assert response['http_code'] == HTTPStatus.INTERNAL_SERVER_ERROR
         assert 'original_response' in response
-        assert response['original_response'] == json.dumps({
+        assert json.loads(response['original_response']) == {
             'message': 'We are testing',
             'details': {},
             'code': None,
-        })
+        }
 
     def test_unit__exception_handled__ok__exception_error_dict(self):
         class MyException(Exception):
@@ -308,11 +308,11 @@ class TestExceptionHandlerControllerWrapper(Base):
         assert 'http_code' in response
         assert response['http_code'] == HTTPStatus.INTERNAL_SERVER_ERROR
         assert 'original_response' in response
-        assert response['original_response'] == json.dumps({
+        assert json.loads(response['original_response']) == {
             'message': 'We are testing',
             'details': {'foo': 'bar'},
             'code': None,
-        })
+        }
 
     def test_unit__exception_handler__error__error_content_malformed(self):
         class MyException(Exception):
