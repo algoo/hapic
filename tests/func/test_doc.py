@@ -1,6 +1,7 @@
 # coding: utf-8
 import marshmallow
 import bottle
+from marshmallow.validate import OneOf
 
 from hapic import Hapic
 from tests.base import Base
@@ -195,3 +196,28 @@ class TestDocGeneration(Base):
                 '$ref': '#/definitions/DefaultErrorBuilder'
             }
         } == doc['paths']['/upload']['post']['responses'][500]
+
+    def test_func__enum__nominal_case(self):
+        hapic = Hapic()
+        # TODO BS 20171113: Make this test non-bottle
+        app = bottle.Bottle()
+        hapic.set_context(MyContext(app=app))
+
+        class MySchema(marshmallow.Schema):
+            category = marshmallow.fields.String(
+                validate=OneOf(['foo', 'bar'])
+            )
+
+        @hapic.with_api_doc()
+        @hapic.input_body(MySchema())
+        def my_controller():
+            return
+
+        app.route('/paper', method='POST', callback=my_controller)
+        doc = hapic.generate_doc()
+
+        assert ['foo', 'bar'] == doc.get('definitions', {})\
+            .get('MySchema', {})\
+            .get('properties', {})\
+            .get('category', {})\
+            .get('enum')
