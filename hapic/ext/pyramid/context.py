@@ -61,12 +61,19 @@ class PyramidContext(BaseContext):
         http_code: int,
         mimetype: str='application/json',
     ) -> 'Response':
+        # INFO - G.M - 20-04-2018 - No message_body for some http code,
+        # no Content-Type needed if no content
+        # see: https://tools.ietf.org/html/rfc2616#section-4.3
+        if http_code in [204, 304] or (100 <= http_code <= 199):
+            headers = []
+        else:
+            headers = [
+                ('Content-Type', mimetype),
+            ]
         from pyramid.response import Response
         return Response(
             body=response,
-            headers=[
-                ('Content-Type', mimetype),
-            ],
+            headers=headers,
             status=http_code,
         )
 
