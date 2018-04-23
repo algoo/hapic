@@ -409,15 +409,10 @@ class Hapic(object):
         if not route.endswith('/'):
             route = '{}/'.format(route)
 
-        # Add swagger directory as served static dir
         swaggerui_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
             'static',
             'swaggerui',
-        )
-        self.context.serve_directory(
-            route,
-            swaggerui_path,
         )
 
         # Documentation file view
@@ -428,7 +423,15 @@ class Hapic(object):
             description=description,
         )
 
-        def spec_yaml_view():
+        def spec_yaml_view(*args, **kwargs):
+            """
+            Method to return swagger generated yaml spec file.
+
+            This method will be call as a framework view, like those,
+            it need to handle the default arguments of a framework view.
+            As frameworks have different arguments patterns, we should
+            allow any arguments patterns (args, kwargs).
+            """
             return self.context.get_response(
                 doc_yaml,
                 mimetype='text/x-yaml',
@@ -445,14 +448,22 @@ class Hapic(object):
         )
 
         # Declare the swaggerui view
-        def api_doc_view():
+        def api_doc_view(*args, **kwargs):
+            """
+            Method to return html index view of swagger ui.
+
+            This method will be call as a framework view, like those,
+            it need to handle the default arguments of a framework view.
+            As frameworks have different arguments patterns, we should
+            allow any arguments patterns (args, kwargs).
+            """
             return self.context.get_response(
                 doc_page_content,
                 http_code=HTTPStatus.OK,
                 mimetype='text/html',
             )
 
-        # Add a view to generate the html index page of swaggerui
+        # Add a view to generate the html index page of swagger-ui
         self.context.add_view(
             route=route,
             http_method='GET',
@@ -464,4 +475,10 @@ class Hapic(object):
             route=os.path.join(route, 'spec.yml'),
             http_method='GET',
             view_func=spec_yaml_view,
+        )
+
+        # Add swagger directory as served static dir
+        self.context.serve_directory(
+            route,
+            swaggerui_path,
         )
