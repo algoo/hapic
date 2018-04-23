@@ -133,6 +133,7 @@ class FlaskContext(BaseContext):
         view_func: typing.Callable[..., typing.Any],
     ) -> None:
         self.app.add_url_rule(
+            methods=[http_method],
             rule=route,
             view_func=view_func,
         )
