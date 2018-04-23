@@ -423,7 +423,15 @@ class Hapic(object):
             description=description,
         )
 
-        def spec_yaml_view( *args, **kwargs):
+        def spec_yaml_view(*args, **kwargs):
+            """
+            Method to return swagger generated yaml spec file.
+
+            This method will be call as a framework view, like those,
+            it need to handle the default arguments of a framework view.
+            As frameworks have different arguments patterns, we should
+            allow any arguments patterns (args, kwargs).
+            """
             return self.context.get_response(
                 doc_yaml,
                 mimetype='text/x-yaml',
@@ -441,13 +449,21 @@ class Hapic(object):
 
         # Declare the swaggerui view
         def api_doc_view(*args, **kwargs):
+            """
+            Method to return html index view of swagger ui.
+
+            This method will be call as a framework view, like those,
+            it need to handle the default arguments of a framework view.
+            As frameworks have different arguments patterns, we should
+            allow any arguments patterns (args, kwargs).
+            """
             return self.context.get_response(
                 doc_page_content,
                 http_code=HTTPStatus.OK,
                 mimetype='text/html',
             )
 
-        # Add a view to generate the html index page of swaggerui
+        # Add a view to generate the html index page of swagger-ui
         self.context.add_view(
             route=route,
             http_method='GET',
