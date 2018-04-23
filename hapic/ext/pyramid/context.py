@@ -147,3 +147,31 @@ class PyramidContext(BaseContext):
 
     def by_pass_output_wrapping(self, response: typing.Any) -> bool:
         return False
+
+    def add_view(
+        self,
+        route: str,
+        http_method: str,
+        view_func: typing.Callable[..., typing.Any],
+    ) -> None:
+
+        self.configurator.add_route(
+            name=route,
+            path=route,
+            request_method='GET'
+        )
+
+        self.configurator.add_view(
+            view_func,
+            route_name=route,
+        )
+
+    def serve_directory(
+        self,
+        route_prefix: str,
+        directory_path: str,
+    ) -> None:
+        self.configurator.add_static_view(
+            name=route_prefix,
+            path=directory_path,
+        )
