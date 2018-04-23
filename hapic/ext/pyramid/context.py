@@ -158,7 +158,7 @@ class PyramidContext(BaseContext):
         self.configurator.add_route(
             name=route,
             path=route,
-            request_method='GET'
+            request_method=http_method
         )
 
         self.configurator.add_view(
