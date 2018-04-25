@@ -24,19 +24,24 @@ def bottle_generate_operations(
     # schema based
     if description.input_body:
         schema_class = spec.schema_class_resolver(
-            description.input_body.wrapper.processor.schema)
+            spec,
+            description.input_body.wrapper.processor.schema
+        )
         method_operations.setdefault('parameters', []).append({
             'in': 'body',
             'name': 'body',
             'schema': {
                 '$ref': '#/definitions/{}'.format(
-                    spec.schema_name_resolver(schema_class))
+                    spec.schema_name_resolver(schema_class)
+                )
             }
         })
 
     if description.output_body:
         schema_class = spec.schema_class_resolver(
-            description.output_body.wrapper.processor.schema)
+            spec,
+            description.output_body.wrapper.processor.schema
+        )
         method_operations.setdefault('responses', {})\
             [int(description.output_body.wrapper.default_http_code)] = {
                 'description': str(int(description.output_body.wrapper.default_http_code)),  # nopep8
@@ -72,7 +77,9 @@ def bottle_generate_operations(
     # jsonschema based
     if description.input_path:
         schema_class = spec.schema_class_resolver(
-            description.input_path.wrapper.processor.schema)
+            spec,
+            description.input_path.wrapper.processor.schema
+        )
         # TODO: look schema2parameters ?
         jsonschema = schema2jsonschema(schema_class, spec=spec)
         for name, schema in jsonschema.get('properties', {}).items():
@@ -85,7 +92,9 @@ def bottle_generate_operations(
 
     if description.input_query:
         schema_class = spec.schema_class_resolver(
-            description.input_query.wrapper.processor.schema)
+            spec,
+            description.input_query.wrapper.processor.schema
+        )
         jsonschema = schema2jsonschema(schema_class, spec=spec)
         for name, schema in jsonschema.get('properties', {}).items():
             method_operations.setdefault('parameters', []).append({
@@ -150,16 +159,19 @@ class DocGenerator(object):
 
             if description.input_body:
                 schemas.append(spec.schema_class_resolver(
+                    spec,
                     description.input_body.wrapper.processor.schema
                 ))
 
             if description.input_forms:
                 schemas.append(spec.schema_class_resolver(
+                    spec,
                     description.input_forms.wrapper.processor.schema
                 ))
 
             if description.output_body:
                 schemas.append(spec.schema_class_resolver(
+                    spec,
                     description.output_body.wrapper.processor.schema
                 ))
 
@@ -168,7 +180,10 @@ class DocGenerator(object):
                     schemas.append(type(error.wrapper.error_builder))
 
         for schema in set(schemas):
-            spec.definition(spec.schema_name_resolver(schema), schema=schema)
+            spec.definition(
+                spec.schema_name_resolver(schema),
+                schema=schema
+            )
 
         # add views
         # with app.test_request_context():
