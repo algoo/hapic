@@ -20,25 +20,30 @@ def bottle_generate_operations(
     description: ControllerDescription,
 ):
     method_operations = dict()
-
+    # TODO : Convert many=True in list of elems
     # schema based
     if description.input_body:
-        schema_class = type(description.input_body.wrapper.processor.schema)
+        schema_class = spec.schema_class_resolver(
+            description.input_body.wrapper.processor.schema)
         method_operations.setdefault('parameters', []).append({
             'in': 'body',
             'name': 'body',
             'schema': {
-                '$ref': '#/definitions/{}'.format(schema_class.__name__)
+                '$ref': '#/definitions/{}'.format(
+                    spec.schema_name_resolver(schema_class))
             }
         })
 
     if description.output_body:
-        schema_class = type(description.output_body.wrapper.processor.schema)
+        schema_class = spec.schema_class_resolver(
+            description.output_body.wrapper.processor.schema)
         method_operations.setdefault('responses', {})\
             [int(description.output_body.wrapper.default_http_code)] = {
                 'description': str(int(description.output_body.wrapper.default_http_code)),  # nopep8
                 'schema': {
-                    '$ref': '#/definitions/{}'.format(schema_class.__name__)
+                    '$ref': '#/definitions/{}'.format(
+                        spec.schema_name_resolver(schema_class)
+                    )
                 }
             }
 
@@ -58,13 +63,16 @@ def bottle_generate_operations(
                 [int(error.wrapper.http_code)] = {
                     'description': str(int(error.wrapper.http_code)),
                     'schema': {
-                        '$ref': '#/definitions/{}'.format(schema_class.__name__)  # nopep8
+                        '$ref': '#/definitions/{}'.format(
+                            spec.schema_name_resolver(schema_class)
+                        )
                     }
                 }
 
     # jsonschema based
     if description.input_path:
-        schema_class = type(description.input_path.wrapper.processor.schema)
+        schema_class = spec.schema_class_resolver(
+            description.input_path.wrapper.processor.schema)
         # TODO: look schema2parameters ?
         jsonschema = schema2jsonschema(schema_class, spec=spec)
         for name, schema in jsonschema.get('properties', {}).items():
@@ -76,7 +84,8 @@ def bottle_generate_operations(
             })
 
     if description.input_query:
-        schema_class = type(description.input_query.wrapper.processor.schema)
+        schema_class = spec.schema_class_resolver(
+            description.input_query.wrapper.processor.schema)
         jsonschema = schema2jsonschema(schema_class, spec=spec)
         for name, schema in jsonschema.get('properties', {}).items():
             method_operations.setdefault('parameters', []).append({
@@ -131,7 +140,7 @@ class DocGenerator(object):
             plugins=(
                 'apispec.ext.marshmallow',
             ),
-            schema_name_resolver=generate_schema_name,
+            auto_referencing=True,
         )
 
         schemas = []
@@ -140,17 +149,17 @@ class DocGenerator(object):
             description = controller.description
 
             if description.input_body:
-                schemas.append(type(
+                schemas.append(spec.schema_class_resolver(
                     description.input_body.wrapper.processor.schema
                 ))
 
             if description.input_forms:
-                schemas.append(type(
+                schemas.append(spec.schema_class_resolver(
                     description.input_forms.wrapper.processor.schema
                 ))
 
             if description.output_body:
-                schemas.append(type(
+                schemas.append(spec.schema_class_resolver(
                     description.output_body.wrapper.processor.schema
                 ))
 
@@ -159,7 +168,7 @@ class DocGenerator(object):
                     schemas.append(type(error.wrapper.error_builder))
 
         for schema in set(schemas):
-            spec.definition(schema.__name__, schema=schema)
+            spec.definition(spec.schema_name_resolver(schema), schema=schema)
 
         # add views
         # with app.test_request_context():
