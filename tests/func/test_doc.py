@@ -298,10 +298,12 @@ class TestDocGeneration(Base):
         # TODO - G-M - Find better way to find our new schema
         # Do Better test when we were able to set correctly schema name
         # according to content
+        schema_name = None
         for elem in definitions.keys():
             if elem != 'MySchema':
                 schema_name = elem
                 break
+        assert schema_name
         schema_def = definitions[schema_name]
         assert schema_def.get('properties', {}).get('name', {}).get('type') == 'string'
         assert doc.get('paths').get('/paper').get('post').get('parameters')[0]
@@ -321,6 +323,7 @@ class TestDocGeneration(Base):
         # Do Better test when we were able to set correctly schema name
         # according to content
         definitions = doc.get('definitions', {})
+        schema_name = None
         for elem in definitions.keys():
             if elem != 'MySchema':
                 schema_name = elem
@@ -354,10 +357,12 @@ class TestDocGeneration(Base):
         # TODO - G-M - Find better way to find our new schema
         # Do Better test when we were able to set correctly schema name
         # according to content
+        schema_name = None
         for elem in definitions.keys():
             if elem != 'MySchema':
                 schema_name = elem
                 break
+        assert schema_name
         schema_def = definitions[schema_name]
         assert schema_def.get('properties', {}).get('name', {}).get('type') == 'string'
         assert doc.get('paths').get('/paper').get('post').get('parameters')[0]
