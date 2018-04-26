@@ -2,6 +2,7 @@
 import json
 
 import typing
+import marshmallow
 import yaml
 
 from apispec import APISpec
@@ -14,7 +15,7 @@ from hapic.decorator import DecoratedController
 from hapic.description import ControllerDescription
 
 
-def generate_schema_ref(spec, schema):
+def generate_schema_ref(spec:APISpec, schema: marshmallow.Schema):
     schema_class = spec.schema_class_resolver(
         spec,
         schema
