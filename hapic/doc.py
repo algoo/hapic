@@ -14,42 +14,48 @@ from hapic.decorator import DecoratedController
 from hapic.description import ControllerDescription
 
 
+def generate_schema_ref(spec, schema):
+    schema_class = spec.schema_class_resolver(
+        spec,
+        schema
+    )
+    ref = {
+        '$ref': '#/definitions/{}'.format(
+            spec.schema_name_resolver(schema_class)
+        )
+    }
+    if schema.many:
+        ref = {
+            'type': 'array',
+            'items': ref
+        }
+    return ref
+
+
 def bottle_generate_operations(
     spec,
     route: RouteRepresentation,
     description: ControllerDescription,
 ):
     method_operations = dict()
-    # TODO : Convert many=True in list of elems
-    # schema based
     if description.input_body:
-        schema_class = spec.schema_class_resolver(
-            spec,
-            description.input_body.wrapper.processor.schema
-        )
         method_operations.setdefault('parameters', []).append({
             'in': 'body',
             'name': 'body',
-            'schema': {
-                '$ref': '#/definitions/{}'.format(
-                    spec.schema_name_resolver(schema_class)
-                )
-            }
+            'schema': generate_schema_ref(
+                spec,
+                description.input_body.wrapper.processor.schema,
+            )
         })
 
     if description.output_body:
-        schema_class = spec.schema_class_resolver(
-            spec,
-            description.output_body.wrapper.processor.schema
-        )
         method_operations.setdefault('responses', {})\
             [int(description.output_body.wrapper.default_http_code)] = {
                 'description': str(int(description.output_body.wrapper.default_http_code)),  # nopep8
-                'schema': {
-                    '$ref': '#/definitions/{}'.format(
-                        spec.schema_name_resolver(schema_class)
-                    )
-                }
+                'schema': generate_schema_ref(
+                    spec,
+                    description.output_body.wrapper.processor.schema,
+                )
             }
 
     if description.output_file:
