@@ -157,6 +157,7 @@ class DocGenerator(object):
                 'apispec.ext.marshmallow',
             ),
             auto_referencing=True,
+            schema_name_resolver=generate_schema_name
         )
 
         schemas = []
@@ -261,5 +262,23 @@ class DocGenerator(object):
 
 
 # TODO BS 20171109: Must take care of already existing definition names
-def generate_schema_name(schema):
-    return schema.__name__
+def generate_schema_name(schema: marshmallow.Schema):
+    """
+    Return best candidate name for one schema cls or instance.
+    :param schema: instance or cls schema
+    :return: best schema name
+    """
+    if not isinstance(schema, type):
+        schema = type(schema)
+
+    if getattr(schema, '_schema_name', None):
+        if schema.opts.exclude:
+            schema_name = "{}_without".format(schema.__name__)
+            for elem in sorted(schema.opts.exclude):
+                schema_name="{}_{}".format(schema_name, elem)
+        else:
+            schema_name = schema._schema_name
+    else:
+        schema_name = schema.__name__
+
+    return schema_name
