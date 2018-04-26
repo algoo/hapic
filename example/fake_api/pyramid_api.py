@@ -49,6 +49,24 @@ class PyramidController(object):
         }
 
     @hapic.with_api_doc()
+    @hapic.output_body(UserSchema(
+        many=True,
+        only=('id', 'username', 'display_name', 'company')
+    ))
+    def get_users2(self, context, request):
+        """
+        Obtain users list.
+        """
+        return [
+            {
+                'id': 4,
+                'username': 'some_user',
+                'display_name': 'Damien Accorsi',
+                'company': 'Algoo',
+            }
+        ]
+
+    @hapic.with_api_doc()
     @hapic.input_path(UserPathSchema())
     @hapic.output_body(UserSchema())
     def get_user(self, context, request, hapic_data: HapicData):
@@ -100,6 +118,9 @@ class PyramidController(object):
 
         configurator.add_route('get_users', '/users', request_method='GET')  # nopep8
         configurator.add_view(self.get_users, route_name='get_users', renderer='json')  # nopep8
+
+        configurator.add_route('get_users2', '/users2', request_method='GET')  # nopep8
+        configurator.add_view(self.get_users2, route_name='get_users2', renderer='json')  # nopep8
 
         configurator.add_route('get_user', '/users/{id}', request_method='GET')  # nopep8
         configurator.add_view(self.get_user, route_name='get_user', renderer='json')  # nopep8

@@ -1,4 +1,6 @@
 from collections import OrderedDict
+
+
 SWAGGER_DOC_API = {
  'definitions': {
      'AboutResponseSchema': {'properties': {
@@ -13,7 +15,7 @@ SWAGGER_DOC_API = {
                                         'minimum': 0,
                                         'type': 'integer'},
                             'items': {
-                                'items': {'$ref': '#/definitions/UserSchema'},
+                                'items': {'$ref': '#/definitions/UserSchema_without_email_address_first_name_last_name'},
                                 'type': 'array'},
                             'pagination': {'$ref': '#/definitions/PaginationSchema'}},
                          'required': ['item_nb'],
@@ -41,10 +43,27 @@ SWAGGER_DOC_API = {
                                  'id',
                                  'last_name',
                                  'username'],
-                    'type': 'object'}},
- 'info': {'description': 'just an example of hapic API',
-          'title': 'Fake API',
-          'version': '1.0.0'},
+                    'type': 'object'},
+    'UserSchema_without_id': {
+        'properties': {
+            'username': {'type': 'string'},
+            'display_name': {'type': 'string'},
+            'company': {'type': 'string'},
+            'last_name': {'type': 'string'},
+            'email_address': {'format': 'email', 'type': 'string'},
+            'first_name': {'type': 'string'}},
+        'required': ['company', 'display_name', 'email_address', 'first_name',
+                     'last_name', 'username'], 'type': 'object'},
+    'UserSchema_without_email_address_first_name_last_name': {
+        'properties': {
+            'username': {'type': 'string'},
+            'id': {'format': 'int32', 'type': 'integer'},
+            'company': {'type': 'string'},
+            'display_name': {'type': 'string'}},
+        'required': ['company', 'display_name', 'id', 'username'], 'type': 'object'
+    },
+    },
+ 'info': {'description': 'just an example of hapic API', 'title': 'Fake API', 'version': '1.0.0'},
  'parameters': {},
  'paths': OrderedDict(
      [('/about', {
@@ -83,10 +102,20 @@ SWAGGER_DOC_API = {
              'description': 'Add new user',
              'parameters': [{'in': 'body',
                              'name': 'body',
-                             'schema': {'$ref': '#/definitions/UserSchema'}}],
+                             'schema': {'$ref': '#/definitions/UserSchema_without_id'}}],
              'responses': {200: {
                  'description': '200',
-                 'schema': {'$ref': '#/definitions/UserSchema'}}}}})]),
+                 'schema': {'$ref': '#/definitions/UserSchema'}}}}}),
+      ( '/users2', {
+          'get': {
+              'description': 'Obtain users list.',
+              'responses': {200: {
+                  'description': '200',
+                  'schema': {'type': 'array',
+                             'items': {'$ref': '#/definitions/UserSchema_without_email_address_first_name_last_name'}
+                             }
+          }}}}
+        )]),
  'swagger': '2.0',
  'tags': []
 }

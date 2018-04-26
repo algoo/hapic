@@ -1,25 +1,68 @@
+import pytest
+from flask import Flask
+from pyramid.config import Configurator
 from webtest import TestApp
 from bottle import Bottle
 
+from example.fake_api.flask_api import FlaskController
+from example.fake_api.pyramid_api import PyramidController
 from hapic.ext.bottle import BottleContext
 from example.fake_api.bottle_api import BottleController
+from hapic.ext.flask import FlaskContext
+from hapic.ext.pyramid import PyramidContext
 from tests.func.fake_api.common import SWAGGER_DOC_API
-from example.fake_api.bottle_api import hapic
 
 
-def test_func_bottle_fake_api():
+def get_bottle_context():
+    from example.fake_api.bottle_api import hapic as h
     bottle_app = Bottle()
+    h.reset_context()
+    h.set_context(BottleContext(bottle_app))
     controllers = BottleController()
     controllers.bind(bottle_app)
+    return {
+        'hapic': h,
+        'app': bottle_app,
+    }
 
-    hapic.set_context(BottleContext(bottle_app))
-    app = TestApp(bottle_app)
-    doc = hapic.generate_doc(
-        title='Fake API',
-        description='just an example of hapic API'
-    )
 
-    assert doc == SWAGGER_DOC_API
+def get_flask_context():
+    from example.fake_api.flask_api import hapic as h
+    flask_app = Flask(__name__)
+    controllers = FlaskController()
+    controllers.bind(flask_app)
+    h.reset_context()
+    h.set_context(FlaskContext(flask_app))
+    return {
+        'hapic': h,
+        'app': flask_app,
+    }
+
+
+def get_pyramid_context():
+    from example.fake_api.pyramid_api import hapic as h
+    configurator = Configurator(autocommit=True)
+    controllers = PyramidController()
+    controllers.bind(configurator)
+    h.reset_context()
+    h.set_context(PyramidContext(configurator))
+    pyramid_app = configurator.make_wsgi_app()
+    return {
+        'hapic': h,
+        'app': pyramid_app,
+    }
+
+
+@pytest.mark.parametrize('context',
+                         [
+                             get_bottle_context(),
+                             get_flask_context(),
+                             get_pyramid_context()
+                         ])
+def test_func__test_fake_api_endpoints_ok__all_framework(context):
+    hapic = context['hapic']
+    app = context['app']
+    app = TestApp(app)
     resp = app.get('/about')
     assert resp.status_int == 200
     assert resp.json == {'datetime': '2017-12-07T10:55:08.488996+00:00',
@@ -43,6 +86,17 @@ def test_func_bottle_fake_api():
         },
         'item_nb': 1,
     }
+
+    resp = app.get('/users2')
+    assert resp.status_int == 200
+    assert resp.json == [
+        {
+           'username': 'some_user',
+           'id': 4,
+           'display_name': 'Damien Accorsi',
+           'company': 'Algoo'
+        }
+    ]
 
     resp = app.get('/users/1')
     assert resp.status_int == 200
@@ -93,3 +147,46 @@ def test_func_bottle_fake_api():
     resp = app.delete('/users/1', status='*')
     assert resp.status_int == 204
 
+
+@pytest.mark.parametrize('context',
+                         [
+                             get_bottle_context(),
+                             get_flask_context(),
+                             get_pyramid_context()
+                         ])
+def test_func__test_fake_api_doc_ok__all_framework(context):
+    hapic = context['hapic']
+    app = context['app']
+    app = TestApp(app)
+    doc = hapic.generate_doc(
+        title='Fake API',
+        description='just an example of hapic API'
+    )
+
+    assert doc['info'] == SWAGGER_DOC_API['info']
+    assert doc['tags'] == SWAGGER_DOC_API['tags']
+    assert doc['swagger'] == SWAGGER_DOC_API['swagger']
+    assert doc['parameters'] == SWAGGER_DOC_API['parameters']
+    assert doc['paths']['/about'] == SWAGGER_DOC_API['paths']['/about']
+    assert doc['paths']['/users'] == SWAGGER_DOC_API['paths']['/users']
+    assert doc['paths']['/users/{id}'] == SWAGGER_DOC_API['paths']['/users/{id}']
+    assert doc['paths']['/users/'] == SWAGGER_DOC_API['paths']['/users/']
+    assert doc['paths']['/users2'] == SWAGGER_DOC_API['paths']['/users2']
+
+    assert doc['definitions']['AboutResponseSchema'] == \
+           SWAGGER_DOC_API['definitions']['AboutResponseSchema']
+    assert doc['definitions']['ListsUserSchema'] == \
+           SWAGGER_DOC_API['definitions']['ListsUserSchema']
+    assert doc['definitions']['NoContentSchema'] == \
+           SWAGGER_DOC_API['definitions']['NoContentSchema']
+    assert doc['definitions']['PaginationSchema'] == \
+           SWAGGER_DOC_API['definitions']['PaginationSchema']
+    assert doc['definitions']['UserSchema'] == \
+           SWAGGER_DOC_API['definitions']['UserSchema']
+    assert doc['definitions']['UserSchema'] == \
+           SWAGGER_DOC_API['definitions']['UserSchema']
+
+    assert doc['definitions']['UserSchema_without_id'] == \
+           SWAGGER_DOC_API['definitions']['UserSchema_without_id']
+    assert doc['definitions']['UserSchema_without_email_address_first_name_last_name'] == \
+           SWAGGER_DOC_API['definitions']['UserSchema_without_email_address_first_name_last_name']

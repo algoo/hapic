@@ -49,6 +49,24 @@ class FlaskController(object):
         }
 
     @hapic.with_api_doc()
+    @hapic.output_body(UserSchema(
+        many=True,
+        only=('id', 'username', 'display_name', 'company')
+    ))
+    def get_users2(self):
+        """
+        Obtain users list.
+        """
+        return [
+            {
+                'id': 4,
+                'username': 'some_user',
+                'display_name': 'Damien Accorsi',
+                'company': 'Algoo',
+            }
+        ]
+
+    @hapic.with_api_doc()
     @hapic.input_path(UserPathSchema())
     @hapic.output_body(UserSchema())
     def get_user(self, id, hapic_data: HapicData):
@@ -104,6 +122,8 @@ class FlaskController(object):
                          view_func=self.about)
         app.add_url_rule('/users',
                          view_func=self.get_users)
+        app.add_url_rule('/users2',
+                         view_func=self.get_users2)
         app.add_url_rule('/users/<id>',
                          view_func=self.get_user)
         app.add_url_rule('/users/',
@@ -112,6 +132,7 @@ class FlaskController(object):
         app.add_url_rule('/users/<id>',
                          view_func=self.del_user,
                          methods=['DELETE'])
+
 
 if __name__ == "__main__":
     app = flask.Flask(__name__)

@@ -51,6 +51,24 @@ class BottleController(object):
         }
 
     @hapic.with_api_doc()
+    @hapic.output_body(UserSchema(
+        many=True,
+        only=('id', 'username', 'display_name', 'company')
+    ))
+    def get_users2(self):
+        """
+        Obtain users list.
+        """
+        return [
+            {
+                'id': 4,
+                'username': 'some_user',
+                'display_name': 'Damien Accorsi',
+                'company': 'Algoo',
+            }
+        ]
+
+    @hapic.with_api_doc()
     @hapic.input_path(UserPathSchema())
     @hapic.output_body(UserSchema())
     def get_user(self, id, hapic_data: HapicData):
@@ -99,6 +117,7 @@ class BottleController(object):
     def bind(self, app:bottle.Bottle):
         app.route('/about', callback=self.about)
         app.route('/users', callback=self.get_users)
+        app.route('/users2', callback=self.get_users2)
         app.route('/users/<id>', callback=self.get_user)
         app.route('/users/', callback=self.add_user,  method='POST')
         app.route('/users/<id>', callback=self.del_user, method='DELETE')
