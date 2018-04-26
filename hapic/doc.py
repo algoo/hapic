@@ -15,7 +15,7 @@ from hapic.decorator import DecoratedController
 from hapic.description import ControllerDescription
 
 
-def generate_schema_ref(spec:APISpec, schema: marshmallow.Schema):
+def generate_schema_ref(spec:APISpec, schema: marshmallow.Schema) -> str:
     schema_class = spec.schema_class_resolver(
         spec,
         schema
