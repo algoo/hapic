@@ -143,6 +143,12 @@ class PyramidContext(BaseContext):
     def get_swagger_path(self, contextualised_rule: str) -> str:
         # TODO BS 20171110: Pyramid allow route like '/{foo:\d+}', so adapt
         # and USE regular expression (see https://docs.pylonsproject.org/projects/pyramid/en/latest/narr/urldispatch.html#custom-route-predicates)  # nopep8
+
+        # INFO - G.M - 27-04-2018 - route_pattern of pyramid without '/' case.
+        # For example, when using config.include with route_prefix param,
+        # there is no '/' at beginning of the path.
+        if contextualised_rule[0] != '/':
+            contextualised_rule = '/{}'.format(contextualised_rule)
         return contextualised_rule
 
     def by_pass_output_wrapping(self, response: typing.Any) -> bool:
