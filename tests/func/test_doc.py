@@ -221,3 +221,154 @@ class TestDocGeneration(Base):
             .get('properties', {})\
             .get('category', {})\
             .get('enum')
+
+    def test_func__schema_in_doc__ok__nominal_case(self):
+        hapic = Hapic()
+        app = bottle.Bottle()
+        hapic.set_context(MyContext(app=app))
+
+        class MySchema(marshmallow.Schema):
+            name = marshmallow.fields.String(required=True)
+
+        @hapic.with_api_doc()
+        @hapic.input_body(MySchema())
+        def my_controller():
+            return {'name': 'test',}
+
+        app.route('/paper', method='POST', callback=my_controller)
+        doc = hapic.generate_doc()
+
+        assert doc.get('definitions', {}).get('MySchema', {})
+        schema_def = doc.get('definitions', {}).get('MySchema', {})
+        assert schema_def.get('properties', {}).get('name', {}).get('type')
+
+        assert doc.get('paths').get('/paper').get('post').get('parameters')[0]
+        schema_ref = doc.get('paths').get('/paper').get('post').get('parameters')[0]
+        assert schema_ref.get('in') == 'body'
+        assert schema_ref.get('name') == 'body'
+        assert schema_ref['schema']['$ref'] == '#/definitions/MySchema'
+
+    def test_func__schema_in_doc__ok__many_case(self):
+        hapic = Hapic()
+        app = bottle.Bottle()
+        hapic.set_context(MyContext(app=app))
+
+        class MySchema(marshmallow.Schema):
+            name = marshmallow.fields.String(required=True)
+
+        @hapic.with_api_doc()
+        @hapic.input_body(MySchema(many=True))
+        def my_controller():
+            return {'name': 'test'}
+
+        app.route('/paper', method='POST', callback=my_controller)
+        doc = hapic.generate_doc()
+
+        assert doc.get('definitions', {}).get('MySchema', {})
+        schema_def = doc.get('definitions', {}).get('MySchema', {})
+        assert schema_def.get('properties', {}).get('name', {}).get('type')
+
+        assert doc.get('paths').get('/paper').get('post').get('parameters')[0]
+        schema_ref = doc.get('paths').get('/paper').get('post').get('parameters')[0]
+        assert schema_ref.get('in') == 'body'
+        assert schema_ref.get('name') == 'body'
+        assert schema_ref['schema'] == {
+            'items': {'$ref': '#/definitions/MySchema'},
+            'type': 'array'
+        }
+
+    def test_func__schema_in_doc__ok__exclude_case(self):
+        hapic = Hapic()
+        app = bottle.Bottle()
+        hapic.set_context(MyContext(app=app))
+
+        class MySchema(marshmallow.Schema):
+            name = marshmallow.fields.String(required=True)
+            name2 = marshmallow.fields.String(required=True)
+
+        @hapic.with_api_doc()
+        @hapic.input_body(MySchema(exclude=('name2',)))
+        def my_controller():
+            return {'name': 'test',}
+
+        app.route('/paper', method='POST', callback=my_controller)
+        doc = hapic.generate_doc()
+
+        definitions = doc.get('definitions', {})
+        # TODO - G-M - Find better way to find our new schema
+        # Do Better test when we were able to set correctly schema name
+        # according to content
+        schema_name = None
+        for elem in definitions.keys():
+            if elem != 'MySchema':
+                schema_name = elem
+                break
+        assert schema_name
+        schema_def = definitions[schema_name]
+        assert schema_def.get('properties', {}).get('name', {}).get('type') == 'string'
+        assert doc.get('paths').get('/paper').get('post').get('parameters')[0]
+        schema_ref = doc.get('paths').get('/paper').get('post').get('parameters')[0]
+        assert schema_ref.get('in') == 'body'
+        assert schema_ref['schema']['$ref'] == '#/definitions/{}'.format(schema_name)
+
+        @hapic.with_api_doc()
+        @hapic.input_body(MySchema(only=('name',)))
+        def my_controller():
+            return {'name': 'test'}
+
+        app.route('/paper', method='POST', callback=my_controller)
+        doc = hapic.generate_doc()
+
+        # TODO - G-M - Find better way to find our new schema
+        # Do Better test when we were able to set correctly schema name
+        # according to content
+        definitions = doc.get('definitions', {})
+        schema_name = None
+        for elem in definitions.keys():
+            if elem != 'MySchema':
+                schema_name = elem
+                break
+        assert schema_name
+        schema_def = definitions[schema_name]
+        assert schema_def.get('properties', {}).get('name', {}).get('type') == 'string'
+        assert doc.get('paths').get('/paper').get('post').get('parameters')[0]
+        schema_ref = doc.get('paths').get('/paper').get('post').get('parameters')[0]
+        assert schema_ref.get('in') == 'body'
+        assert schema_ref['schema']['$ref'] == '#/definitions/{}'.format(schema_name)
+
+    def test_func__schema_in_doc__ok__many_and_exclude_case(self):
+        hapic = Hapic()
+        app = bottle.Bottle()
+        hapic.set_context(MyContext(app=app))
+
+        class MySchema(marshmallow.Schema):
+            name = marshmallow.fields.String(required=True)
+            name2 = marshmallow.fields.String(required=True)
+
+        @hapic.with_api_doc()
+        @hapic.input_body(MySchema(exclude=('name2',), many=True))
+        def my_controller():
+            return {'name': 'test',}
+
+        app.route('/paper', method='POST', callback=my_controller)
+        doc = hapic.generate_doc()
+
+        definitions = doc.get('definitions', {})
+        # TODO - G-M - Find better way to find our new schema
+        # Do Better test when we were able to set correctly schema name
+        # according to content
+        schema_name = None
+        for elem in definitions.keys():
+            if elem != 'MySchema':
+                schema_name = elem
+                break
+        assert schema_name
+        schema_def = definitions[schema_name]
+        assert schema_def.get('properties', {}).get('name', {}).get('type') == 'string'
+        assert doc.get('paths').get('/paper').get('post').get('parameters')[0]
+        schema_ref = doc.get('paths').get('/paper').get('post').get('parameters')[0]
+        assert schema_ref.get('in') == 'body'
+        assert schema_ref['schema'] == {
+            'items': {'$ref': '#/definitions/{}'.format(schema_name)},
+            'type': 'array'
+        }

@@ -9,7 +9,7 @@ here = path.abspath(path.dirname(__file__))
 
 install_requires = [
     'marshmallow >2.0.0,<3.0.0a1',
-    'apispec',
+    'apispec==0.35.0-algoo',
     'multidict'
 ]
 tests_require = [
@@ -94,8 +94,10 @@ setup(
     # "scripts" keyword. Entry points provide cross-platform support and allow
     # pip to create the appropriate form of executable for the target platform.
     entry_points={},
-
     setup_requires=[],
+    dependency_links=[
+        'git+https://github.com/algoo/apispec.git@hapic_apispec#egg=apispec-0.35.0-algoo'
+    ],
     tests_require=tests_require,
     include_package_data=True,
 )

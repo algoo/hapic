@@ -2,6 +2,7 @@
 import json
 
 import typing
+import marshmallow
 import yaml
 
 from apispec import APISpec
@@ -14,32 +15,48 @@ from hapic.decorator import DecoratedController
 from hapic.description import ControllerDescription
 
 
+def generate_schema_ref(spec:APISpec, schema: marshmallow.Schema) -> str:
+    schema_class = spec.schema_class_resolver(
+        spec,
+        schema
+    )
+    ref = {
+        '$ref': '#/definitions/{}'.format(
+            spec.schema_name_resolver(schema_class)
+        )
+    }
+    if schema.many:
+        ref = {
+            'type': 'array',
+            'items': ref
+        }
+    return ref
+
+
 def bottle_generate_operations(
     spec,
     route: RouteRepresentation,
     description: ControllerDescription,
 ):
     method_operations = dict()
-
-    # schema based
     if description.input_body:
-        schema_class = type(description.input_body.wrapper.processor.schema)
         method_operations.setdefault('parameters', []).append({
             'in': 'body',
             'name': 'body',
-            'schema': {
-                '$ref': '#/definitions/{}'.format(schema_class.__name__)
-            }
+            'schema': generate_schema_ref(
+                spec,
+                description.input_body.wrapper.processor.schema,
+            )
         })
 
     if description.output_body:
-        schema_class = type(description.output_body.wrapper.processor.schema)
         method_operations.setdefault('responses', {})\
             [int(description.output_body.wrapper.default_http_code)] = {
                 'description': str(int(description.output_body.wrapper.default_http_code)),  # nopep8
-                'schema': {
-                    '$ref': '#/definitions/{}'.format(schema_class.__name__)
-                }
+                'schema': generate_schema_ref(
+                    spec,
+                    description.output_body.wrapper.processor.schema,
+                )
             }
 
     if description.output_file:
@@ -58,13 +75,18 @@ def bottle_generate_operations(
                 [int(error.wrapper.http_code)] = {
                     'description': str(int(error.wrapper.http_code)),
                     'schema': {
-                        '$ref': '#/definitions/{}'.format(schema_class.__name__)  # nopep8
+                        '$ref': '#/definitions/{}'.format(
+                            spec.schema_name_resolver(schema_class)
+                        )
                     }
                 }
 
     # jsonschema based
     if description.input_path:
-        schema_class = type(description.input_path.wrapper.processor.schema)
+        schema_class = spec.schema_class_resolver(
+            spec,
+            description.input_path.wrapper.processor.schema
+        )
         # TODO: look schema2parameters ?
         jsonschema = schema2jsonschema(schema_class, spec=spec)
         for name, schema in jsonschema.get('properties', {}).items():
@@ -76,7 +98,10 @@ def bottle_generate_operations(
             })
 
     if description.input_query:
-        schema_class = type(description.input_query.wrapper.processor.schema)
+        schema_class = spec.schema_class_resolver(
+            spec,
+            description.input_query.wrapper.processor.schema
+        )
         jsonschema = schema2jsonschema(schema_class, spec=spec)
         for name, schema in jsonschema.get('properties', {}).items():
             method_operations.setdefault('parameters', []).append({
@@ -131,7 +156,8 @@ class DocGenerator(object):
             plugins=(
                 'apispec.ext.marshmallow',
             ),
-            schema_name_resolver=generate_schema_name,
+            auto_referencing=True,
+            schema_name_resolver=generate_schema_name
         )
 
         schemas = []
@@ -140,17 +166,20 @@ class DocGenerator(object):
             description = controller.description
 
             if description.input_body:
-                schemas.append(type(
+                schemas.append(spec.schema_class_resolver(
+                    spec,
                     description.input_body.wrapper.processor.schema
                 ))
 
             if description.input_forms:
-                schemas.append(type(
+                schemas.append(spec.schema_class_resolver(
+                    spec,
                     description.input_forms.wrapper.processor.schema
                 ))
 
             if description.output_body:
-                schemas.append(type(
+                schemas.append(spec.schema_class_resolver(
+                    spec,
                     description.output_body.wrapper.processor.schema
                 ))
 
@@ -159,7 +188,10 @@ class DocGenerator(object):
                     schemas.append(type(error.wrapper.error_builder))
 
         for schema in set(schemas):
-            spec.definition(schema.__name__, schema=schema)
+            spec.definition(
+                spec.schema_name_resolver(schema),
+                schema=schema
+            )
 
         # add views
         # with app.test_request_context():
@@ -230,5 +262,23 @@ class DocGenerator(object):
 
 
 # TODO BS 20171109: Must take care of already existing definition names
-def generate_schema_name(schema):
-    return schema.__name__
+def generate_schema_name(schema: marshmallow.Schema):
+    """
+    Return best candidate name for one schema cls or instance.
+    :param schema: instance or cls schema
+    :return: best schema name
+    """
+    if not isinstance(schema, type):
+        schema = type(schema)
+
+    if getattr(schema, '_schema_name', None):
+        if schema.opts.exclude:
+            schema_name = "{}_without".format(schema.__name__)
+            for elem in sorted(schema.opts.exclude):
+                schema_name="{}_{}".format(schema_name, elem)
+        else:
+            schema_name = schema._schema_name
+    else:
+        schema_name = schema.__name__
+
+    return schema_name
