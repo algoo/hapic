@@ -9,7 +9,7 @@ here = path.abspath(path.dirname(__file__))
 
 install_requires = [
     'marshmallow >2.0.0,<3.0.0a1',
-    'apispec==0.35.0-algoo',
+    'hapic_apispec==0.35.0',
     'multidict'
 ]
 tests_require = [
