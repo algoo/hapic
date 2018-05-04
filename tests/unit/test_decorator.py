@@ -233,11 +233,8 @@ class TestOutputControllerWrapper(Base):
             return foo
 
         result = func(42)
-        # see MyProcessor#process
-        assert {
-                   'http_code': HTTPStatus.OK,
-                   'original_response': '43',
-               } == result
+        assert HTTPStatus.OK == result.status_code
+        assert '43' == result.body
 
     def test_unit__output_data_wrapping__fail__error_response(self):
         context = MyContext(app=None)
@@ -250,6 +247,7 @@ class TestOutputControllerWrapper(Base):
             return 'wrong result format'
 
         result = func(42)
+        assert HTTPStatus.INTERNAL_SERVER_ERROR == result.status_code
         # see MyProcessor#process
         assert isinstance(result, dict)
         assert 'http_code' in result
@@ -305,14 +303,12 @@ class TestExceptionHandlerControllerWrapper(Base):
             raise exc
 
         response = func(42)
-        assert 'http_code' in response
-        assert response['http_code'] == HTTPStatus.INTERNAL_SERVER_ERROR
-        assert 'original_response' in response
-        assert json.loads(response['original_response']) == {
+        assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
+        assert {
             'message': 'We are testing',
             'details': {'foo': 'bar'},
             'code': None,
-        }
+        } == json.loads(response.body)
 
     def test_unit__exception_handler__error__error_content_malformed(self):
         class MyException(Exception):

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import json
 import typing
 
 from hapic.error import ErrorBuilderInterface
@@ -106,8 +107,80 @@ class ContextInterface(object):
         """
         raise NotImplementedError()
 
+    def handle_exception(
+        self,
+        exception_class: typing.Type[Exception],
+        http_code: int,
+    ) -> None:
+        raise NotImplementedError()
+
+    def handle_exceptions(
+        self,
+        exception_classes: typing.List[typing.Type[Exception]],
+        http_code: int,
+    ) -> None:
+        raise NotImplementedError()
+
+    def _add_exception_class_to_catch(
+        self,
+        exception_class: typing.List[typing.Type[Exception]],
+        http_code: int,
+    ) -> None:
+        raise NotImplementedError()
+
 
 class BaseContext(ContextInterface):
     def get_default_error_builder(self) -> ErrorBuilderInterface:
         """ see hapic.context.ContextInterface#get_default_error_builder"""
         return self.default_error_builder
+
+    def handle_exception(
+        self,
+        exception_class: typing.Type[Exception],
+        http_code: int,
+    ) -> None:
+        self._add_exception_class_to_catch(exception_class, http_code)
+
+    def handle_exceptions(
+        self,
+        exception_classes: typing.List[typing.Type[Exception]],
+        http_code: int,
+    ) -> None:
+        for exception_class in exception_classes:
+            self._add_exception_class_to_catch(exception_class, http_code)
+
+    def handle_exceptions_decorator_builder(
+        self,
+        func: typing.Callable[..., typing.Any],
+    ) -> typing.Callable[..., typing.Any]:
+        def decorator(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except Exception as exc:
+                # Reverse list to read first user given exception before
+                # the hapic default Exception catch
+                handled = reversed(self._get_handled_exception_classes())
+                for handled_exception_class, http_code in handled:
+                    # TODO BS 2018-05-04: How to be attentive to hierarchy ?
+                    if isinstance(exc, handled_exception_class):
+                        error_builder = self.get_default_error_builder()
+                        error_body = error_builder.build_from_exception(exc)
+                        return self.get_response(
+                            json.dumps(error_body),
+                            http_code,
+                        )
+                raise exc
+
+        return decorator
+
+    def _get_handled_exception_classes(
+        self,
+    ) -> typing.List[typing.Tuple[typing.Type[Exception], int]]:
+        raise NotImplementedError()
+
+    def _add_exception_class_to_catch(
+        self,
+        exception_class: typing.Type[Exception],
+        http_code: int,
+    ) -> None:
+        raise NotImplementedError()

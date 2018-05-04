@@ -32,6 +32,7 @@ class PyramidContext(BaseContext):
         configurator: 'Configurator',
         default_error_builder: ErrorBuilderInterface = None,
     ):
+        self._handled_exceptions = []  # type: typing.List[typing.Tuple[typing.Type[Exception], int]]  # nopep8
         self.configurator = configurator
         self.default_error_builder = \
             default_error_builder or DefaultErrorBuilder()  # FDV
@@ -181,3 +182,10 @@ class PyramidContext(BaseContext):
             name=route_prefix,
             path=directory_path,
         )
+
+    def _add_exception_class_to_catch(
+        self,
+        exception_class: typing.Type[Exception],
+        http_code: int,
+    ) -> None:
+        self._handled_exceptions.append((exception_class, http_code))
