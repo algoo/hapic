@@ -151,6 +151,10 @@ class BottleContext(BaseContext):
         )
 
     def _install_exceptions_handler(self) -> None:
+        """
+        Setup the bottle app to enable exception catching with internal
+        hapic exception catcher.
+        """
         self.app.install(self.handle_exceptions_decorator_builder)
 
     def _get_handled_exception_class_and_http_codes(
