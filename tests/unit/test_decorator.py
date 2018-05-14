@@ -248,14 +248,15 @@ class TestOutputControllerWrapper(Base):
 
         result = func(42)
         assert HTTPStatus.INTERNAL_SERVER_ERROR == result.status_code
-        # see MyProcessor#process
-        assert isinstance(result, dict)
-        assert 'http_code' in result
-        assert result['http_code'] == HTTPStatus.INTERNAL_SERVER_ERROR
-        assert 'original_error' in result
-        assert result['original_error'].details == {
-            'name': ['Missing data for required field.']
-        }
+        assert {
+                   'original_error': {
+                       'details': {
+                           'name': ['Missing data for required field.']
+                       },
+                       'message': 'Validation error of output data'
+                   },
+                   'http_code': 500,
+               } == json.loads(result.body)
 
 
 class TestExceptionHandlerControllerWrapper(Base):
@@ -273,14 +274,12 @@ class TestExceptionHandlerControllerWrapper(Base):
             raise ZeroDivisionError('We are testing')
 
         response = func(42)
-        assert 'http_code' in response
-        assert response['http_code'] == HTTPStatus.INTERNAL_SERVER_ERROR
-        assert 'original_response' in response
-        assert json.loads(response['original_response']) == {
-            'message': 'We are testing',
-            'details': {},
-            'code': None,
-        }
+        assert HTTPStatus.INTERNAL_SERVER_ERROR == response.status_code
+        assert {
+                   'details': {},
+                   'message': 'We are testing',
+                   'code': None,
+               } == json.loads(response.body)
 
     def test_unit__exception_handled__ok__exception_error_dict(self):
         class MyException(Exception):
