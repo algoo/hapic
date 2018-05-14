@@ -34,6 +34,7 @@ class BottleContext(BaseContext):
         default_error_builder: ErrorBuilderInterface=None,
     ):
         self._handled_exception_and_http_codes = []  # type: typing.List[typing.Tuple[typing.Type[Exception], int]]  # nopep8
+        self._exceptions_handler_installed = False
         self.app = app
         self.default_error_builder = \
             default_error_builder or DefaultErrorBuilder()  # FDV
@@ -141,9 +142,20 @@ class BottleContext(BaseContext):
         exception_class: typing.Type[Exception],
         http_code: int,
     ) -> None:
+        if not self._exceptions_handler_installed:
+            self._install_exceptions_handler()
+
         self._handled_exception_and_http_codes.append(
             (exception_class, http_code),
         )
 
     def _install_exceptions_handler(self) -> None:
         self.app.install(self.handle_exceptions_decorator_builder)
+
+    def _get_handled_exception_class_and_http_codes(
+        self,
+    ) -> typing.List[typing.Tuple[typing.Type[Exception], int]]:
+        """
+        See hapic.context.BaseContext#_get_handled_exception_class_and_http_codes  # nopep8
+        """
+        return self._handled_exception_and_http_codes
