@@ -129,6 +129,19 @@ class ContextInterface(object):
         raise NotImplementedError()
 
 
+class HandledException(object):
+    """
+    Representation of an handled exception with it's http code
+    """
+    def __init__(
+        self,
+        exception_class: typing.Type[Exception],
+        http_code: int = 500,
+    ):
+        self.exception_class = exception_class
+        self.http_code = http_code
+
+
 class BaseContext(ContextInterface):
     def get_default_error_builder(self) -> ErrorBuilderInterface:
         """ see hapic.context.ContextInterface#get_default_error_builder"""
@@ -166,17 +179,17 @@ class BaseContext(ContextInterface):
             except Exception as exc:
                 # Reverse list to read first user given exception before
                 # the hapic default Exception catch
-                handled = reversed(
+                handled_exceptions = reversed(
                     self._get_handled_exception_class_and_http_codes(),
                 )
-                for handled_exception_class, http_code in handled:
+                for handled_exception in handled_exceptions:
                     # TODO BS 2018-05-04: How to be attentive to hierarchy ?
-                    if isinstance(exc, handled_exception_class):
+                    if isinstance(exc, handled_exception.exception_class):
                         error_builder = self.get_default_error_builder()
                         error_body = error_builder.build_from_exception(exc)
                         return self.get_response(
                             json.dumps(error_body),
-                            http_code,
+                            handled_exception.http_code,
                         )
                 raise exc
 
@@ -184,7 +197,7 @@ class BaseContext(ContextInterface):
 
     def _get_handled_exception_class_and_http_codes(
         self,
-    ) -> typing.List[typing.Tuple[typing.Type[Exception], int]]:
+    ) -> typing.List[HandledException]:
         """
         :return: A list of tuple where: thirst item of tuple is a exception
         class and second tuple item is a http code. This list will be used by

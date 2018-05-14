@@ -12,6 +12,7 @@ import bottle
 from multidict import MultiDict
 
 from hapic.context import BaseContext
+from hapic.context import HandledException
 from hapic.context import RouteRepresentation
 from hapic.decorator import DecoratedController
 from hapic.decorator import DECORATION_ATTRIBUTE_NAME
@@ -33,7 +34,7 @@ class BottleContext(BaseContext):
         app: bottle.Bottle,
         default_error_builder: ErrorBuilderInterface=None,
     ):
-        self._handled_exception_and_http_codes = []  # type: typing.List[typing.Tuple[typing.Type[Exception], int]]  # nopep8
+        self._handled_exceptions = []  # type: typing.List[HandledException]  # nopep8
         self._exceptions_handler_installed = False
         self.app = app
         self.default_error_builder = \
@@ -145,8 +146,8 @@ class BottleContext(BaseContext):
         if not self._exceptions_handler_installed:
             self._install_exceptions_handler()
 
-        self._handled_exception_and_http_codes.append(
-            (exception_class, http_code),
+        self._handled_exceptions.append(
+            HandledException(exception_class, http_code),
         )
 
     def _install_exceptions_handler(self) -> None:
@@ -154,8 +155,8 @@ class BottleContext(BaseContext):
 
     def _get_handled_exception_class_and_http_codes(
         self,
-    ) -> typing.List[typing.Tuple[typing.Type[Exception], int]]:
+    ) -> typing.List[HandledException]:
         """
         See hapic.context.BaseContext#_get_handled_exception_class_and_http_codes  # nopep8
         """
-        return self._handled_exception_and_http_codes
+        return self._handled_exceptions
