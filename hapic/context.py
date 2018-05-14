@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import json
 import typing
 
 from hapic.error import ErrorBuilderInterface
@@ -106,8 +107,121 @@ class ContextInterface(object):
         """
         raise NotImplementedError()
 
+    def handle_exception(
+        self,
+        exception_class: typing.Type[Exception],
+        http_code: int,
+    ) -> None:
+        """
+        Enable management of this exception during execution of views. If this
+        exception caught, an http response will be returned with this http
+        code.
+        :param exception_class: Exception class to catch
+        :param http_code: HTTP code to use in response if exception caught
+        """
+        raise NotImplementedError()
+
+    def handle_exceptions(
+        self,
+        exception_classes: typing.List[typing.Type[Exception]],
+        http_code: int,
+    ) -> None:
+        """
+        Enable management of these exceptions during execution of views. If
+        this exception caught, an http response will be returned with this http
+        code.
+        :param exception_classes: Exception classes to catch
+        :param http_code: HTTP code to use in response if exception caught
+        """
+        raise NotImplementedError()
+
+
+class HandledException(object):
+    """
+    Representation of an handled exception with it's http code
+    """
+    def __init__(
+        self,
+        exception_class: typing.Type[Exception],
+        http_code: int = 500,
+    ):
+        self.exception_class = exception_class
+        self.http_code = http_code
+
 
 class BaseContext(ContextInterface):
     def get_default_error_builder(self) -> ErrorBuilderInterface:
         """ see hapic.context.ContextInterface#get_default_error_builder"""
         return self.default_error_builder
+
+    def handle_exception(
+        self,
+        exception_class: typing.Type[Exception],
+        http_code: int,
+    ) -> None:
+        self._add_exception_class_to_catch(exception_class, http_code)
+
+    def handle_exceptions(
+        self,
+        exception_classes: typing.List[typing.Type[Exception]],
+        http_code: int,
+    ) -> None:
+        for exception_class in exception_classes:
+            self._add_exception_class_to_catch(exception_class, http_code)
+
+    def handle_exceptions_decorator_builder(
+        self,
+        func: typing.Callable[..., typing.Any],
+    ) -> typing.Callable[..., typing.Any]:
+        """
+        Return a decorator who catch exceptions raised during given function
+        execution and return a response built by the default error builder.
+
+        :param func: decorated function
+        :return: the decorator
+        """
+        def decorator(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except Exception as exc:
+                # Reverse list to read first user given exception before
+                # the hapic default Exception catch
+                handled_exceptions = reversed(
+                    self._get_handled_exception_class_and_http_codes(),
+                )
+                for handled_exception in handled_exceptions:
+                    # TODO BS 2018-05-04: How to be attentive to hierarchy ?
+                    if isinstance(exc, handled_exception.exception_class):
+                        error_builder = self.get_default_error_builder()
+                        error_body = error_builder.build_from_exception(exc)
+                        return self.get_response(
+                            json.dumps(error_body),
+                            handled_exception.http_code,
+                        )
+                raise exc
+
+        return decorator
+
+    def _get_handled_exception_class_and_http_codes(
+        self,
+    ) -> typing.List[HandledException]:
+        """
+        :return: A list of tuple where: thirst item of tuple is a exception
+        class and second tuple item is a http code. This list will be used by
+        `handle_exceptions_decorator_builder` decorator to catch exceptions.
+        """
+        raise NotImplementedError()
+
+    def _add_exception_class_to_catch(
+        self,
+        exception_class: typing.Type[Exception],
+        http_code: int,
+    ) -> None:
+        """
+        Add an exception class to catch and matching http code. Will be used by
+        `handle_exceptions_decorator_builder` decorator to catch exceptions.
+        :param exception_class: exception class to catch
+        :param http_code: http code to use if this exception catched
+        :return:
+        """
+        raise NotImplementedError()

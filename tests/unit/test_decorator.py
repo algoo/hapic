@@ -233,11 +233,8 @@ class TestOutputControllerWrapper(Base):
             return foo
 
         result = func(42)
-        # see MyProcessor#process
-        assert {
-                   'http_code': HTTPStatus.OK,
-                   'original_response': '43',
-               } == result
+        assert HTTPStatus.OK == result.status_code
+        assert '43' == result.body
 
     def test_unit__output_data_wrapping__fail__error_response(self):
         context = MyContext(app=None)
@@ -250,14 +247,16 @@ class TestOutputControllerWrapper(Base):
             return 'wrong result format'
 
         result = func(42)
-        # see MyProcessor#process
-        assert isinstance(result, dict)
-        assert 'http_code' in result
-        assert result['http_code'] == HTTPStatus.INTERNAL_SERVER_ERROR
-        assert 'original_error' in result
-        assert result['original_error'].details == {
-            'name': ['Missing data for required field.']
-        }
+        assert HTTPStatus.INTERNAL_SERVER_ERROR == result.status_code
+        assert {
+                   'original_error': {
+                       'details': {
+                           'name': ['Missing data for required field.']
+                       },
+                       'message': 'Validation error of output data'
+                   },
+                   'http_code': 500,
+               } == json.loads(result.body)
 
 
 class TestExceptionHandlerControllerWrapper(Base):
@@ -275,14 +274,12 @@ class TestExceptionHandlerControllerWrapper(Base):
             raise ZeroDivisionError('We are testing')
 
         response = func(42)
-        assert 'http_code' in response
-        assert response['http_code'] == HTTPStatus.INTERNAL_SERVER_ERROR
-        assert 'original_response' in response
-        assert json.loads(response['original_response']) == {
-            'message': 'We are testing',
-            'details': {},
-            'code': None,
-        }
+        assert HTTPStatus.INTERNAL_SERVER_ERROR == response.status_code
+        assert {
+                   'details': {},
+                   'message': 'We are testing',
+                   'code': None,
+               } == json.loads(response.body)
 
     def test_unit__exception_handled__ok__exception_error_dict(self):
         class MyException(Exception):
@@ -305,14 +302,12 @@ class TestExceptionHandlerControllerWrapper(Base):
             raise exc
 
         response = func(42)
-        assert 'http_code' in response
-        assert response['http_code'] == HTTPStatus.INTERNAL_SERVER_ERROR
-        assert 'original_response' in response
-        assert json.loads(response['original_response']) == {
+        assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
+        assert {
             'message': 'We are testing',
             'details': {'foo': 'bar'},
             'code': None,
-        }
+        } == json.loads(response.body)
 
     def test_unit__exception_handler__error__error_content_malformed(self):
         class MyException(Exception):

@@ -33,6 +33,7 @@ class FlaskContext(BaseContext):
         app: Flask,
         default_error_builder: ErrorBuilderInterface=None,
     ):
+        self._handled_exceptions = []  # type: typing.List[HandledException]  # nopep8
         self.app = app
         self.default_error_builder = \
             default_error_builder or DefaultErrorBuilder()  # FDV
@@ -157,3 +158,10 @@ class FlaskContext(BaseContext):
         )
         def api_doc(path):
             return send_from_directory(directory_path, path)
+
+    def _add_exception_class_to_catch(
+        self,
+        exception_class: typing.Type[Exception],
+        http_code: int,
+    ) -> None:
+        raise NotImplementedError('TODO')

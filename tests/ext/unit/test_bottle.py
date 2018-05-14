@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 import bottle
+from webtest import TestApp
 
 import hapic
+from hapic.ext.bottle import BottleContext
 from tests.base import Base
 
 
@@ -74,3 +76,20 @@ class TestBottleExt(Base):
         assert route.original_route_object.callback != MyControllers.controller_a  # nopep8
         assert route.original_route_object.callback != decoration.reference.wrapped  # nopep8
         assert route.original_route_object.callback != decoration.reference.wrapper  # nopep8
+
+    def test_unit__general_exception_handling__ok__nominal_case(self):
+        hapic_ = hapic.Hapic()
+        app = bottle.Bottle()
+        context = BottleContext(app=app)
+        hapic_.set_context(context)
+
+        def my_view():
+            raise ZeroDivisionError('An exception message')
+
+        app.route('/my-view', method='GET', callback=my_view)
+        context.handle_exception(ZeroDivisionError, http_code=400)
+
+        test_app = TestApp(app)
+        response = test_app.get('/my-view', status='*')
+
+        assert 400 == response.status_code
