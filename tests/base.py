@@ -31,7 +31,7 @@ class MyContext(BottleContext):
         fake_files_parameters=None,
     ) -> None:
         super().__init__(app=app)
-        self._handled_exceptions = []  # type: typing.List[typing.Tuple[typing.Type[Exception], int]]  # nopep8
+        self._handled_exception_and_http_codes = []  # type: typing.List[typing.Tuple[typing.Type[Exception], int]]  # nopep8
         self._exceptions_handler_installed = False
         self.fake_path_parameters = fake_path_parameters or {}
         self.fake_query_parameters = fake_query_parameters or MultiDict()
@@ -73,9 +73,11 @@ class MyContext(BottleContext):
     ) -> None:
         if not self._exceptions_handler_installed:
             self._install_exceptions_handler()
-        self._handled_exceptions.append((exception_class, http_code))
+        self._handled_exception_and_http_codes.append(
+            (exception_class, http_code),
+        )
 
-    def _get_handled_exception_classes(
+    def _get_handled_exception_class_and_http_codes(
         self,
     ) -> typing.List[typing.Tuple[typing.Type[Exception], int]]:
-        return self._handled_exceptions
+        return self._handled_exception_and_http_codes

@@ -33,7 +33,7 @@ class BottleContext(BaseContext):
         app: bottle.Bottle,
         default_error_builder: ErrorBuilderInterface=None,
     ):
-        self._handled_exceptions = []  # type: typing.List[typing.Tuple[typing.Type[Exception], int]]  # nopep8
+        self._handled_exception_and_http_codes = []  # type: typing.List[typing.Tuple[typing.Type[Exception], int]]  # nopep8
         self.app = app
         self.default_error_builder = \
             default_error_builder or DefaultErrorBuilder()  # FDV
@@ -141,7 +141,9 @@ class BottleContext(BaseContext):
         exception_class: typing.Type[Exception],
         http_code: int,
     ) -> None:
-        self._handled_exceptions.append((exception_class, http_code))
+        self._handled_exception_and_http_codes.append(
+            (exception_class, http_code),
+        )
 
     def _install_exceptions_handler(self) -> None:
         self.app.install(self.handle_exceptions_decorator_builder)

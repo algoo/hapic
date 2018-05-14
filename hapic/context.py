@@ -153,13 +153,22 @@ class BaseContext(ContextInterface):
         self,
         func: typing.Callable[..., typing.Any],
     ) -> typing.Callable[..., typing.Any]:
+        """
+        Return a decorator who catch exceptions raised during given function
+        execution and return a response built by the default error builder.
+
+        :param func: decorated function
+        :return: the decorator
+        """
         def decorator(*args, **kwargs):
             try:
                 return func(*args, **kwargs)
             except Exception as exc:
                 # Reverse list to read first user given exception before
                 # the hapic default Exception catch
-                handled = reversed(self._get_handled_exception_classes())
+                handled = reversed(
+                    self._get_handled_exception_class_and_http_codes(),
+                )
                 for handled_exception_class, http_code in handled:
                     # TODO BS 2018-05-04: How to be attentive to hierarchy ?
                     if isinstance(exc, handled_exception_class):
@@ -173,9 +182,14 @@ class BaseContext(ContextInterface):
 
         return decorator
 
-    def _get_handled_exception_classes(
+    def _get_handled_exception_class_and_http_codes(
         self,
     ) -> typing.List[typing.Tuple[typing.Type[Exception], int]]:
+        """
+        :return: A list of tuple where: thirst item of tuple is a exception
+        class and second tuple item is a http code. This list will be used by
+        `handle_exceptions_decorator_builder` decorator to catch exceptions.
+        """
         raise NotImplementedError()
 
     def _add_exception_class_to_catch(
@@ -183,4 +197,11 @@ class BaseContext(ContextInterface):
         exception_class: typing.Type[Exception],
         http_code: int,
     ) -> None:
+        """
+        Add an exception class to catch and matching http code. Will be used by
+        `handle_exceptions_decorator_builder` decorator to catch exceptions.
+        :param exception_class: exception class to catch
+        :param http_code: http code to use if this exception catched
+        :return:
+        """
         raise NotImplementedError()
