@@ -112,6 +112,13 @@ class ContextInterface(object):
         exception_class: typing.Type[Exception],
         http_code: int,
     ) -> None:
+        """
+        Enable management of this exception during execution of views. If this
+        exception caught, an http response will be returned with this http
+        code.
+        :param exception_class: Exception class to catch
+        :param http_code: HTTP code to use in response if exception caught
+        """
         raise NotImplementedError()
 
     def handle_exceptions(
@@ -119,13 +126,13 @@ class ContextInterface(object):
         exception_classes: typing.List[typing.Type[Exception]],
         http_code: int,
     ) -> None:
-        raise NotImplementedError()
-
-    def _add_exception_class_to_catch(
-        self,
-        exception_class: typing.List[typing.Type[Exception]],
-        http_code: int,
-    ) -> None:
+        """
+        Enable management of these exceptions during execution of views. If
+        this exception caught, an http response will be returned with this http
+        code.
+        :param exception_classes: Exception classes to catch
+        :param http_code: HTTP code to use in response if exception caught
+        """
         raise NotImplementedError()
 
 
