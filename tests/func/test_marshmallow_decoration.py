@@ -1,4 +1,6 @@
 # coding: utf-8
+import json
+
 try:  # Python 3.5+
     from http import HTTPStatus
 except ImportError:
@@ -52,11 +54,16 @@ class TestMarshmallowDecoration(Base):
             return 'OK'
 
         result = my_controller()
-        assert 'http_code' in result
-        assert HTTPStatus.BAD_REQUEST == result['http_code']
+        assert HTTPStatus.BAD_REQUEST == result.status_code
         assert {
-                   'file_abc': ['Missing data for required field.']
-               } == result['original_error'].details
+                    'http_code': 400,
+                    'original_error': {
+                        'details': {
+                            'file_abc': ['Missing data for required field.']
+                        },
+                        'message': 'Validation error of input data'
+                    }
+               } == json.loads(result.body)
 
     def test_unit__input_files__ok__file_is_empty_string(self):
         hapic = Hapic()
@@ -77,6 +84,13 @@ class TestMarshmallowDecoration(Base):
             return 'OK'
 
         result = my_controller()
-        assert 'http_code' in result
-        assert HTTPStatus.BAD_REQUEST == result['http_code']
-        assert {'file_abc': ['Missing data for required field']} == result['original_error'].details
+        assert HTTPStatus.BAD_REQUEST == result.status_code
+        assert {
+                    'http_code': 400,
+                    'original_error': {
+                        'details': {
+                            'file_abc': ['Missing data for required field']
+                        },
+                        'message': 'Validation error of input data'
+                    }
+               } == json.loads(result.body)

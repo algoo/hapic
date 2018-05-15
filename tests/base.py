@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
+import json
 import typing
+
+
 try:  # Python 3.5+
     from http import HTTPStatus
 except ImportError:
@@ -10,6 +13,7 @@ from multidict import MultiDict
 from hapic.ext.bottle import BottleContext
 from hapic.processor import RequestParameters
 from hapic.processor import ProcessValidationError
+from hapic.context import HandledException
 
 
 class Base(object):
@@ -29,6 +33,8 @@ class MyContext(BottleContext):
         fake_files_parameters=None,
     ) -> None:
         super().__init__(app=app)
+        self._handled_exceptions = []  # type: typing.List[HandledException]  # nopep8
+        self._exceptions_handler_installed = False
         self.fake_path_parameters = fake_path_parameters or {}
         self.fake_query_parameters = fake_query_parameters or MultiDict()
         self.fake_body_parameters = fake_body_parameters or {}
@@ -46,23 +52,34 @@ class MyContext(BottleContext):
             files_parameters=self.fake_files_parameters,
         )
 
-    def get_response(
-        self,
-        response: str,
-        http_code: int,
-        mimetype: str='application/json',
-    ) -> typing.Any:
-        return {
-            'original_response': response,
-            'http_code': http_code,
-        }
-
     def get_validation_error_response(
         self,
         error: ProcessValidationError,
         http_code: HTTPStatus=HTTPStatus.BAD_REQUEST,
     ) -> typing.Any:
-        return {
-            'original_error': error,
-            'http_code': http_code,
-        }
+        return self.get_response(
+            response=json.dumps({
+                'original_error': {
+                    'details': error.details,
+                    'message': error.message,
+                },
+                'http_code': http_code,
+            }),
+            http_code=http_code,
+        )
+
+    def _add_exception_class_to_catch(
+        self,
+        exception_class: typing.Type[Exception],
+        http_code: int,
+    ) -> None:
+        if not self._exceptions_handler_installed:
+            self._install_exceptions_handler()
+        self._handled_exceptions.append(
+            HandledException(exception_class, http_code),
+        )
+
+    def _get_handled_exception_class_and_http_codes(
+        self,
+    ) -> typing.List[HandledException]:
+        return self._handled_exceptions
