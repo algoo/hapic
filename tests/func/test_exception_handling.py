@@ -21,6 +21,11 @@ class TestExceptionHandling(Base):
             raise ZeroDivisionError('An exception message')
 
         app.route('/my-view', method='GET', callback=my_view)
+        # FIXME - G.M - 17-05-2018 - Verify if:
+        # - other view that work/raise an other exception do not go
+        # into this code for handle this exceptions.
+        # - response come clearly from there, not from web framework:
+        #  Check not only http code, but also body.
         context.handle_exception(ZeroDivisionError, http_code=400)
 
         test_app = TestApp(app)
@@ -44,6 +49,11 @@ class TestExceptionHandling(Base):
         configurator.add_route('my_view','/my-view', request_method='GET')
         configurator.add_view(my_view, route_name='my_view', renderer='json')
 
+        # FIXME - G.M - 17-05-2018 - Verify if:
+        # - other view that work/raise an other exception do not go
+        # into this code for handle this exceptions.
+        # - response come clearly from there, not from web framework:
+        #  Check not only http code, but also body.
         context.handle_exception(ZeroDivisionError, http_code=400)
 
         app = configurator.make_wsgi_app()
