@@ -9,7 +9,7 @@ here = path.abspath(path.dirname(__file__))
 
 install_requires = [
     'marshmallow >2.0.0,<3.0.0a1',
-    'hapic_apispec==0.37.0-algoo',
+    'hapic_apispec==0.37.0',
     'multidict'
 ]
 tests_require = [
@@ -35,7 +35,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='0.39',
+    version='0.40',
 
     description='HTTP api input/output manager',
     # long_description=long_description,
