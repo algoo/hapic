@@ -32,11 +32,13 @@ class FlaskContext(BaseContext):
         self,
         app: Flask,
         default_error_builder: ErrorBuilderInterface=None,
+        debug: bool = False,
     ):
         self._handled_exceptions = []  # type: typing.List[HandledException]  # nopep8
         self.app = app
         self.default_error_builder = \
             default_error_builder or DefaultErrorBuilder()  # FDV
+        self.debug = debug
 
     def get_request_parameters(self, *args, **kwargs) -> RequestParameters:
         from flask import request
@@ -165,3 +167,6 @@ class FlaskContext(BaseContext):
         http_code: int,
     ) -> None:
         raise NotImplementedError('TODO')
+
+    def is_debug(self) -> bool:
+        return self.debug

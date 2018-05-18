@@ -314,7 +314,11 @@ class TestExceptionHandlerControllerWrapper(Base):
             pass
 
         class MyErrorBuilder(DefaultErrorBuilder):
-            def build_from_exception(self, exception: Exception) -> dict:
+            def build_from_exception(
+                self,
+                exception: Exception,
+                include_traceback: bool = False,
+            ) -> dict:
                 # this is not matching with DefaultErrorBuilder schema
                 return {}
 

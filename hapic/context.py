@@ -135,6 +135,15 @@ class ContextInterface(object):
         """
         raise NotImplementedError()
 
+    def is_debug(self) -> bool:
+        """
+        Method called to know if Hapic has been called in debug mode.
+        Debug mode provide some informations like debug trace and error
+        message in body when internal error happen.
+        :return: True if in debug mode
+        """
+        raise NotImplementedError()
+
 
 class HandledException(object):
     """
