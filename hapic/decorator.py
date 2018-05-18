@@ -420,7 +420,10 @@ class ExceptionHandlerControllerWrapper(ControllerWrapper):
                 func_kwargs,
             )
         except self.handled_exception_class as exc:
-            response_content = self.error_builder.build_from_exception(exc)
+            response_content = self.error_builder.build_from_exception(
+                exc,
+                include_traceback=self.context.is_debug(),
+            )
 
             # Check error format
             dumped = self.error_builder.dump(response_content).data

@@ -31,11 +31,13 @@ class PyramidContext(BaseContext):
         self,
         configurator: 'Configurator',
         default_error_builder: ErrorBuilderInterface = None,
+        debug: bool = False,
     ):
         self._handled_exceptions = []  # type: typing.List[HandledException]  # nopep8
         self.configurator = configurator
         self.default_error_builder = \
             default_error_builder or DefaultErrorBuilder()  # FDV
+        self.debug = debug
 
     def get_request_parameters(self, *args, **kwargs) -> RequestParameters:
         req = args[-1]  # TODO : Check
@@ -189,3 +191,6 @@ class PyramidContext(BaseContext):
         http_code: int,
     ) -> None:
         raise NotImplementedError('TODO')
+
+    def is_debug(self) -> bool:
+        return self.debug
