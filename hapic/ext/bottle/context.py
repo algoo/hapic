@@ -33,12 +33,14 @@ class BottleContext(BaseContext):
         self,
         app: bottle.Bottle,
         default_error_builder: ErrorBuilderInterface=None,
+        debug: bool = False,
     ):
         self._handled_exceptions = []  # type: typing.List[HandledException]  # nopep8
         self._exceptions_handler_installed = False
         self.app = app
         self.default_error_builder = \
             default_error_builder or DefaultErrorBuilder()  # FDV
+        self.debug = debug
 
     def get_request_parameters(self, *args, **kwargs) -> RequestParameters:
         path_parameters = dict(bottle.request.url_args)
@@ -164,3 +166,6 @@ class BottleContext(BaseContext):
         See hapic.context.BaseContext#_get_handled_exception_class_and_http_codes  # nopep8
         """
         return self._handled_exceptions
+
+    def is_debug(self) -> bool:
+        return self.debug

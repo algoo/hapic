@@ -31,11 +31,13 @@ class PyramidContext(BaseContext):
         self,
         configurator: 'Configurator',
         default_error_builder: ErrorBuilderInterface = None,
+        debug: bool = False,
     ):
         self._handled_exceptions = []  # type: typing.List[HandledException]  # nopep8
         self.configurator = configurator
         self.default_error_builder = \
             default_error_builder or DefaultErrorBuilder()  # FDV
+        self.debug = debug
 
     def get_request_parameters(self, *args, **kwargs) -> RequestParameters:
         req = args[-1]  # TODO : Check
@@ -188,7 +190,6 @@ class PyramidContext(BaseContext):
         exception_class: typing.Type[Exception],
         http_code: int,
     ) -> None:
-
         def factory_view_func(exception_class, http_code):
             def view_func(exc, request):
                 # TODO BS 2018-05-04: How to be attentive to hierarchy ?
@@ -208,3 +209,7 @@ class PyramidContext(BaseContext):
             context=exception_class,
         )
 
+        raise NotImplementedError('TODO')
+
+    def is_debug(self) -> bool:
+        return self.debug
