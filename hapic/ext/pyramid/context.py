@@ -209,7 +209,5 @@ class PyramidContext(BaseContext):
             context=exception_class,
         )
 
-        raise NotImplementedError('TODO')
-
     def is_debug(self) -> bool:
         return self.debug
