@@ -276,7 +276,7 @@ class TestExceptionHandlerControllerWrapper(Base):
         response = func(42)
         assert HTTPStatus.INTERNAL_SERVER_ERROR == response.status_code
         assert {
-                   'details': {},
+                   'details': {'error_detail': {}},
                    'message': 'We are testing',
                    'code': None,
                } == json.loads(response.body)
@@ -305,7 +305,7 @@ class TestExceptionHandlerControllerWrapper(Base):
         assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
         assert {
             'message': 'We are testing',
-            'details': {'foo': 'bar'},
+            'details': {'error_detail': {'foo': 'bar'}},
             'code': None,
         } == json.loads(response.body)
 
@@ -314,7 +314,11 @@ class TestExceptionHandlerControllerWrapper(Base):
             pass
 
         class MyErrorBuilder(DefaultErrorBuilder):
-            def build_from_exception(self, exception: Exception) -> dict:
+            def build_from_exception(
+                self,
+                exception: Exception,
+                include_traceback: bool = False,
+            ) -> dict:
                 # this is not matching with DefaultErrorBuilder schema
                 return {}
 

@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import traceback
+
 import marshmallow
 
 from hapic.processor import ProcessValidationError
@@ -9,7 +11,11 @@ class ErrorBuilderInterface(marshmallow.Schema):
     ErrorBuilder is a class who represent a Schema (marshmallow.Schema) and
     can generate a response content from exception (build_from_exception)
     """
-    def build_from_exception(self, exception: Exception) -> dict:
+    def build_from_exception(
+        self,
+        exception: Exception,
+        include_traceback: bool = False,
+    ) -> dict:
         """
         Build the error response content from given exception
         :param exception: Original exception who invoke this method
@@ -34,14 +40,28 @@ class DefaultErrorBuilder(ErrorBuilderInterface):
     details = marshmallow.fields.Dict(required=False, missing={})
     code = marshmallow.fields.Raw(missing=None)
 
-    def build_from_exception(self, exception: Exception) -> dict:
+    def build_from_exception(
+        self,
+        exception: Exception,
+        include_traceback: bool = False,
+    ) -> dict:
         """
         See hapic.error.ErrorBuilderInterface#build_from_exception docstring
         """
         # TODO: "error_detail" attribute name should be configurable
+        message = str(exception)
+        if not message:
+            message = type(exception).__name__
+
+        details = {
+            'error_detail': getattr(exception, 'error_detail', {}),
+        }
+        if include_traceback:
+            details['traceback'] = traceback.format_exc()
+
         return {
-            'message': str(exception),
-            'details': getattr(exception, 'error_detail', {}),
+            'message': message,
+            'details': details,
             'code': None,
         }
 
