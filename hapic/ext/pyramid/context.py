@@ -190,7 +190,24 @@ class PyramidContext(BaseContext):
         exception_class: typing.Type[Exception],
         http_code: int,
     ) -> None:
-        raise NotImplementedError('TODO')
+        def factory_view_func(exception_class, http_code):
+            def view_func(exc, request):
+                # TODO BS 2018-05-04: How to be attentive to hierarchy ?
+                error_builder = self.get_default_error_builder()
+                error_body = error_builder.build_from_exception(exc)
+                return self.get_response(
+                    json.dumps(error_body),
+                    http_code
+                )
+            return view_func
+
+        self.configurator.add_view(
+            view=factory_view_func(
+                exception_class,
+                http_code,
+            ),
+            context=exception_class,
+        )
 
     def is_debug(self) -> bool:
         return self.debug
