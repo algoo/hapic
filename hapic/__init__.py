@@ -2,6 +2,7 @@
 from hapic.hapic import Hapic
 from hapic.data import HapicData
 
+__version__ = '0.41'
 _hapic_default = Hapic()
 
 with_api_doc = _hapic_default.with_api_doc
