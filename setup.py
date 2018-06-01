@@ -5,6 +5,16 @@ from setuptools import find_packages
 from os import path
 import sys
 
+# INFO - G.M - 29-05-2018 - exec info.py file in order to obtain version
+# without any dependencies trouble.
+# see https://milkr.io/kfei/5-common-patterns-to-version-your-Python-package
+# section "Exec/execfile" for other example and "Import from the package" for
+# information about import strategy problem.
+infos_dict = {}
+with open("hapic/infos.py") as fp:
+    exec(fp.read(), infos_dict)
+version = infos_dict['__version__']
+
 here = path.abspath(path.dirname(__file__))
 
 install_requires = [
@@ -35,7 +45,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='0.41',
+    version=version,
 
     description='HTTP api input/output manager',
     # long_description=long_description,
