@@ -372,3 +372,217 @@ class TestDocGeneration(Base):
             'items': {'$ref': '#/definitions/{}'.format(schema_name)},
             'type': 'array'
         }
+
+    def test_func_schema_in_doc__ok__additionals_fields__query__string(self):
+        hapic = Hapic()
+        # TODO BS 20171113: Make this test non-bottle
+        app = bottle.Bottle()
+        hapic.set_context(MyContext(app=app))
+
+        class MySchema(marshmallow.Schema):
+            category = marshmallow.fields.String(
+                required=True,
+                description='a description',
+                example='00010',
+                format='binary',
+                enum=['01000', '11111'],
+                maxLength=5,
+                minLength=5,
+                # Theses none string specific parameters should disappear
+                # in query/path
+                maximum=400,
+                # exclusiveMaximun=False,
+                # minimum=0,
+                # exclusiveMinimum=True,
+                # multipleOf=1,
+            )
+
+        @hapic.with_api_doc()
+        @hapic.input_query(MySchema())
+        def my_controller():
+            return
+
+        app.route('/paper', method='POST', callback=my_controller)
+        doc = hapic.generate_doc()
+        assert doc.get('paths').get('/paper').get('post').get('parameters')[0]
+        field = doc.get('paths').get('/paper').get('post').get('parameters')[0]
+        assert field['description'] == 'a description\n\n*example value: 00010*'
+        # INFO - G.M - 01-06-2018 - Field example not allowed here,
+        # added in description instead
+        assert 'example' not in field
+        assert field['format'] == 'binary'
+        assert field['in'] == 'query'
+        assert field['type'] == 'string'
+        assert field['maxLength'] == 5
+        assert field['minLength'] == 5
+        assert field['required'] == True
+        assert field['enum'] == ['01000', '11111']
+        assert 'maximum' not in field
+
+    def test_func_schema_in_doc__ok__additionals_fields__path__string(self):
+        hapic = Hapic()
+        # TODO BS 20171113: Make this test non-bottle
+        app = bottle.Bottle()
+        hapic.set_context(MyContext(app=app))
+
+        class MySchema(marshmallow.Schema):
+            category = marshmallow.fields.String(
+                required=True,
+                description='a description',
+                example='00010',
+                format='binary',
+                enum=['01000', '11111'],
+                maxLength=5,
+                minLength=5,
+                # Theses none string specific parameters should disappear
+                # in query/path
+                maximum=400,
+                # exclusiveMaximun=False,
+                # minimum=0,
+                # exclusiveMinimum=True,
+                # multipleOf=1,
+            )
+
+        @hapic.with_api_doc()
+        @hapic.input_path(MySchema())
+        def my_controller():
+            return
+
+        app.route('/paper', method='POST', callback=my_controller)
+        doc = hapic.generate_doc()
+        assert doc.get('paths').get('/paper').get('post').get('parameters')[0]
+        field = doc.get('paths').get('/paper').get('post').get('parameters')[0]
+        assert field['description'] == 'a description\n\n*example value: 00010*'
+        # INFO - G.M - 01-06-2018 - Field example not allowed here,
+        # added in description instead
+        assert 'example' not in field
+        assert field['format'] == 'binary'
+        assert field['in'] == 'path'
+        assert field['type'] == 'string'
+        assert field['maxLength'] == 5
+        assert field['minLength'] == 5
+        assert field['required'] == True
+        assert field['enum'] == ['01000', '11111']
+        assert 'maximum' not in field
+
+    def test_func_schema_in_doc__ok__additionals_fields__path__number(self):
+        hapic = Hapic()
+        # TODO BS 20171113: Make this test non-bottle
+        app = bottle.Bottle()
+        hapic.set_context(MyContext(app=app))
+
+        class MySchema(marshmallow.Schema):
+            category = marshmallow.fields.Integer(
+                required=True,
+                description='a number',
+                example='12',
+                format='int64',
+                enum=[4, 6],
+                # Theses none string specific parameters should disappear
+                # in query/path
+                maximum=14,
+                exclusiveMaximun=False,
+                minimum=0,
+                exclusiveMinimum=True,
+                multipleOf=2,
+            )
+
+        @hapic.with_api_doc()
+        @hapic.input_path(MySchema())
+        def my_controller():
+            return
+
+        app.route('/paper', method='POST', callback=my_controller)
+        doc = hapic.generate_doc()
+        assert doc.get('paths').get('/paper').get('post').get('parameters')[0]
+        field = doc.get('paths').get('/paper').get('post').get('parameters')[0]
+        assert field['description'] == 'a number\n\n*example value: 12*'
+        # INFO - G.M - 01-06-2018 - Field example not allowed here,
+        # added in description instead
+        assert 'example' not in field
+        assert field['format'] == 'int64'
+        assert field['in'] == 'path'
+        assert field['type'] == 'integer'
+        assert field['maximum'] == 14
+        assert field['minimum'] == 0
+        assert field['exclusiveMinimum'] == True
+        assert field['required'] == True
+        assert field['enum'] == [4, 6]
+        assert field['multipleOf'] == 2
+
+    def test_func_schema_in_doc__ok__additionals_fields__body__number(self):
+        hapic = Hapic()
+        # TODO BS 20171113: Make this test non-bottle
+        app = bottle.Bottle()
+        hapic.set_context(MyContext(app=app))
+
+        class MySchema(marshmallow.Schema):
+            category = marshmallow.fields.Integer(
+                required=True,
+                description='a number',
+                example='12',
+                format='int64',
+                enum=[4, 6],
+                # Theses none string specific parameters should disappear
+                # in query/path
+                maximum=14,
+                exclusiveMaximun=False,
+                minimum=0,
+                exclusiveMinimum=True,
+                multipleOf=2,
+            )
+
+        @hapic.with_api_doc()
+        @hapic.input_body(MySchema())
+        def my_controller():
+            return
+
+        app.route('/paper', method='POST', callback=my_controller)
+        doc = hapic.generate_doc()
+
+        schema_field = doc.get('definitions', {}).get('MySchema', {}).get('properties', {}).get('category', {})  # nopep8
+        assert schema_field
+        assert schema_field['description'] == 'a number'
+        assert schema_field['example'] == '12'
+        assert schema_field['format'] == 'int64'
+        assert schema_field['type'] == 'integer'
+        assert schema_field['maximum'] == 14
+        assert schema_field['minimum'] == 0
+        assert schema_field['exclusiveMinimum'] == True
+        assert schema_field['enum'] == [4, 6]
+        assert schema_field['multipleOf'] == 2
+
+    def test_func_schema_in_doc__ok__additionals_fields__body__string(self):
+        hapic = Hapic()
+        # TODO BS 20171113: Make this test non-bottle
+        app = bottle.Bottle()
+        hapic.set_context(MyContext(app=app))
+
+        class MySchema(marshmallow.Schema):
+            category = marshmallow.fields.String(
+                required=True,
+                description='a description',
+                example='00010',
+                format='binary',
+                enum=['01000', '11111'],
+                maxLength=5,
+                minLength=5,
+            )
+
+        @hapic.with_api_doc()
+        @hapic.input_body(MySchema())
+        def my_controller():
+            return
+
+        app.route('/paper', method='POST', callback=my_controller)
+        doc = hapic.generate_doc()
+
+        schema_field = doc.get('definitions', {}).get('MySchema', {}).get('properties', {}).get('category', {})  # nopep8
+        assert schema_field
+        assert schema_field['description'] == 'a description'
+        assert schema_field['example'] == '00010'
+        assert schema_field['format'] == 'binary'
+        assert schema_field['type'] == 'string'
+        assert schema_field['maxLength'] == 5
+        assert schema_field['minLength'] == 5
+        assert schema_field['enum'] == ['01000', '11111']
