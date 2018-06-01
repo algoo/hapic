@@ -194,7 +194,10 @@ class PyramidContext(BaseContext):
             def view_func(exc, request):
                 # TODO BS 2018-05-04: How to be attentive to hierarchy ?
                 error_builder = self.get_default_error_builder()
-                error_body = error_builder.build_from_exception(exc)
+                error_body = error_builder.build_from_exception(
+                    exc,
+                    include_traceback=self.is_debug(),
+                )
                 return self.get_response(
                     json.dumps(error_body),
                     http_code
