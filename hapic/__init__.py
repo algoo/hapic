@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from hapic.hapic import Hapic
 from hapic.data import HapicData
+from hapic.infos import __version__
 
 __version__ = '0.41'
 _hapic_default = Hapic()
