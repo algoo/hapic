@@ -4,7 +4,6 @@ from setuptools import setup
 from setuptools import find_packages
 from os import path
 import sys
-import hapic
 
 here = path.abspath(path.dirname(__file__))
 
