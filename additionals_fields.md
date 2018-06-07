@@ -1,7 +1,8 @@
 ## Addtionals fields supported
 
-Using marshmallow schema, you can add some extra field in field who are
-automatically added into field description in schema.
+Using marshmallow schema, you have the possibility to add extra information in
+field in order to add them into auto-generated apispec documentation.
+
 ```
         class MySchema(marshmallow.Schema):
             category = marshmallow.fields.String(
