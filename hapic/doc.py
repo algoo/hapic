@@ -23,7 +23,9 @@ FIELDS_PARAMS_GENERIC_ACCEPTED = [
     'enum',
 ]
 
-FIELDS_TYPE_ARRAY = ['array']
+FIELDS_TYPE_ARRAY = [
+    'array',
+]
 FIELDS_PARAMS_ARRAY_ACCEPTED = [
     'items',
     'collectionFormat',
@@ -33,14 +35,19 @@ FIELDS_PARAMS_ARRAY_ACCEPTED = [
     'uniqueitems',
 ]
 
-FIELDS_TYPE_STRING = ['string']
+FIELDS_TYPE_STRING = [
+    'string',
+]
 FIELDS_PARAMS_STRING_ACCEPTED = [
     'maxLength',
     'minLength',
     'pattern',
 ]
 
-FIELDS_TYPE_NUMERIC = ['number', 'integer']
+FIELDS_TYPE_NUMERIC = [
+    'number', 
+    'integer',
+]
 FIELDS_PARAMS_NUMERIC_ACCEPTED = [
     'maximum',
     'exclusiveMaximum',
