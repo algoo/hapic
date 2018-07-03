@@ -74,7 +74,7 @@ class FlaskContext(BaseContext):
         )
 
         # Check error
-        dumped = self.default_error_builder.dump(error).data
+        dumped = self.default_error_builder.dump(error_content).data
         unmarshall = self.default_error_builder.load(dumped)
 
         if unmarshall.errors:
@@ -85,7 +85,7 @@ class FlaskContext(BaseContext):
             )
         from flask import Response
         return Response(
-            response=json.dumps(error_content),
+            response=json.dumps(dumped),
             mimetype='application/json',
             status=int(http_code),
         )
