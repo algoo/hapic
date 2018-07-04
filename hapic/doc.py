@@ -15,6 +15,48 @@ from hapic.decorator import DecoratedController
 from hapic.description import ControllerDescription
 
 
+FIELDS_PARAMS_GENERIC_ACCEPTED = [
+    'type',
+    'format',
+    'required',
+    'description',
+    'enum',
+]
+
+FIELDS_TYPE_ARRAY = [
+    'array',
+]
+FIELDS_PARAMS_ARRAY_ACCEPTED = [
+    'items',
+    'collectionFormat',
+    'pattern',
+    'maxitems',
+    'minitems',
+    'uniqueitems',
+]
+
+FIELDS_TYPE_STRING = [
+    'string',
+]
+FIELDS_PARAMS_STRING_ACCEPTED = [
+    'maxLength',
+    'minLength',
+    'pattern',
+]
+
+FIELDS_TYPE_NUMERIC = [
+    'number', 
+    'integer',
+]
+FIELDS_PARAMS_NUMERIC_ACCEPTED = [
+    'maximum',
+    'exclusiveMaximum',
+    'minimum',
+    'exclusiveMinimum',
+    'multipleOf',
+]
+
+
 def generate_schema_ref(spec:APISpec, schema: marshmallow.Schema) -> str:
     schema_class = spec.schema_class_resolver(
         spec,
@@ -31,6 +73,63 @@ def generate_schema_ref(spec:APISpec, schema: marshmallow.Schema) -> str:
             'items': ref
         }
     return ref
+
+
+def field_accepted_param(type: str, param_name:str) -> bool:
+    return (
+        param_name in FIELDS_PARAMS_GENERIC_ACCEPTED
+        or (type in FIELDS_TYPE_STRING
+            and param_name in FIELDS_PARAMS_STRING_ACCEPTED)
+        or (type in FIELDS_TYPE_ARRAY
+            and param_name in FIELDS_PARAMS_ARRAY_ACCEPTED)
+        or (type in FIELDS_TYPE_NUMERIC
+            and param_name in FIELDS_PARAMS_NUMERIC_ACCEPTED)
+    )
+
+
+def generate_fields_description(
+    schema,
+    in_: str,
+    name: str,
+    required: bool,
+    type: str=None,
+) -> dict:
+    """
+    Generate field OpenApiDescription for
+    both query and path params
+    :param schema: field schema
+    :param in_: in field
+    :param name: field name
+    :param required: required field
+    :param type: type field
+    :return: File description for OpenApi
+    """
+    description = {}
+    # INFO - G.M - 01-06-2018 - get field
+    # type to know which params are accepted
+    if not type and 'type' in schema:
+        type = schema['type']
+    assert type
+
+    for param_name, value in schema.items():
+        if field_accepted_param(type, param_name):
+            description[param_name] = value
+    description['type'] = type
+    description['in'] = in_
+    description['name'] = name
+    description['required'] = required
+
+
+    # INFO - G.M - 01-06-2018 - example is not allowed in query/path params,
+    # in OpenApi2, remove it and set it as string in field description.
+    if 'example' in schema:
+        if 'description' not in description:
+            description['description'] = ""
+        description['description'] = '{description}\n\n*example value: {example}*'.format(  # nopep8
+            description=description['description'],
+            example=schema['example']
+        )
+    return description
 
 
 def bottle_generate_operations(
@@ -90,12 +189,14 @@ def bottle_generate_operations(
         # TODO: look schema2parameters ?
         jsonschema = schema2jsonschema(schema_class, spec=spec)
         for name, schema in jsonschema.get('properties', {}).items():
-            method_operations.setdefault('parameters', []).append({
-                'in': 'path',
-                'name': name,
-                'required': name in jsonschema.get('required', []),
-                'type': schema['type']
-            })
+            method_operations.setdefault('parameters', []).append(
+                generate_fields_description(
+                    schema=schema,
+                    in_='path',
+                    name=name,
+                    required=name in jsonschema.get('required', []),
+                )
+            )
 
     if description.input_query:
         schema_class = spec.schema_class_resolver(
@@ -104,16 +205,20 @@ def bottle_generate_operations(
         )
         jsonschema = schema2jsonschema(schema_class, spec=spec)
         for name, schema in jsonschema.get('properties', {}).items():
-            method_operations.setdefault('parameters', []).append({
-                'in': 'query',
-                'name': name,
-                'required': name in jsonschema.get('required', []),
-                'type': schema['type']
-            })
+            method_operations.setdefault('parameters', []).append(
+                generate_fields_description(
+                    schema=schema,
+                    in_='query',
+                    name=name,
+                    required=name in jsonschema.get('required', []),
+                )
+            )
 
     if description.input_files:
         method_operations.setdefault('consumes', []).append('multipart/form-data')
         for field_name, field in description.input_files.wrapper.processor.schema.fields.items():
+            # TODO - G.M - 01-06-2018 - Check if other fields can be used
+            # see generate_fields_description
             method_operations.setdefault('parameters', []).append({
                 'in': 'formData',
                 'name': field_name,

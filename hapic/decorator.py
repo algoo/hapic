@@ -437,7 +437,7 @@ class ExceptionHandlerControllerWrapper(ControllerWrapper):
                 )
 
             error_response = self.context.get_response(
-                json.dumps(response_content),
+                json.dumps(dumped),
                 self.http_code,
             )
             return error_response

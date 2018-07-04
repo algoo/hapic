@@ -81,7 +81,9 @@ SWAGGER_DOC_API = {
       ('/users/{id}', {
          'delete': {
            'description': 'delete user',
-           'parameters': [{'in': 'path',
+           'parameters': [{'format': 'int32',
+                           'minimum': 1,
+                           'in': 'path',
                            'name': 'id',
                            'required': True,
                            'type': 'integer'}],
@@ -90,7 +92,9 @@ SWAGGER_DOC_API = {
                'schema': {'$ref': '#/definitions/NoContentSchema'}}}},
          'get': {
              'description': 'Obtain one user',
-             'parameters': [{'in': 'path',
+             'parameters': [{'format': 'int32',
+                             'in': 'path',
+                             'minimum': 1,
                              'name': 'id',
                              'required': True,
                              'type': 'integer'}],
