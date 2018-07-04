@@ -39,6 +39,9 @@ dev_require = [
 if sys.version_info.major == 3 and sys.version_info.minor == 4:
     install_requires.append('typing')
 
+with open('README.md', 'r') as readme_file:
+    long_description = readme_file.read()
+
 setup(
     name='hapic',
 
@@ -47,8 +50,8 @@ setup(
     # https://packaging.python.org/en/latest/single_source_version.html
     version=version,
     description='HTTP api input/output manager',
-    # long_description=long_description,
-    long_description='',
+    long_description=long_description,
+    long_description_content_type='text/markdown',
 
     # The project's main homepage.
     url='https://github.com/algoo/hapic',
@@ -58,7 +61,7 @@ setup(
     author_email='contact@algoo.fr',
 
     # Choose your license
-    license='',
+    license='MIT',
 
     # What does your project relate to?
     keywords='http api validation',
