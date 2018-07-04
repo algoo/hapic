@@ -31,4 +31,4 @@ Upload it:
 
 If you want give a try before, use:
 
-    twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+    twine upload --repository-url https://test.pypi.org/legacy/ dist/hapic-VERSION.tar.gz
