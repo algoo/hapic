@@ -206,8 +206,9 @@ class BaseContext(ContextInterface):
                             exc,
                             include_traceback=self.is_debug(),
                         )
+                        dumped = error_builder.dump(error_body).data
                         return self.get_response(
-                            json.dumps(error_body),
+                            json.dumps(dumped),
                             handled_exception.http_code,
                         )
                 raise exc
