@@ -166,7 +166,22 @@ class FlaskContext(BaseContext):
         exception_class: typing.Type[Exception],
         http_code: int,
     ) -> None:
-        raise NotImplementedError('TODO')
+        def return_response_error(exc):
+            error_builder = self.get_default_error_builder()
+            error_body = error_builder.build_from_exception(
+                exc,
+                include_traceback=self.is_debug(),
+            )
+            dumped = error_builder.dump(error_body).data
+            return self.get_response(
+                json.dumps(dumped),
+                http_code,
+            )
+
+        self.app.register_error_handler(
+            exception_class,
+            return_response_error,
+        )
 
     def is_debug(self) -> bool:
         return self.debug
