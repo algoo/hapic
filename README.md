@@ -122,7 +122,7 @@ $ curl "http://127.0.0.1:8080/hello/michel"
 
 ```
 $ curl "http://127.0.0.1:8080/hello/michel/age/17"
-# {"name": "damien", "greetings": "Hello damien, it looks like you are 17", "now": "2017-12-18T12:41:58.229679+00:00"}
+# {"name": "damien", "greetings": "Hello damien, it looks like you are 17", "now": "2017-12-18T12:41:58.229679+00:00"}
 ```
 
 Error case (returns a 400):
