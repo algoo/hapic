@@ -73,14 +73,14 @@ class ControllerWrapper(object):
         self,
         func: 'typing.Callable[..., typing.Any]',
     ) -> 'typing.Callable[..., typing.Any]':
-        def wrapper(*args, **kwargs) -> typing.Any:
+        async def wrapper(*args, **kwargs) -> typing.Any:
             # Note: Design of before_wrapped_func can be to update kwargs
             # by reference here
-            replacement_response = self.before_wrapped_func(args, kwargs)
+            replacement_response = await self.before_wrapped_func(args, kwargs)
             if replacement_response:
                 return replacement_response
 
-            response = self._execute_wrapped_function(func, args, kwargs)
+            response = await self._execute_wrapped_function(func, args, kwargs)
             new_response = self.after_wrapped_function(response)
             return new_response
         return functools.update_wrapper(wrapper, func)
@@ -190,6 +190,42 @@ class InputControllerWrapper(InputOutputControllerWrapper):
         return error_response
 
 
+# TODO BS 2018-07-23: This class is an async version of InputControllerWrapper
+# to permit async compatibility. Please re-think about code refact
+# TAG: REFACT_ASYNC
+class AsyncInputControllerWrapper(InputControllerWrapper):
+    async def before_wrapped_func(
+        self,
+        func_args: typing.Tuple[typing.Any, ...],
+        func_kwargs: typing.Dict[str, typing.Any],
+    ) -> typing.Any:
+        # Retrieve hapic_data instance or create new one
+        # hapic_data is given though decorators
+        # Important note here: func_kwargs is update by reference !
+        hapic_data = self.ensure_hapic_data(func_kwargs)
+        request_parameters = await self.get_request_parameters(
+            func_args,
+            func_kwargs,
+        )
+
+        try:
+            processed_data = self.get_processed_data(request_parameters)
+            self.update_hapic_data(hapic_data, processed_data)
+        except ProcessException:
+            error_response = self.get_error_response(request_parameters)
+            return error_response
+
+    async def get_request_parameters(
+        self,
+        func_args: typing.Tuple[typing.Any, ...],
+        func_kwargs: typing.Dict[str, typing.Any],
+    ) -> RequestParameters:
+        return await self.context.get_request_parameters(
+            *func_args,
+            **func_kwargs
+        )
+
+
 class OutputControllerWrapper(InputOutputControllerWrapper):
     def __init__(
         self,
@@ -277,6 +313,20 @@ class OutputFileControllerWrapper(ControllerWrapper):
 
 
 class InputPathControllerWrapper(InputControllerWrapper):
+    def update_hapic_data(
+        self, hapic_data: HapicData,
+        processed_data: typing.Any,
+    ) -> None:
+        hapic_data.path = processed_data
+
+    def get_parameters_data(self, request_parameters: RequestParameters) -> dict:  # nopep8
+        return request_parameters.path_parameters
+
+
+# TODO BS 2018-07-23: This class is an copy-patse of InputPathControllerWrapper
+# to permit async compatibility. Please re-think about code refact
+# TAG: REFACT_ASYNC
+class AsyncInputPathControllerWrapper(AsyncInputControllerWrapper):
     def update_hapic_data(
         self, hapic_data: HapicData,
         processed_data: typing.Any,

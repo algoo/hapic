@@ -17,6 +17,7 @@ from hapic.decorator import ExceptionHandlerControllerWrapper
 from hapic.decorator import InputBodyControllerWrapper
 from hapic.decorator import InputHeadersControllerWrapper
 from hapic.decorator import InputPathControllerWrapper
+from hapic.decorator import AsyncInputPathControllerWrapper
 from hapic.decorator import InputQueryControllerWrapper
 from hapic.decorator import InputFilesControllerWrapper
 from hapic.decorator import OutputBodyControllerWrapper
@@ -45,11 +46,15 @@ from hapic.error import ErrorBuilderInterface
 
 
 class Hapic(object):
-    def __init__(self):
+    def __init__(
+        self,
+        async: bool = False,
+    ):
         self._buffer = DecorationBuffer()
         self._controllers = []  # type: typing.List[DecoratedController]
         self._context = None  # type: ContextInterface
         self._error_builder = None  # type: ErrorBuilderInterface
+        self._async = async
         self.doc_generator = DocGenerator()
 
         # This local function will be pass to different components
@@ -232,11 +237,11 @@ class Hapic(object):
         processor.schema = schema
         context = context or self._context_getter
 
-        decoration = InputPathControllerWrapper(
-            context=context,
-            processor=processor,
-            error_http_code=error_http_code,
-            default_http_code=default_http_code,
+        decoration = self._get_input_path_controller_wrapper(
+            processor,
+            context,
+            error_http_code,
+            default_http_code,
         )
 
         def decorator(func):
@@ -481,4 +486,28 @@ class Hapic(object):
         self.context.serve_directory(
             route,
             swaggerui_path,
+        )
+
+    def _get_input_path_controller_wrapper(
+        self,
+        processor: ProcessorInterface,
+        context: ContextInterface,
+        error_http_code: HTTPStatus = HTTPStatus.BAD_REQUEST,
+        default_http_code: HTTPStatus = HTTPStatus.OK,
+    ) -> typing.Union[
+        InputPathControllerWrapper,
+        AsyncInputPathControllerWrapper,
+    ]:
+        if not self._async:
+            return InputPathControllerWrapper(
+                context=context,
+                processor=processor,
+                error_http_code=error_http_code,
+                default_http_code=default_http_code,
+            )
+        return AsyncInputPathControllerWrapper(
+            context=context,
+            processor=processor,
+            error_http_code=error_http_code,
+            default_http_code=default_http_code,
         )
