@@ -19,6 +19,7 @@ from hapic.decorator import InputHeadersControllerWrapper
 from hapic.decorator import InputPathControllerWrapper
 from hapic.decorator import AsyncInputPathControllerWrapper
 from hapic.decorator import InputQueryControllerWrapper
+from hapic.decorator import AsyncInputQueryControllerWrapper
 from hapic.decorator import InputFilesControllerWrapper
 from hapic.decorator import OutputBodyControllerWrapper
 from hapic.decorator import OutputHeadersControllerWrapper
@@ -238,10 +239,10 @@ class Hapic(object):
         context = context or self._context_getter
 
         decoration = self._get_input_path_controller_wrapper(
-            processor,
-            context,
-            error_http_code,
-            default_http_code,
+            context=context,
+            processor=processor,
+            error_http_code=error_http_code,
+            default_http_code=default_http_code,
         )
 
         def decorator(func):
@@ -262,7 +263,7 @@ class Hapic(object):
         processor.schema = schema
         context = context or self._context_getter
 
-        decoration = InputQueryControllerWrapper(
+        decoration = self._get_input_query_controller_wrapper(
             context=context,
             processor=processor,
             error_http_code=error_http_code,
@@ -510,4 +511,31 @@ class Hapic(object):
             processor=processor,
             error_http_code=error_http_code,
             default_http_code=default_http_code,
+        )
+
+    def _get_input_query_controller_wrapper(
+        self,
+        processor: ProcessorInterface,
+        context: ContextInterface,
+        error_http_code: HTTPStatus = HTTPStatus.BAD_REQUEST,
+        default_http_code: HTTPStatus = HTTPStatus.OK,
+        as_list: typing.List[str]=None,
+    ) -> typing.Union[
+        InputQueryControllerWrapper,
+        AsyncInputQueryControllerWrapper,
+    ]:
+        if not self._async:
+            return InputQueryControllerWrapper(
+                context=context,
+                processor=processor,
+                error_http_code=error_http_code,
+                default_http_code=default_http_code,
+                as_list=as_list,
+            )
+        return AsyncInputQueryControllerWrapper(
+            context=context,
+            processor=processor,
+            error_http_code=error_http_code,
+            default_http_code=default_http_code,
+            as_list=as_list,
         )
