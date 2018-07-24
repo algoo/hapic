@@ -15,13 +15,13 @@ from hapic.decorator import DECORATION_ATTRIBUTE_NAME
 from hapic.decorator import ControllerReference
 from hapic.decorator import ExceptionHandlerControllerWrapper
 from hapic.decorator import InputBodyControllerWrapper
+from hapic.decorator import AsyncInputBodyControllerWrapper
 from hapic.decorator import InputHeadersControllerWrapper
 from hapic.decorator import InputPathControllerWrapper
-from hapic.decorator import AsyncInputPathControllerWrapper
 from hapic.decorator import InputQueryControllerWrapper
-from hapic.decorator import AsyncInputQueryControllerWrapper
 from hapic.decorator import InputFilesControllerWrapper
 from hapic.decorator import OutputBodyControllerWrapper
+from hapic.decorator import AsyncOutputBodyControllerWrapper
 from hapic.decorator import OutputHeadersControllerWrapper
 from hapic.decorator import OutputFileControllerWrapper
 from hapic.description import InputBodyDescription
@@ -149,12 +149,21 @@ class Hapic(object):
         processor = processor or MarshmallowOutputProcessor()
         processor.schema = schema
         context = context or self._context_getter
-        decoration = OutputBodyControllerWrapper(
-            context=context,
-            processor=processor,
-            error_http_code=error_http_code,
-            default_http_code=default_http_code,
-        )
+
+        if self._async:
+            decoration = AsyncOutputBodyControllerWrapper(
+                context=context,
+                processor=processor,
+                error_http_code=error_http_code,
+                default_http_code=default_http_code,
+            )
+        else:
+            decoration = OutputBodyControllerWrapper(
+                context=context,
+                processor=processor,
+                error_http_code=error_http_code,
+                default_http_code=default_http_code,
+            )
 
         def decorator(func):
             self._buffer.output_body = OutputBodyDescription(decoration)
@@ -238,7 +247,7 @@ class Hapic(object):
         processor.schema = schema
         context = context or self._context_getter
 
-        decoration = self._get_input_path_controller_wrapper(
+        decoration = InputPathControllerWrapper(
             context=context,
             processor=processor,
             error_http_code=error_http_code,
@@ -263,7 +272,7 @@ class Hapic(object):
         processor.schema = schema
         context = context or self._context_getter
 
-        decoration = self._get_input_query_controller_wrapper(
+        decoration = InputQueryControllerWrapper(
             context=context,
             processor=processor,
             error_http_code=error_http_code,
@@ -288,12 +297,20 @@ class Hapic(object):
         processor.schema = schema
         context = context or self._context_getter
 
-        decoration = InputBodyControllerWrapper(
-            context=context,
-            processor=processor,
-            error_http_code=error_http_code,
-            default_http_code=default_http_code,
-        )
+        if self._async:
+            decoration = AsyncInputBodyControllerWrapper(
+                context=context,
+                processor=processor,
+                error_http_code=error_http_code,
+                default_http_code=default_http_code,
+            )
+        else:
+            decoration = InputBodyControllerWrapper(
+                context=context,
+                processor=processor,
+                error_http_code=error_http_code,
+                default_http_code=default_http_code,
+            )
 
         def decorator(func):
             self._buffer.input_body = InputBodyDescription(decoration)
@@ -487,55 +504,4 @@ class Hapic(object):
         self.context.serve_directory(
             route,
             swaggerui_path,
-        )
-
-    def _get_input_path_controller_wrapper(
-        self,
-        processor: ProcessorInterface,
-        context: ContextInterface,
-        error_http_code: HTTPStatus = HTTPStatus.BAD_REQUEST,
-        default_http_code: HTTPStatus = HTTPStatus.OK,
-    ) -> typing.Union[
-        InputPathControllerWrapper,
-        AsyncInputPathControllerWrapper,
-    ]:
-        if not self._async:
-            return InputPathControllerWrapper(
-                context=context,
-                processor=processor,
-                error_http_code=error_http_code,
-                default_http_code=default_http_code,
-            )
-        return AsyncInputPathControllerWrapper(
-            context=context,
-            processor=processor,
-            error_http_code=error_http_code,
-            default_http_code=default_http_code,
-        )
-
-    def _get_input_query_controller_wrapper(
-        self,
-        processor: ProcessorInterface,
-        context: ContextInterface,
-        error_http_code: HTTPStatus = HTTPStatus.BAD_REQUEST,
-        default_http_code: HTTPStatus = HTTPStatus.OK,
-        as_list: typing.List[str]=None,
-    ) -> typing.Union[
-        InputQueryControllerWrapper,
-        AsyncInputQueryControllerWrapper,
-    ]:
-        if not self._async:
-            return InputQueryControllerWrapper(
-                context=context,
-                processor=processor,
-                error_http_code=error_http_code,
-                default_http_code=default_http_code,
-                as_list=as_list,
-            )
-        return AsyncInputQueryControllerWrapper(
-            context=context,
-            processor=processor,
-            error_http_code=error_http_code,
-            default_http_code=default_http_code,
-            as_list=as_list,
         )

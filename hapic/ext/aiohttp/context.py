@@ -5,6 +5,7 @@ from http import HTTPStatus
 from json import JSONDecodeError
 
 from aiohttp.web_request import Request
+from aiohttp.web_response import Response
 from multidict import MultiDict
 
 from hapic.context import BaseContext
@@ -14,6 +15,50 @@ from hapic.exception import WorkflowException
 from hapic.processor import ProcessValidationError
 from hapic.processor import RequestParameters
 from aiohttp import web
+
+
+class AiohttpRequestParameters(object):
+    def __init__(
+        self,
+        request: Request,
+    ) -> None:
+        self._request = request
+        self._parsed_body = None
+
+    @property
+    async def body_parameters(self) -> dict:
+        if self._parsed_body is None:
+            content_type = self.header_parameters.get('Content-Type')
+            is_json = content_type == 'application/json'
+
+            if is_json:
+                self._parsed_body = await self._request.json()
+            else:
+                self._parsed_body = await self._request.post()
+
+        return self._parsed_body
+
+    @property
+    def path_parameters(self):
+        return dict(self._request.match_info)
+
+    @property
+    def query_parameters(self):
+        return MultiDict(self._request.query.items())
+
+    @property
+    def form_parameters(self):
+        # TODO BS 2018-07-24: There is misunderstanding around body/form/json
+        return self.body_parameters
+
+    @property
+    def header_parameters(self):
+        return dict(self._request.headers.items())
+
+    @property
+    def files_parameters(self):
+        # TODO BS 2018-07-24: To do
+        raise NotImplementedError('todo')
 
 
 class AiohttpContext(BaseContext):
@@ -27,7 +72,7 @@ class AiohttpContext(BaseContext):
     def app(self) -> web.Application:
         return self._app
 
-    async def get_request_parameters(
+    def get_request_parameters(
         self,
         *args,
         **kwargs
@@ -39,41 +84,7 @@ class AiohttpContext(BaseContext):
                 'Unable to get aiohttp request object',
             )
         request = typing.cast(Request, request)
-
-        path_parameters = dict(request.match_info)
-        query_parameters = MultiDict(request.query.items())
-
-        if request.can_read_body:
-            try:
-                # FIXME NOW: request.json() make
-                # request.content empty, do it ONLY if json headers
-                # body_parameters = await request.json()
-                # body_parameters = await request.content.read()
-                body_parameters = {}
-                pass
-            except JSONDecodeError:
-                # FIXME BS 2018-07-13: Raise an 400 error if header contain
-                # json type
-                body_parameters = {}
-        else:
-            body_parameters = {}
-
-        form_parameters_multi_dict_proxy = await request.post()
-        form_parameters = MultiDict(form_parameters_multi_dict_proxy.items())
-        header_parameters = dict(request.headers.items())
-
-        # TODO BS 2018-07-13: Manage files (see
-        # https://docs.aiohttp.org/en/stable/multipart.html)
-        files_parameters = dict()
-
-        return RequestParameters(
-            path_parameters=path_parameters,
-            query_parameters=query_parameters,
-            body_parameters=body_parameters,
-            form_parameters=form_parameters,
-            header_parameters=header_parameters,
-            files_parameters=files_parameters,
-        )
+        return AiohttpRequestParameters(request)
 
     def get_response(
         self,
@@ -81,14 +92,19 @@ class AiohttpContext(BaseContext):
         http_code: int,
         mimetype: str = 'application/json',
     ) -> typing.Any:
-        pass
+        return Response(
+            body=response,
+            status=http_code,
+            content_type=mimetype,
+        )
 
     def get_validation_error_response(
         self,
         error: ProcessValidationError,
         http_code: HTTPStatus = HTTPStatus.BAD_REQUEST,
     ) -> typing.Any:
-        pass
+        # TODO BS 2018-07-24: To do
+        raise NotImplementedError('todo')
 
     def find_route(
         self,
