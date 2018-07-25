@@ -313,6 +313,10 @@ class OutputBodyControllerWrapper(OutputControllerWrapper):
     pass
 
 
+# TODO BS 2018-07-23: This class is an async version of
+# OutputBodyControllerWrapper (ControllerWrapper.get_wrapper rewrite)
+# to permit async compatibility.
+# Please re-think about code refact. TAG: REFACT_ASYNC
 class AsyncOutputBodyControllerWrapper(OutputControllerWrapper):
     def get_wrapper(
         self,
@@ -330,6 +334,50 @@ class AsyncOutputBodyControllerWrapper(OutputControllerWrapper):
             new_response = self.after_wrapped_function(response)
             return new_response
         return functools.update_wrapper(wrapper, func)
+
+
+class AsyncOutputStreamControllerWrapper(OutputControllerWrapper):
+    def get_wrapper(
+        self,
+        func: 'typing.Callable[..., typing.Any]',
+    ) -> 'typing.Callable[..., typing.Any]':
+        # async def wrapper(*args, **kwargs) -> typing.Any:
+        async def wrapper(*args, **kwargs) -> typing.Any:
+            # Note: Design of before_wrapped_func can be to update kwargs
+            # by reference here
+            replacement_response = self.before_wrapped_func(args, kwargs)
+            if replacement_response:
+                return replacement_response
+
+            stream_response = await self.context.get_stream_response_object(
+                args,
+                kwargs,
+            )
+            async for stream_item in self._execute_wrapped_function(
+                func,
+                args,
+                kwargs,
+            ):
+                serialized_item = self._get_serialized_item(stream_item)
+                await self.context.feed_stream_response(
+                    stream_response,
+                    serialized_item,
+                )
+
+            return stream_response
+
+        return functools.update_wrapper(wrapper, func)
+
+    def _get_serialized_item(
+        self,
+        item_object: typing.Any,
+    ) -> dict:
+        try:
+            return self.processor.process(item_object)
+        except ProcessException:
+            # TODO BS 2018-07-25: Must interrupt stream response: but how
+            # inform about error ?
+            raise NotImplementedError('todo')
 
 
 class OutputHeadersControllerWrapper(OutputControllerWrapper):

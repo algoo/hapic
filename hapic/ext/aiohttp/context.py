@@ -1,5 +1,6 @@
 # coding: utf-8
 import asyncio
+import json
 import typing
 from http import HTTPStatus
 from json import JSONDecodeError
@@ -65,8 +66,10 @@ class AiohttpContext(BaseContext):
     def __init__(
         self,
         app: web.Application,
+        debug: bool = False,
     ) -> None:
         self._app = app
+        self._debug = debug
 
     @property
     def app(self) -> web.Application:
@@ -110,19 +113,22 @@ class AiohttpContext(BaseContext):
         self,
         decorated_controller: DecoratedController,
     ) -> RouteRepresentation:
-        pass
+        # TODO BS 2018-07-15: to do
+        raise NotImplementedError('todo')
 
     def get_swagger_path(
         self,
         contextualised_rule: str,
     ) -> str:
-        pass
+        # TODO BS 2018-07-15: to do
+        raise NotImplementedError('todo')
 
     def by_pass_output_wrapping(
         self,
         response: typing.Any,
     ) -> bool:
-        pass
+        # TODO BS 2018-07-15: to do
+        raise NotImplementedError('todo')
 
     def add_view(
         self,
@@ -130,30 +136,72 @@ class AiohttpContext(BaseContext):
         http_method: str,
         view_func: typing.Callable[..., typing.Any],
     ) -> None:
-        pass
+        # TODO BS 2018-07-15: to do
+        raise NotImplementedError('todo')
 
     def serve_directory(
         self,
         route_prefix: str,
         directory_path: str,
     ) -> None:
-        pass
+        # TODO BS 2018-07-15: to do
+        raise NotImplementedError('todo')
 
     def is_debug(
         self,
     ) -> bool:
-        pass
+        return self._debug
 
     def handle_exception(
         self,
         exception_class: typing.Type[Exception],
         http_code: int,
     ) -> None:
-        pass
+        # TODO BS 2018-07-15: to do
+        raise NotImplementedError('todo')
 
     def handle_exceptions(
         self,
         exception_classes: typing.List[typing.Type[Exception]],
         http_code: int,
     ) -> None:
-        pass
+        # TODO BS 2018-07-15: to do
+        raise NotImplementedError('todo')
+
+    async def get_stream_response_object(
+        self,
+        func_args,
+        func_kwargs,
+        http_code: HTTPStatus = HTTPStatus.OK,
+        headers: dict = None,
+    ) -> web.StreamResponse:
+        headers = headers or {
+            'Content-Type': 'text/plain; charset=utf-8',
+        }
+
+        response = web.StreamResponse(
+            status=http_code,
+            headers=headers,
+        )
+
+        try:
+            request = func_args[0]
+        except IndexError:
+            raise WorkflowException(
+                'Unable to get aiohttp request object',
+            )
+        request = typing.cast(Request, request)
+
+        await response.prepare(request)
+
+        return response
+
+    async def feed_stream_response(
+        self,
+        stream_response: web.StreamResponse,
+        serialized_item: dict,
+    ) -> None:
+        await stream_response.write(
+            # FIXME BS 2018-07-25: need \n :/
+            json.dumps(serialized_item).encode('utf-8') + b'\n',
+        )

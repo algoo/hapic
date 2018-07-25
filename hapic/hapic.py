@@ -22,6 +22,7 @@ from hapic.decorator import InputQueryControllerWrapper
 from hapic.decorator import InputFilesControllerWrapper
 from hapic.decorator import OutputBodyControllerWrapper
 from hapic.decorator import AsyncOutputBodyControllerWrapper
+from hapic.decorator import AsyncOutputStreamControllerWrapper
 from hapic.decorator import OutputHeadersControllerWrapper
 from hapic.decorator import OutputFileControllerWrapper
 from hapic.description import InputBodyDescription
@@ -32,6 +33,7 @@ from hapic.description import InputPathDescription
 from hapic.description import InputQueryDescription
 from hapic.description import InputFilesDescription
 from hapic.description import OutputBodyDescription
+from hapic.description import OutputStreamDescription
 from hapic.description import OutputHeadersDescription
 from hapic.description import OutputFileDescription
 from hapic.doc import DocGenerator
@@ -167,6 +169,34 @@ class Hapic(object):
 
         def decorator(func):
             self._buffer.output_body = OutputBodyDescription(decoration)
+            return decoration.get_wrapper(func)
+        return decorator
+
+    def output_stream(
+        self,
+        item_schema: typing.Any,
+        processor: ProcessorInterface = None,
+        context: ContextInterface = None,
+        error_http_code: HTTPStatus = HTTPStatus.INTERNAL_SERVER_ERROR,
+        default_http_code: HTTPStatus = HTTPStatus.OK,
+    ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Any]:
+        processor = processor or MarshmallowOutputProcessor()
+        processor.schema = item_schema
+        context = context or self._context_getter
+
+        if self._async:
+            decoration = AsyncOutputStreamControllerWrapper(
+                context=context,
+                processor=processor,
+                error_http_code=error_http_code,
+                default_http_code=default_http_code,
+            )
+        else:
+            # TODO BS 2018-07-25: To do
+            raise NotImplementedError('todo')
+
+        def decorator(func):
+            self._buffer.output_stream = OutputStreamDescription(decoration)
             return decoration.get_wrapper(func)
         return decorator
 

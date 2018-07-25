@@ -18,3 +18,4 @@ set_context = _hapic_default.set_context
 reset_context = _hapic_default.reset_context
 add_documentation_view = _hapic_default.add_documentation_view
 handle_exception = _hapic_default.handle_exception
+output_stream = _hapic_default.output_stream
