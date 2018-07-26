@@ -51,13 +51,13 @@ from hapic.error import ErrorBuilderInterface
 class Hapic(object):
     def __init__(
         self,
-        async: bool = False,
+        async_: bool = False,
     ):
         self._buffer = DecorationBuffer()
         self._controllers = []  # type: typing.List[DecoratedController]
         self._context = None  # type: ContextInterface
         self._error_builder = None  # type: ErrorBuilderInterface
-        self._async = async
+        self._async = async_
         self.doc_generator = DocGenerator()
 
         # This local function will be pass to different components

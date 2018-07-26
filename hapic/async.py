@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from hapic.hapic import Hapic
 
-_hapic_default = Hapic(async=True)
+_hapic_default = Hapic(async_=True)
 
 with_api_doc = _hapic_default.with_api_doc
 input_headers = _hapic_default.input_headers

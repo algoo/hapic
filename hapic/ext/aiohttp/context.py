@@ -12,7 +12,8 @@ from multidict import MultiDict
 from hapic.context import BaseContext
 from hapic.context import RouteRepresentation
 from hapic.decorator import DecoratedController
-from hapic.exception import WorkflowException
+from hapic.error import ErrorBuilderInterface, DefaultErrorBuilder
+from hapic.exception import WorkflowException, OutputValidationException
 from hapic.processor import ProcessValidationError
 from hapic.processor import RequestParameters
 from aiohttp import web
@@ -66,10 +67,13 @@ class AiohttpContext(BaseContext):
     def __init__(
         self,
         app: web.Application,
+        default_error_builder: ErrorBuilderInterface=None,
         debug: bool = False,
     ) -> None:
         self._app = app
         self._debug = debug
+        self.default_error_builder = \
+            default_error_builder or DefaultErrorBuilder()  # FDV
 
     @property
     def app(self) -> web.Application:
@@ -106,8 +110,28 @@ class AiohttpContext(BaseContext):
         error: ProcessValidationError,
         http_code: HTTPStatus = HTTPStatus.BAD_REQUEST,
     ) -> typing.Any:
-        # TODO BS 2018-07-24: To do
-        raise NotImplementedError('todo')
+        error_builder = self.get_default_error_builder()
+        error_content = error_builder.build_from_validation_error(
+            error,
+        )
+
+        # Check error
+        dumped = error_builder.dump(error_content).data
+        unmarshall = error_builder.load(dumped)
+        if unmarshall.errors:
+            raise OutputValidationException(
+                'Validation error during dump of error response: {}'.format(
+                    str(unmarshall.errors)
+                )
+            )
+
+        return web.Response(
+            text=json.dumps(dumped),
+            headers=[
+                ('Content-Type', 'application/json'),
+            ],
+            status=int(http_code),
+        )
 
     def find_route(
         self,
@@ -127,8 +151,7 @@ class AiohttpContext(BaseContext):
         self,
         response: typing.Any,
     ) -> bool:
-        # TODO BS 2018-07-15: to do
-        raise NotImplementedError('todo')
+        return isinstance(response, web.Response)
 
     def add_view(
         self,

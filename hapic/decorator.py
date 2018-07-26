@@ -78,7 +78,7 @@ class ControllerWrapper(object):
             # Note: Design of before_wrapped_func can be to update kwargs
             # by reference here
             replacement_response = self.before_wrapped_func(args, kwargs)
-            if replacement_response:
+            if replacement_response is not None:
                 return replacement_response
 
             response = self._execute_wrapped_function(func, args, kwargs)
@@ -203,7 +203,7 @@ class AsyncInputControllerWrapper(InputControllerWrapper):
             # Note: Design of before_wrapped_func can be to update kwargs
             # by reference here
             replacement_response = await self.before_wrapped_func(args, kwargs)
-            if replacement_response:
+            if replacement_response is not None:
                 return replacement_response
 
             response = await self._execute_wrapped_function(func, args, kwargs)
@@ -229,7 +229,7 @@ class AsyncInputControllerWrapper(InputControllerWrapper):
             processed_data = await self.get_processed_data(request_parameters)
             self.update_hapic_data(hapic_data, processed_data)
         except ProcessException:
-            error_response = self.get_error_response(request_parameters)
+            error_response = await self.get_error_response(request_parameters)
             return error_response
 
     async def get_processed_data(
@@ -327,7 +327,7 @@ class AsyncOutputBodyControllerWrapper(OutputControllerWrapper):
             # Note: Design of before_wrapped_func can be to update kwargs
             # by reference here
             replacement_response = self.before_wrapped_func(args, kwargs)
-            if replacement_response:
+            if replacement_response is not None:
                 return replacement_response
 
             response = await self._execute_wrapped_function(func, args, kwargs)
@@ -346,14 +346,14 @@ class AsyncOutputStreamControllerWrapper(OutputControllerWrapper):
             # Note: Design of before_wrapped_func can be to update kwargs
             # by reference here
             replacement_response = self.before_wrapped_func(args, kwargs)
-            if replacement_response:
+            if replacement_response is not None:
                 return replacement_response
 
             stream_response = await self.context.get_stream_response_object(
                 args,
                 kwargs,
             )
-            async for stream_item in self._execute_wrapped_function(
+            async for stream_item in await self._execute_wrapped_function(
                 func,
                 args,
                 kwargs,
@@ -474,6 +474,18 @@ class AsyncInputBodyControllerWrapper(AsyncInputControllerWrapper):
 
     async def get_parameters_data(self, request_parameters: RequestParameters) -> dict:  # nopep8
         return await request_parameters.body_parameters
+
+    async def get_error_response(
+        self,
+        request_parameters: RequestParameters,
+    ) -> typing.Any:
+        parameters_data = await self.get_parameters_data(request_parameters)
+        error = self.processor.get_validation_error(parameters_data)
+        error_response = self.context.get_validation_error_response(
+            error,
+            http_code=self.error_http_code,
+        )
+        return error_response
 
 
 class InputHeadersControllerWrapper(InputControllerWrapper):
