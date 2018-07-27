@@ -229,3 +229,86 @@ class TestAiohttpExt(object):
         assert b'{"name": "Hello, franck"}\n' == line
 
         # TODO BS 2018-07-26: How to ensure we are at end of response ?
+
+    def test_unit__generate_doc__ok__nominal_case(
+        self,
+        aiohttp_client,
+        loop,
+    ):
+        hapic = Hapic(async_=True)
+
+        class InputPathSchema(marshmallow.Schema):
+            username = marshmallow.fields.String(required=True)
+
+        class InputQuerySchema(marshmallow.Schema):
+            show_deleted = marshmallow.fields.Boolean(required=False)
+
+        class UserSchema(marshmallow.Schema):
+            name = marshmallow.fields.String(required=True)
+
+        @hapic.with_api_doc()
+        @hapic.input_path(InputPathSchema())
+        @hapic.input_query(InputQuerySchema())
+        @hapic.output_body(UserSchema())
+        async def get_user(request, hapic_data):
+            pass
+
+        @hapic.with_api_doc()
+        @hapic.input_path(InputPathSchema())
+        @hapic.output_body(UserSchema())
+        async def post_user(request, hapic_data):
+            pass
+
+        app = web.Application(debug=True)
+        app.router.add_get('/{username}', get_user)
+        app.router.add_post('/{username}', post_user)
+        hapic.set_context(AiohttpContext(app))
+
+        doc = hapic.generate_doc('aiohttp', 'testing')
+        assert 'UserSchema' in doc.get('definitions')
+        assert {
+                   'name': {'type': 'string'}
+               } == doc['definitions']['UserSchema'].get('properties')
+        assert '/{username}' in doc.get('paths')
+        assert 'get' in doc['paths']['/{username}']
+        assert 'post' in doc['paths']['/{username}']
+
+        assert [
+            {
+                'name': 'username',
+                'in': 'path',
+                'required': True,
+                'type': 'string',
+            },
+            {
+                'name': 'show_deleted',
+                'in': 'query',
+                'required': False,
+                'type': 'boolean',
+            }
+        ] == doc['paths']['/{username}']['get']['parameters']
+        assert {
+            200: {
+                'schema': {
+                    '$ref': '#/definitions/UserSchema',
+                },
+                'description': '200',
+            }
+        } == doc['paths']['/{username}']['get']['responses']
+
+        assert [
+                   {
+                       'name': 'username',
+                       'in': 'path',
+                       'required': True,
+                       'type': 'string',
+                   }
+               ] == doc['paths']['/{username}']['post']['parameters']
+        assert {
+                   200: {
+                       'schema': {
+                           '$ref': '#/definitions/UserSchema',
+                       },
+                       'description': '200',
+                   }
+               } == doc['paths']['/{username}']['get']['responses']

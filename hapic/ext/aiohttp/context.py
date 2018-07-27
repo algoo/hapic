@@ -1,9 +1,8 @@
 # coding: utf-8
-import asyncio
 import json
+import re
 import typing
 from http import HTTPStatus
-from json import JSONDecodeError
 
 from aiohttp.web_request import Request
 from aiohttp.web_response import Response
@@ -12,11 +11,20 @@ from multidict import MultiDict
 from hapic.context import BaseContext
 from hapic.context import RouteRepresentation
 from hapic.decorator import DecoratedController
-from hapic.error import ErrorBuilderInterface, DefaultErrorBuilder
-from hapic.exception import WorkflowException, OutputValidationException
+from hapic.decorator import DECORATION_ATTRIBUTE_NAME
+from hapic.error import ErrorBuilderInterface
+from hapic.error import DefaultErrorBuilder
+from hapic.exception import WorkflowException
+from hapic.exception import OutputValidationException
+from hapic.exception import NoRoutesException
+from hapic.exception import RouteNotFound
 from hapic.processor import ProcessValidationError
 from hapic.processor import RequestParameters
 from aiohttp import web
+
+
+# Bottle regular expression to locate url parameters
+AIOHTTP_RE_PATH_URL = re.compile(r'{([^:<>]+)(?::[^<>]+)?}')
 
 
 class AiohttpRequestParameters(object):
@@ -137,15 +145,48 @@ class AiohttpContext(BaseContext):
         self,
         decorated_controller: DecoratedController,
     ) -> RouteRepresentation:
-        # TODO BS 2018-07-15: to do
-        raise NotImplementedError('todo')
+        if not len(self.app.router.routes()):
+            raise NoRoutesException('There is no routes in your aiohttp app')
+
+        reference = decorated_controller.reference
+
+        for route in self.app.router.routes():
+            route_token = getattr(
+                route.handler,
+                DECORATION_ATTRIBUTE_NAME,
+                None,
+            )
+
+            match_with_wrapper = route.handler == reference.wrapper
+            match_with_wrapped = route.handler == reference.wrapped
+            match_with_token = route_token == reference.token
+
+            # TODO BS 2018-07-27: token is set in HEAD view to, must solve this
+            # case
+            if not match_with_wrapper \
+                    and not match_with_wrapped \
+                    and match_with_token \
+                    and route.method.lower() == 'head':
+                continue
+
+            if match_with_wrapper or match_with_wrapped or match_with_token:
+                return RouteRepresentation(
+                    rule=self.get_swagger_path(route.resource.canonical),
+                    method=route.method.lower(),
+                    original_route_object=route,
+                )
+        # TODO BS 20171010: Raise exception or print error ? see #10
+        raise RouteNotFound(
+            'Decorated route "{}" was not found in aiohttp routes'.format(
+                decorated_controller.name,
+            )
+        )
 
     def get_swagger_path(
         self,
         contextualised_rule: str,
     ) -> str:
-        # TODO BS 2018-07-15: to do
-        raise NotImplementedError('todo')
+        return AIOHTTP_RE_PATH_URL.sub(r'{\1}', contextualised_rule)
 
     def by_pass_output_wrapping(
         self,
