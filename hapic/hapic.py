@@ -179,6 +179,7 @@ class Hapic(object):
         context: ContextInterface = None,
         error_http_code: HTTPStatus = HTTPStatus.INTERNAL_SERVER_ERROR,
         default_http_code: HTTPStatus = HTTPStatus.OK,
+        ignore_on_error: bool = True,
     ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Any]:
         """
         Decorate with a wrapper who check and serialize each items in output
@@ -190,6 +191,8 @@ class Hapic(object):
         :param context: Context to use here
         :param error_http_code: http code in case of error
         :param default_http_code: http code in case of success
+        :param ignore_on_error: if set, an error of serialization will be
+        ignored: stream will not send this failed object
         :return: decorator
         """
         processor = processor or MarshmallowOutputProcessor()
@@ -202,6 +205,7 @@ class Hapic(object):
                 processor=processor,
                 error_http_code=error_http_code,
                 default_http_code=default_http_code,
+                ignore_on_error=ignore_on_error,
             )
         else:
             # TODO BS 2018-07-25: To do

@@ -341,6 +341,22 @@ class AsyncOutputStreamControllerWrapper(OutputControllerWrapper):
     This controller wrapper produce a wrapper who caught the http view items
     to check and serialize them into a stream response.
     """
+    def __init__(
+        self,
+        context: typing.Union[ContextInterface, typing.Callable[[], ContextInterface]],  # nopep8
+        processor: ProcessorInterface,
+        error_http_code: HTTPStatus=HTTPStatus.INTERNAL_SERVER_ERROR,
+        default_http_code: HTTPStatus=HTTPStatus.OK,
+        ignore_on_error: bool = True,
+    ) -> None:
+        super().__init__(
+            context,
+            processor,
+            error_http_code,
+            default_http_code,
+        )
+        self.ignore_on_error = ignore_on_error
+
     def get_wrapper(
         self,
         func: 'typing.Callable[..., typing.Any]',
@@ -362,11 +378,17 @@ class AsyncOutputStreamControllerWrapper(OutputControllerWrapper):
                 args,
                 kwargs,
             ):
-                serialized_item = self._get_serialized_item(stream_item)
-                await self.context.feed_stream_response(
-                    stream_response,
-                    serialized_item,
-                )
+                try:
+                    serialized_item = self._get_serialized_item(stream_item)
+                    await self.context.feed_stream_response(
+                        stream_response,
+                        serialized_item,
+                    )
+                except OutputValidationException as exc:
+                    if not self.ignore_on_error:
+                        # TODO BS 2018-07-31: Something should inform about
+                        # error, a log ?
+                        return stream_response
 
             return stream_response
 
@@ -376,12 +398,7 @@ class AsyncOutputStreamControllerWrapper(OutputControllerWrapper):
         self,
         item_object: typing.Any,
     ) -> dict:
-        try:
-            return self.processor.process(item_object)
-        except ProcessException:
-            # TODO BS 2018-07-25: Must interrupt stream response: but how
-            # inform about error ?
-            raise NotImplementedError('todo')
+        return self.processor.process(item_object)
 
 
 class OutputHeadersControllerWrapper(OutputControllerWrapper):
