@@ -394,3 +394,33 @@ class TestAiohttpExt(object):
                        'description': '200',
                    }
                } == doc['paths']['/{username}']['get']['responses']
+
+    def test_unit__generate_output_stream_doc__ok__nominal_case(
+        self,
+        aiohttp_client,
+        loop,
+    ):
+        hapic = Hapic(async_=True)
+
+        class OuputStreamItemSchema(marshmallow.Schema):
+            name = marshmallow.fields.String(required=True)
+
+        @hapic.with_api_doc()
+        @hapic.output_stream(OuputStreamItemSchema())
+        async def get_users(request, hapic_data):
+            pass
+
+        app = web.Application(debug=True)
+        app.router.add_get('/', get_users)
+        hapic.set_context(AiohttpContext(app))
+
+        doc = hapic.generate_doc('aiohttp', 'testing')
+        assert '/' in doc.get('paths')
+        assert 'get' in doc['paths']['/']
+        assert 200 in doc['paths']['/']['get'].get('responses', {})
+        assert {
+            'items': {
+                '$ref': '#/definitions/OuputStreamItemSchema'
+            },
+            'type': 'array',
+        } == doc['paths']['/']['get']['responses'][200]['schema']
