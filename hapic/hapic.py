@@ -180,6 +180,18 @@ class Hapic(object):
         error_http_code: HTTPStatus = HTTPStatus.INTERNAL_SERVER_ERROR,
         default_http_code: HTTPStatus = HTTPStatus.OK,
     ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Any]:
+        """
+        Decorate with a wrapper who check and serialize each items in output
+        stream.
+
+        :param item_schema: Schema of output stream items
+        :param processor: ProcessorInterface object to process with given
+        schema
+        :param context: Context to use here
+        :param error_http_code: http code in case of error
+        :param default_http_code: http code in case of success
+        :return: decorator
+        """
         processor = processor or MarshmallowOutputProcessor()
         processor.schema = item_schema
         context = context or self._context_getter

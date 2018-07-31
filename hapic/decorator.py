@@ -337,6 +337,10 @@ class AsyncOutputBodyControllerWrapper(OutputControllerWrapper):
 
 
 class AsyncOutputStreamControllerWrapper(OutputControllerWrapper):
+    """
+    This controller wrapper produce a wrapper who caught the http view items
+    to check and serialize them into a stream response.
+    """
     def get_wrapper(
         self,
         func: 'typing.Callable[..., typing.Any]',
