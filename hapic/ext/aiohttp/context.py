@@ -107,6 +107,10 @@ class AiohttpContext(BaseContext):
         http_code: int,
         mimetype: str = 'application/json',
     ) -> typing.Any:
+        # A 204 no content response should not have content type header
+        if http_code == HTTPStatus.NO_CONTENT:
+            mimetype = None,
+
         return Response(
             body=response,
             status=http_code,
