@@ -14,6 +14,7 @@ from hapic.decorator import DecoratedController
 from hapic.decorator import DECORATION_ATTRIBUTE_NAME
 from hapic.decorator import ControllerReference
 from hapic.decorator import ExceptionHandlerControllerWrapper
+from hapic.decorator import AsyncExceptionHandlerControllerWrapper
 from hapic.decorator import InputBodyControllerWrapper
 from hapic.decorator import AsyncInputBodyControllerWrapper
 from hapic.decorator import InputHeadersControllerWrapper
@@ -405,12 +406,21 @@ class Hapic(object):
         context = context or self._context_getter
         error_builder = error_builder or self._error_builder_getter
 
-        decoration = ExceptionHandlerControllerWrapper(
-            handled_exception_class,
-            context,
-            error_builder=error_builder,
-            http_code=http_code,
-        )
+        if self._async:
+            decoration = AsyncExceptionHandlerControllerWrapper(
+                handled_exception_class,
+                context,
+                error_builder=error_builder,
+                http_code=http_code,
+            )
+
+        else:
+            decoration = ExceptionHandlerControllerWrapper(
+                handled_exception_class,
+                context,
+                error_builder=error_builder,
+                http_code=http_code,
+            )
 
         def decorator(func):
             self._buffer.errors.append(ErrorDescription(decoration))

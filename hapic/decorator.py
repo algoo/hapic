@@ -564,24 +564,65 @@ class ExceptionHandlerControllerWrapper(ControllerWrapper):
                 func_kwargs,
             )
         except self.handled_exception_class as exc:
-            response_content = self.error_builder.build_from_exception(
-                exc,
-                include_traceback=self.context.is_debug(),
-            )
+            return self._build_error_response(exc)
 
-            # Check error format
-            dumped = self.error_builder.dump(response_content).data
-            unmarshall = self.error_builder.load(dumped)
-            if unmarshall.errors:
-                raise OutputValidationException(
-                    'Validation error during dump of error response: {}'
+    def _build_error_response(self, exc: Exception) -> typing.Any:
+        response_content = self.error_builder.build_from_exception(
+            exc,
+            include_traceback=self.context.is_debug(),
+        )
+
+        # Check error format
+        dumped = self.error_builder.dump(response_content).data
+        unmarshall = self.error_builder.load(dumped)
+        if unmarshall.errors:
+            raise OutputValidationException(
+                'Validation error during dump of error response: {}'
                     .format(
-                        str(unmarshall.errors)
-                    )
+                    str(unmarshall.errors)
                 )
-
-            error_response = self.context.get_response(
-                json.dumps(dumped),
-                self.http_code,
             )
-            return error_response
+
+        error_response = self.context.get_response(
+            json.dumps(dumped),
+            self.http_code,
+        )
+        return error_response
+
+
+# TODO BS 2018-07-23: This class is an async version of
+# ExceptionHandlerControllerWrapper
+# to permit async compatibility. Please re-think about code refact
+# TAG: REFACT_ASYNC
+class AsyncExceptionHandlerControllerWrapper(ExceptionHandlerControllerWrapper):
+    def get_wrapper(
+        self,
+        func: 'typing.Callable[..., typing.Any]',
+    ) -> 'typing.Callable[..., typing.Any]':
+        # async def wrapper(*args, **kwargs) -> typing.Any:
+        async def wrapper(*args, **kwargs) -> typing.Any:
+            # Note: Design of before_wrapped_func can be to update kwargs
+            # by reference here
+            replacement_response = self.before_wrapped_func(args, kwargs)
+            if replacement_response is not None:
+                return replacement_response
+
+            response = await self._execute_wrapped_function(func, args, kwargs)
+            new_response = self.after_wrapped_function(response)
+            return new_response
+        return functools.update_wrapper(wrapper, func)
+
+    async def _execute_wrapped_function(
+        self,
+        func,
+        func_args,
+        func_kwargs,
+    ) -> typing.Any:
+        try:
+            return await super()._execute_wrapped_function(
+                func,
+                func_args,
+                func_kwargs,
+            )
+        except self.handled_exception_class as exc:
+            return self._build_error_response(exc)

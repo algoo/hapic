@@ -187,6 +187,28 @@ class TestAiohttpExt(object):
                    'i': ['Missing data for required field.'],
                } == data.get('details')
 
+    async def test_aiohttp_handle_excpetion__ok__nominal_case(
+        self,
+        aiohttp_client,
+        loop,
+    ):
+        hapic = Hapic(async_=True)
+
+        @hapic.handle_exception(ZeroDivisionError, http_code=400)
+        async def hello(request):
+            1 / 0
+
+        app = web.Application(debug=True)
+        app.router.add_get('/', hello)
+        hapic.set_context(AiohttpContext(app))
+        client = await aiohttp_client(app)
+
+        resp = await client.get('/')
+        assert resp.status == 400
+
+        data = await resp.json()
+        assert 'division by zero' == data.get('message')
+
     async def test_aiohttp_output_stream__ok__nominal_case(
         self,
         aiohttp_client,
