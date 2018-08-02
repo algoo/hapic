@@ -23,7 +23,7 @@ from hapic.processor import RequestParameters
 from aiohttp import web
 
 
-# Bottle regular expression to locate url parameters
+# Aiohttp regular expression to locate url parameters
 AIOHTTP_RE_PATH_URL = re.compile(r'{([^:<>]+)(?::[^<>]+)?}')
 
 

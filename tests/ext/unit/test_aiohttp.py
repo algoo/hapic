@@ -250,7 +250,89 @@ class TestAiohttpExt(object):
         line = await resp.content.readline()
         assert b'{"name": "Hello, franck"}\n' == line
 
-        # TODO BS 2018-07-26: How to ensure we are at end of response ?
+    async def test_aiohttp_output_stream__error__ignore(
+        self,
+        aiohttp_client,
+        loop,
+    ):
+        hapic = Hapic(async_=True)
+
+        class AsyncGenerator:
+            def __init__(self):
+                self._iterator = iter([
+                    {'name': 'Hello, bob'},
+                    {'nameZ': 'Hello, Z'},  # This line is incorrect
+                    {'name': 'Hello, franck'},
+                ])
+
+            async def __aiter__(self):
+                return self
+
+            async def __anext__(self):
+                return next(self._iterator)
+
+        class OuputStreamItemSchema(marshmallow.Schema):
+            name = marshmallow.fields.String(required=True)
+
+        @hapic.output_stream(OuputStreamItemSchema(), ignore_on_error=True)
+        async def hello(request):
+            return AsyncGenerator()
+
+        app = web.Application(debug=True)
+        app.router.add_get('/', hello)
+        hapic.set_context(AiohttpContext(app))
+        client = await aiohttp_client(app)
+
+        resp = await client.get('/')
+        assert resp.status == 200
+
+        line = await resp.content.readline()
+        assert b'{"name": "Hello, bob"}\n' == line
+
+        line = await resp.content.readline()
+        assert b'{"name": "Hello, franck"}\n' == line
+
+    async def test_aiohttp_output_stream__error__interrupt(
+        self,
+        aiohttp_client,
+        loop,
+    ):
+        hapic = Hapic(async_=True)
+
+        class AsyncGenerator:
+            def __init__(self):
+                self._iterator = iter([
+                    {'name': 'Hello, bob'},
+                    {'nameZ': 'Hello, Z'},  # This line is incorrect
+                    {'name': 'Hello, franck'},  # This line must not be reached
+                ])
+
+            async def __aiter__(self):
+                return self
+
+            async def __anext__(self):
+                return next(self._iterator)
+
+        class OuputStreamItemSchema(marshmallow.Schema):
+            name = marshmallow.fields.String(required=True)
+
+        @hapic.output_stream(OuputStreamItemSchema(), ignore_on_error=False)
+        async def hello(request):
+            return AsyncGenerator()
+
+        app = web.Application(debug=True)
+        app.router.add_get('/', hello)
+        hapic.set_context(AiohttpContext(app))
+        client = await aiohttp_client(app)
+
+        resp = await client.get('/')
+        assert resp.status == 200
+
+        line = await resp.content.readline()
+        assert b'{"name": "Hello, bob"}\n' == line
+
+        line = await resp.content.readline()
+        assert b'' == line
 
     def test_unit__generate_doc__ok__nominal_case(
         self,
@@ -334,3 +416,33 @@ class TestAiohttpExt(object):
                        'description': '200',
                    }
                } == doc['paths']['/{username}']['get']['responses']
+
+    def test_unit__generate_output_stream_doc__ok__nominal_case(
+        self,
+        aiohttp_client,
+        loop,
+    ):
+        hapic = Hapic(async_=True)
+
+        class OuputStreamItemSchema(marshmallow.Schema):
+            name = marshmallow.fields.String(required=True)
+
+        @hapic.with_api_doc()
+        @hapic.output_stream(OuputStreamItemSchema())
+        async def get_users(request, hapic_data):
+            pass
+
+        app = web.Application(debug=True)
+        app.router.add_get('/', get_users)
+        hapic.set_context(AiohttpContext(app))
+
+        doc = hapic.generate_doc('aiohttp', 'testing')
+        assert '/' in doc.get('paths')
+        assert 'get' in doc['paths']['/']
+        assert 200 in doc['paths']['/']['get'].get('responses', {})
+        assert {
+            'items': {
+                '$ref': '#/definitions/OuputStreamItemSchema'
+            },
+            'type': 'array',
+        } == doc['paths']['/']['get']['responses'][200]['schema']
