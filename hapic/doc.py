@@ -158,6 +158,23 @@ def bottle_generate_operations(
                 )
             }
 
+    if description.output_stream:
+        # TODO BS 2018-07-31: Is that a correct way to re
+        # instanciate with .__class__ ... ?
+        method_operations.setdefault('responses', {})\
+            [int(description.output_stream.wrapper.default_http_code)] = {
+                'description': str(int(description.output_stream.wrapper.default_http_code)),  # nopep8
+                'schema': generate_schema_ref(
+                    spec,
+                    description
+                        .output_stream
+                        .wrapper
+                        .processor
+                        .schema
+                        .__class__(many=True),
+                )
+            }
+
     if description.output_file:
         method_operations.setdefault('produces', []).extend(
             description.output_file.wrapper.output_types

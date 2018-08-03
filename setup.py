@@ -29,6 +29,8 @@ tests_require = [
     'flask',
     'pyramid',
     'webtest',
+    'aiohttp',
+    'pytest-aiohttp',
 ]
 dev_require = [
     'requests',

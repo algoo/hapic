@@ -34,6 +34,8 @@ Hapic source code is ready for production. Some refactoring are identified and r
 
 Hapic is under active development, based on Algoo projects. We will answer your questions and accept merge requests if you find bugs or want to include functionnalities.
 
+Hapic is currently tested on python 3.5 and 3.6.
+
 ## TODO references
 
 TODO can make reference to #X, this is github issues references.

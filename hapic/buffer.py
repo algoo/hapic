@@ -9,6 +9,7 @@ from hapic.description import InputHeadersDescription
 from hapic.description import InputFormsDescription
 from hapic.description import InputFilesDescription
 from hapic.description import OutputBodyDescription
+from hapic.description import OutputStreamDescription
 from hapic.description import OutputFileDescription
 from hapic.description import OutputHeadersDescription
 from hapic.description import ErrorDescription
@@ -94,6 +95,16 @@ class DecorationBuffer(object):
         if self._description.output_body is not None:
             raise AlreadyDecoratedException()
         self._description.output_body = description
+
+    @property
+    def output_stream(self) -> OutputStreamDescription:
+        return self._description.output_stream
+
+    @output_stream.setter
+    def output_stream(self, description: OutputStreamDescription) -> None:
+        if self._description.output_stream is not None:
+            raise AlreadyDecoratedException()
+        self._description.output_stream = description
 
     @property
     def output_file(self) -> OutputFileDescription:
