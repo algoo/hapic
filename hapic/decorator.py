@@ -73,11 +73,12 @@ class ControllerWrapper(object):
         self,
         func: 'typing.Callable[..., typing.Any]',
     ) -> 'typing.Callable[..., typing.Any]':
+        # async def wrapper(*args, **kwargs) -> typing.Any:
         def wrapper(*args, **kwargs) -> typing.Any:
             # Note: Design of before_wrapped_func can be to update kwargs
             # by reference here
             replacement_response = self.before_wrapped_func(args, kwargs)
-            if replacement_response:
+            if replacement_response is not None:
                 return replacement_response
 
             response = self._execute_wrapped_function(func, args, kwargs)
@@ -190,6 +191,56 @@ class InputControllerWrapper(InputOutputControllerWrapper):
         return error_response
 
 
+# TODO BS 2018-07-23: This class is an async version of InputControllerWrapper
+# (and ControllerWrapper.get_wrapper rewrite) to permit async compatibility.
+# Please re-think about code refact. TAG: REFACT_ASYNC
+class AsyncInputControllerWrapper(InputControllerWrapper):
+    def get_wrapper(
+        self,
+        func: 'typing.Callable[..., typing.Any]',
+    ) -> 'typing.Callable[..., typing.Any]':
+        async def wrapper(*args, **kwargs) -> typing.Any:
+            # Note: Design of before_wrapped_func can be to update kwargs
+            # by reference here
+            replacement_response = await self.before_wrapped_func(args, kwargs)
+            if replacement_response is not None:
+                return replacement_response
+
+            response = await self._execute_wrapped_function(func, args, kwargs)
+            new_response = self.after_wrapped_function(response)
+            return new_response
+        return functools.update_wrapper(wrapper, func)
+
+    async def before_wrapped_func(
+        self,
+        func_args: typing.Tuple[typing.Any, ...],
+        func_kwargs: typing.Dict[str, typing.Any],
+    ) -> typing.Any:
+        # Retrieve hapic_data instance or create new one
+        # hapic_data is given though decorators
+        # Important note here: func_kwargs is update by reference !
+        hapic_data = self.ensure_hapic_data(func_kwargs)
+        request_parameters = self.get_request_parameters(
+            func_args,
+            func_kwargs,
+        )
+
+        try:
+            processed_data = await self.get_processed_data(request_parameters)
+            self.update_hapic_data(hapic_data, processed_data)
+        except ProcessException:
+            error_response = await self.get_error_response(request_parameters)
+            return error_response
+
+    async def get_processed_data(
+        self,
+        request_parameters: RequestParameters,
+    ) -> typing.Any:
+        parameters_data = await self.get_parameters_data(request_parameters)
+        processed_data = self.processor.process(parameters_data)
+        return processed_data
+
+
 class OutputControllerWrapper(InputOutputControllerWrapper):
     def __init__(
         self,
@@ -260,6 +311,94 @@ class DecoratedController(object):
 
 class OutputBodyControllerWrapper(OutputControllerWrapper):
     pass
+
+
+# TODO BS 2018-07-23: This class is an async version of
+# OutputBodyControllerWrapper (ControllerWrapper.get_wrapper rewrite)
+# to permit async compatibility.
+# Please re-think about code refact. TAG: REFACT_ASYNC
+class AsyncOutputBodyControllerWrapper(OutputControllerWrapper):
+    def get_wrapper(
+        self,
+        func: 'typing.Callable[..., typing.Any]',
+    ) -> 'typing.Callable[..., typing.Any]':
+        # async def wrapper(*args, **kwargs) -> typing.Any:
+        async def wrapper(*args, **kwargs) -> typing.Any:
+            # Note: Design of before_wrapped_func can be to update kwargs
+            # by reference here
+            replacement_response = self.before_wrapped_func(args, kwargs)
+            if replacement_response is not None:
+                return replacement_response
+
+            response = await self._execute_wrapped_function(func, args, kwargs)
+            new_response = self.after_wrapped_function(response)
+            return new_response
+        return functools.update_wrapper(wrapper, func)
+
+
+class AsyncOutputStreamControllerWrapper(OutputControllerWrapper):
+    """
+    This controller wrapper produce a wrapper who caught the http view items
+    to check and serialize them into a stream response.
+    """
+    def __init__(
+        self,
+        context: typing.Union[ContextInterface, typing.Callable[[], ContextInterface]],  # nopep8
+        processor: ProcessorInterface,
+        error_http_code: HTTPStatus=HTTPStatus.INTERNAL_SERVER_ERROR,
+        default_http_code: HTTPStatus=HTTPStatus.OK,
+        ignore_on_error: bool = True,
+    ) -> None:
+        super().__init__(
+            context,
+            processor,
+            error_http_code,
+            default_http_code,
+        )
+        self.ignore_on_error = ignore_on_error
+
+    def get_wrapper(
+        self,
+        func: 'typing.Callable[..., typing.Any]',
+    ) -> 'typing.Callable[..., typing.Any]':
+        # async def wrapper(*args, **kwargs) -> typing.Any:
+        async def wrapper(*args, **kwargs) -> typing.Any:
+            # Note: Design of before_wrapped_func can be to update kwargs
+            # by reference here
+            replacement_response = self.before_wrapped_func(args, kwargs)
+            if replacement_response is not None:
+                return replacement_response
+
+            stream_response = await self.context.get_stream_response_object(
+                args,
+                kwargs,
+            )
+            async for stream_item in await self._execute_wrapped_function(
+                func,
+                args,
+                kwargs,
+            ):
+                try:
+                    serialized_item = self._get_serialized_item(stream_item)
+                    await self.context.feed_stream_response(
+                        stream_response,
+                        serialized_item,
+                    )
+                except OutputValidationException as exc:
+                    if not self.ignore_on_error:
+                        # TODO BS 2018-07-31: Something should inform about
+                        # error, a log ?
+                        return stream_response
+
+            return stream_response
+
+        return functools.update_wrapper(wrapper, func)
+
+    def _get_serialized_item(
+        self,
+        item_object: typing.Any,
+    ) -> dict:
+        return self.processor.process(item_object)
 
 
 class OutputHeadersControllerWrapper(OutputControllerWrapper):
@@ -344,6 +483,32 @@ class InputBodyControllerWrapper(InputControllerWrapper):
         return request_parameters.body_parameters
 
 
+# TODO BS 2018-07-23: This class is an async version of InputControllerWrapper
+# to permit async compatibility. Please re-think about code refact
+# TAG: REFACT_ASYNC
+class AsyncInputBodyControllerWrapper(AsyncInputControllerWrapper):
+    def update_hapic_data(
+        self, hapic_data: HapicData,
+        processed_data: typing.Any,
+    ) -> None:
+        hapic_data.body = processed_data
+
+    async def get_parameters_data(self, request_parameters: RequestParameters) -> dict:  # nopep8
+        return await request_parameters.body_parameters
+
+    async def get_error_response(
+        self,
+        request_parameters: RequestParameters,
+    ) -> typing.Any:
+        parameters_data = await self.get_parameters_data(request_parameters)
+        error = self.processor.get_validation_error(parameters_data)
+        error_response = self.context.get_validation_error_response(
+            error,
+            http_code=self.error_http_code,
+        )
+        return error_response
+
+
 class InputHeadersControllerWrapper(InputControllerWrapper):
     def update_hapic_data(
         self, hapic_data: HapicData,
@@ -420,24 +585,65 @@ class ExceptionHandlerControllerWrapper(ControllerWrapper):
                 func_kwargs,
             )
         except self.handled_exception_class as exc:
-            response_content = self.error_builder.build_from_exception(
-                exc,
-                include_traceback=self.context.is_debug(),
-            )
+            return self._build_error_response(exc)
 
-            # Check error format
-            dumped = self.error_builder.dump(response_content).data
-            unmarshall = self.error_builder.load(dumped)
-            if unmarshall.errors:
-                raise OutputValidationException(
-                    'Validation error during dump of error response: {}'
+    def _build_error_response(self, exc: Exception) -> typing.Any:
+        response_content = self.error_builder.build_from_exception(
+            exc,
+            include_traceback=self.context.is_debug(),
+        )
+
+        # Check error format
+        dumped = self.error_builder.dump(response_content).data
+        unmarshall = self.error_builder.load(dumped)
+        if unmarshall.errors:
+            raise OutputValidationException(
+                'Validation error during dump of error response: {}'
                     .format(
-                        str(unmarshall.errors)
-                    )
+                    str(unmarshall.errors)
                 )
-
-            error_response = self.context.get_response(
-                json.dumps(dumped),
-                self.http_code,
             )
-            return error_response
+
+        error_response = self.context.get_response(
+            json.dumps(dumped),
+            self.http_code,
+        )
+        return error_response
+
+
+# TODO BS 2018-07-23: This class is an async version of
+# ExceptionHandlerControllerWrapper
+# to permit async compatibility. Please re-think about code refact
+# TAG: REFACT_ASYNC
+class AsyncExceptionHandlerControllerWrapper(ExceptionHandlerControllerWrapper):
+    def get_wrapper(
+        self,
+        func: 'typing.Callable[..., typing.Any]',
+    ) -> 'typing.Callable[..., typing.Any]':
+        # async def wrapper(*args, **kwargs) -> typing.Any:
+        async def wrapper(*args, **kwargs) -> typing.Any:
+            # Note: Design of before_wrapped_func can be to update kwargs
+            # by reference here
+            replacement_response = self.before_wrapped_func(args, kwargs)
+            if replacement_response is not None:
+                return replacement_response
+
+            response = await self._execute_wrapped_function(func, args, kwargs)
+            new_response = self.after_wrapped_function(response)
+            return new_response
+        return functools.update_wrapper(wrapper, func)
+
+    async def _execute_wrapped_function(
+        self,
+        func,
+        func_args,
+        func_kwargs,
+    ) -> typing.Any:
+        try:
+            return await super()._execute_wrapped_function(
+                func,
+                func_args,
+                func_kwargs,
+            )
+        except self.handled_exception_class as exc:
+            return self._build_error_response(exc)
