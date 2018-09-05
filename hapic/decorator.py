@@ -640,10 +640,6 @@ class AsyncExceptionHandlerControllerWrapper(ExceptionHandlerControllerWrapper):
         func_kwargs,
     ) -> typing.Any:
         try:
-            return await super()._execute_wrapped_function(
-                func,
-                func_args,
-                func_kwargs,
-            )
+            return await func(*func_args, **func_kwargs)
         except self.handled_exception_class as exc:
             return self._build_error_response(exc)
