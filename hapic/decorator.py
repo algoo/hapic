@@ -405,14 +405,39 @@ class OutputHeadersControllerWrapper(OutputControllerWrapper):
     pass
 
 
-class OutputFileControllerWrapper(ControllerWrapper):
+class OutputFileControllerWrapper(OutputControllerWrapper):
     def __init__(
         self,
+        context: typing.Union[ContextInterface, typing.Callable[[], ContextInterface]],  # nopep8
+        processor: ProcessorInterface,
         output_types: typing.List[str],
-        default_http_code: HTTPStatus=HTTPStatus.OK,
+        error_http_code: HTTPStatus = HTTPStatus.INTERNAL_SERVER_ERROR,
+        default_http_code: HTTPStatus = HTTPStatus.OK,
     ) -> None:
+        super().__init__(
+            context,
+            processor,
+            error_http_code,
+            default_http_code,
+        )
         self.output_types = output_types
-        self.default_http_code = default_http_code
+
+    def after_wrapped_function(self, response: typing.Any) -> typing.Any:
+        try:
+            if self.context.by_pass_output_wrapping(response):
+                return response
+
+            processed_response = self.processor.process(response)
+            prepared_response = self.context.get_file_response(
+                processed_response,
+                self.default_http_code,
+            )
+            return prepared_response
+        except ProcessException:
+            # TODO: ici ou ailleurs: il faut pas forcement donner le detail
+            # de l'erreur (mode debug par exemple)  see #8
+            error_response = self.get_error_response(response)
+            return error_response
 
 
 class InputPathControllerWrapper(InputControllerWrapper):

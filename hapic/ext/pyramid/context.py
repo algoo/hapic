@@ -3,6 +3,8 @@ import json
 import re
 import typing
 
+from hapic.data import HapicFile
+
 try:  # Python 3.5+
     from http import HTTPStatus
 except ImportError:
@@ -79,6 +81,33 @@ class PyramidContext(BaseContext):
             headers=headers,
             status=http_code,
         )
+
+    def get_file_response(
+        self,
+        file_response: HapicFile,
+        http_code: int,
+    ):
+        if file_response.file_path:
+            from pyramid.response import FileResponse
+            response = FileResponse(
+                path=file_response.file_path,
+                # INFO - G.M - 2018-09-13 - If content_type is no, mimetype
+                # is automatically guessed
+                content_type=file_response.mimetype or None,
+            )
+        else:
+            from pyramid.response import FileIter
+            from pyramid.response import Response
+            response = Response(
+                status=http_code,
+            )
+            response.content_type = file_response.mimetype
+            response.app_iter = FileIter(file_response.file_object)
+
+        response.status_code = http_code
+        response.content_disposition = file_response.get_content_disposition_header_value()  # nopep8
+        return response
+
 
     def get_validation_error_response(
         self,

@@ -31,6 +31,7 @@ tests_require = [
     'webtest',
     'aiohttp',
     'pytest-aiohttp',
+    'pillow'
 ]
 dev_require = [
     'requests',
