@@ -2,6 +2,7 @@
 import json
 import typing
 
+from hapic.data import HapicFile
 from hapic.error import ErrorBuilderInterface
 
 try:  # Python 3.5+
@@ -38,6 +39,13 @@ class ContextInterface(object):
         response: str,
         http_code: int,
         mimetype: str='application/json',
+    ) -> typing.Any:
+        raise NotImplementedError()
+
+    def get_file_response(
+        self,
+        file_response: HapicFile,
+        http_code: int,
     ) -> typing.Any:
         raise NotImplementedError()
 
