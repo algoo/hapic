@@ -1,9 +1,15 @@
 # -*- coding: utf-8 -*-
+import os
+from io import BytesIO
+
 import marshmallow as marshmallow
 import pytest
+from PIL import Image
 
+from hapic.data import HapicFile
 from hapic.exception import OutputValidationException
 from hapic.processor import MarshmallowOutputProcessor
+from hapic.processor import FileOutputProcessor
 from hapic.processor import MarshmallowInputProcessor
 from tests.base import Base
 
@@ -14,6 +20,90 @@ class MySchema(marshmallow.Schema):
 
 
 class TestProcessor(Base):
+
+    def test_unit_file_output_processor_ok__process_success_filepath(self):
+        processor = FileOutputProcessor()
+
+        tested_data = HapicFile(
+            file_path=os.path.abspath(__file__)
+        )
+        data = processor.process(tested_data)
+        assert data == tested_data
+
+    def test_unit_file_output_processor_ok__process_success_fileobject(self):
+        processor = FileOutputProcessor()
+        file = BytesIO()
+        image = Image.new('RGBA', size=(1000, 1000), color=(0, 0, 0))
+        image.save(file, 'png')
+        file.name = 'test_image.png'
+        file.seek(0)
+        tested_data = HapicFile(
+            file_object=file,
+            mimetype='image/png',
+        )
+        data = processor.process(tested_data)
+        assert data == tested_data
+
+    def test_unit_file_output_processor_err__wrong_type(self):
+        processor = FileOutputProcessor()
+        file = BytesIO()
+        image = Image.new('RGBA', size=(1000, 1000), color=(0, 0, 0))
+        image.save(file, 'png')
+        file.name = 'test_image.png'
+        file.seek(0)
+        tested_data = None
+        with pytest.raises(OutputValidationException):
+            data = processor.process(tested_data)
+
+    def test_unit_file_output_processor_err__both_path_and_object(self):
+        processor = FileOutputProcessor()
+        file = BytesIO()
+        image = Image.new('RGBA', size=(1000, 1000), color=(0, 0, 0))
+        image.save(file, 'png')
+        file.name = 'test_image.png'
+        file.seek(0)
+        tested_data = HapicFile(
+            file_path=os.path.abspath(__file__),
+            file_object=file,
+            mimetype='image/png',
+        )
+        with pytest.raises(OutputValidationException):
+            data = processor.process(tested_data)
+
+    def test_unit_file_output_processor_err__no_path_no_object(self):
+        processor = FileOutputProcessor()
+        file = BytesIO()
+        image = Image.new('RGBA', size=(1000, 1000), color=(0, 0, 0))
+        image.save(file, 'png')
+        file.name = 'test_image.png'
+        file.seek(0)
+        tested_data = HapicFile(
+            mimetype='image/png',
+        )
+        with pytest.raises(OutputValidationException):
+            data = processor.process(tested_data)
+
+    def test_unit_file_output_processor_err__file_do_not_exist(self):
+        processor = FileOutputProcessor()
+        tested_data = HapicFile(
+            file_path='_____________'
+        )
+        with pytest.raises(OutputValidationException):
+            data = processor.process(tested_data)
+
+    def test_unit_file_output_processor_err__missing_mimetype_for_file_object(self):  # nopep8
+        processor = FileOutputProcessor()
+        file = BytesIO()
+        image = Image.new('RGBA', size=(1000, 1000), color=(0, 0, 0))
+        image.save(file, 'png')
+        file.name = 'test_image.png'
+        file.seek(0)
+        tested_data = HapicFile(
+            file_object=file
+        )
+        with pytest.raises(OutputValidationException):
+            data = processor.process(tested_data)
+
     def test_unit__marshmallow_output_processor__ok__process_success(self):
         processor = MarshmallowOutputProcessor()
         processor.schema = MySchema()

@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
+import os
 import typing
 
 from multidict import MultiDict
 
+from hapic.data import HapicFile
 from hapic.exception import OutputValidationException
 from hapic.exception import ConfigurationException
 
@@ -103,6 +105,40 @@ class InputProcessor(Processor):
 
 class OutputProcessor(Processor):
     pass
+
+
+class FileOutputProcessor(OutputProcessor):
+    def process(self, data: typing.Any):
+        self.validate(data)
+        return data
+
+    def _get_validation_error_message(self, data: typing.Any):
+        error_message = None
+        if not isinstance(data, HapicFile):
+            error_message = 'File should be HapicFile type'
+        elif data.file_path and data.file_object:
+            error_message = 'File should be either path or object, not both'
+        elif not data.file_path and not data.file_object:
+            error_message = 'File should be either path or object'
+        elif data.file_path and not os.path.isfile(data.file_path):
+            error_message = 'File path is not correct, file do not exist'
+        elif data.file_object and not data.mimetype:
+            error_message = 'File object should have explicit mimetype'
+        return error_message
+
+    def validate(self, data: typing.Any):
+        validation_error_message = self._get_validation_error_message(data)
+        if validation_error_message:
+            raise OutputValidationException(
+                'Error when validate output file : {}'.format(validation_error_message)  # nopep8
+            )
+
+    def get_validation_error(self, data: dict) -> ProcessValidationError:
+        validation_error_message = self._get_validation_error_message(data)
+        return ProcessValidationError(
+            message='Validation error of output file',
+            details={'output_file': validation_error_message},
+        )
 
 
 class MarshmallowOutputProcessor(OutputProcessor):

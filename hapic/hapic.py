@@ -39,6 +39,7 @@ from hapic.description import OutputHeadersDescription
 from hapic.description import OutputFileDescription
 from hapic.doc import DocGenerator
 from hapic.processor import ProcessorInterface
+from hapic.processor import FileOutputProcessor
 from hapic.processor import MarshmallowInputProcessor
 from hapic.processor import MarshmallowInputFilesProcessor
 from hapic.processor import MarshmallowOutputProcessor
@@ -246,9 +247,15 @@ class Hapic(object):
     def output_file(
         self,
         output_types: typing.List[str],
+        processor: ProcessorInterface = None,
+        context: ContextInterface = None,
         default_http_code: HTTPStatus = HTTPStatus.OK,
     ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Any]:
+        processor = processor or FileOutputProcessor()
+        context = context or self._context_getter
         decoration = OutputFileControllerWrapper(
+            context=context,
+            processor=processor,
             output_types=output_types,
             default_http_code=default_http_code,
         )
