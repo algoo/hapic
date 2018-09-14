@@ -112,8 +112,7 @@ class FileOutputProcessor(OutputProcessor):
         self.validate(data)
         return data
 
-    def _get_validate_error_message(self, data: typing.Any):
-        # TODO - G.M - 2018-09-13 - Better error handling
+    def _get_validation_error_message(self, data: typing.Any):
         error_message = None
         if not isinstance(data, HapicFile):
             error_message = 'File should be HapicFile type'
