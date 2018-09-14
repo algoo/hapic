@@ -184,7 +184,8 @@ class PyramidContext(BaseContext):
         return contextualised_rule
 
     def by_pass_output_wrapping(self, response: typing.Any) -> bool:
-        return False
+        from pyramid.response import Response
+        return isinstance(response, Response)
 
     def add_view(
         self,
