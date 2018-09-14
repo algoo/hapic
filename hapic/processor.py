@@ -112,7 +112,7 @@ class FileOutputProcessor(OutputProcessor):
         self.validate(data)
         return data
 
-    def _validate_error_message(self, data: typing.Any):
+    def _get_validate_error_message(self, data: typing.Any):
         # TODO - G.M - 2018-09-13 - Better error handling
         error_message = None
         if not isinstance(data, HapicFile):
@@ -128,17 +128,17 @@ class FileOutputProcessor(OutputProcessor):
         return error_message
 
     def validate(self, data: typing.Any):
-        error_message = self._validate_error_message(data)
-        if error_message:
+        validation_error_message = self._get_validate_error_message(data)
+        if validation_error_message:
             raise OutputValidationException(
-                'Error when validate output file : {}'.format(error_message)
+                'Error when validate output file : {}'.format(validation_error_message)  # nopep8
             )
 
     def get_validation_error(self, data: dict) -> ProcessValidationError:
-        validate_error_message  = self._validate_error_message(data)
+        validation_error_message = self._get_validate_error_message(data)
         return ProcessValidationError(
             message='Validation error of output file',
-            details={'output_file': validate_error_message},
+            details={'output_file': validation_error_message},
         )
 
 
