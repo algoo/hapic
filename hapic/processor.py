@@ -127,14 +127,14 @@ class FileOutputProcessor(OutputProcessor):
         return error_message
 
     def validate(self, data: typing.Any):
-        validation_error_message = self._get_validate_error_message(data)
+        validation_error_message = self._get_validation_error_message(data)
         if validation_error_message:
             raise OutputValidationException(
                 'Error when validate output file : {}'.format(validation_error_message)  # nopep8
             )
 
     def get_validation_error(self, data: dict) -> ProcessValidationError:
-        validation_error_message = self._get_validate_error_message(data)
+        validation_error_message = self._get_validation_error_message(data)
         return ProcessValidationError(
             message='Validation error of output file',
             details={'output_file': validation_error_message},
