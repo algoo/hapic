@@ -112,28 +112,33 @@ class FileOutputProcessor(OutputProcessor):
         self.validate(data)
         return data
 
-    def validate(self, data: typing.Any):
+    def _validate_error_message(self, data: typing.Any):
         # TODO - G.M - 2018-09-13 - Better error handling
-        error = False
+        error_message = None
         if not isinstance(data, HapicFile):
-            error = 'File should be HapicFile type'
+            error_message = 'File should be HapicFile type'
         elif data.file_path and data.file_object:
-            error = 'File should be either path or object, not both'
+            error_message = 'File should be either path or object, not both'
         elif not data.file_path and not data.file_object:
-            error = 'File should be either path or object'
+            error_message = 'File should be either path or object'
         elif data.file_path and not os.path.isfile(data.file_path):
-            error = 'File path is not correct, file do not exist'
+            error_message = 'File path is not correct, file do not exist'
         elif data.file_object and not data.mimetype:
-            error = 'File object should have explicit mimetype'
-        if error:
+            error_message = 'File object should have explicit mimetype'
+        return error_message
+
+    def validate(self, data: typing.Any):
+        error_message = self._validate_error_message(data)
+        if error_message:
             raise OutputValidationException(
-                'Error when validate output file : {}'.format(error)
+                'Error when validate output file : {}'.format(error_message)
             )
 
     def get_validation_error(self, data: dict) -> ProcessValidationError:
+        validate_error_message  = self._validate_error_message(data)
         return ProcessValidationError(
             message='Validation error of output file',
-            details={},
+            details={'output_file': validate_error_message},
         )
 
 
