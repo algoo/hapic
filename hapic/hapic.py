@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
+import logging
 import os
 import typing
 import uuid
 import functools
+
+from hapic.util import LOGGER_NAME
+
 try:  # Python 3.5+
     from http import HTTPStatus
 except ImportError:
@@ -61,6 +65,9 @@ class Hapic(object):
         self._error_builder = None  # type: ErrorBuilderInterface
         self._async = async_
         self.doc_generator = DocGenerator()
+        logging.basicConfig()
+        logger = logging.getLogger(LOGGER_NAME)
+        logger.debug('Loading Hapic')
 
         # This local function will be pass to different components
         # who will need context but declared (like with decorator)
