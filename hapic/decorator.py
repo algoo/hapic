@@ -644,6 +644,8 @@ class ExceptionHandlerControllerWrapper(ControllerWrapper):
              http_code=self.http_code,
              msg=str(exc)
         ))
+        # NOTE BS 2018-09-28: log on debug because it is an http framework error,
+        # managed and dumped in response. Not an hapic error.
         self._logger.debug(traceback.format_exc())
         return error_response
 
