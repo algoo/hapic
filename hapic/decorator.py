@@ -2,7 +2,12 @@
 import json
 
 import functools
+import logging
+import traceback
 import typing
+
+from hapic.util import LOGGER_NAME
+
 try:  # Python 3.5+
     from http import HTTPStatus
 except ImportError:
@@ -633,6 +638,13 @@ class ExceptionHandlerControllerWrapper(ControllerWrapper):
             json.dumps(dumped),
             self.http_code,
         )
+        self._logger = logging.getLogger(LOGGER_NAME)
+        self._logger.info('Exception {exc} occured, return {http_code} http_code : {msg}'.format(  # nopep8
+             exc=type(exc).__name__,
+             http_code=self.http_code,
+             msg=str(exc)
+        ))
+        self._logger.debug(traceback.format_exc())
         return error_response
 
 
