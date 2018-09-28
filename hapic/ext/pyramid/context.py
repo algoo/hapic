@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 import json
+import logging
 import re
+import traceback
 import typing
 
 from hapic.data import HapicFile
+from hapic.util import LOGGER_NAME
 
 try:  # Python 3.5+
     from http import HTTPStatus
@@ -222,6 +225,16 @@ class PyramidContext(BaseContext):
     ) -> None:
         def factory_view_func(exception_class, http_code):
             def view_func(exc, request):
+                # TODO - G.M - 2018-09-28 - move logging code outside of
+                # specific framework context.
+                # see https://github.com/algoo/hapic/issues/93
+                logger = logging.getLogger(LOGGER_NAME)
+                logger.info('Exception {exc} occured, return {http_code} http_code : {msg}'.format(  # nopep8
+                     exc=type(exc).__name__,
+                     http_code=http_code,
+                     msg=str(exc)
+                ))
+                logger.debug(traceback.format_exc())
                 # TODO BS 2018-05-04: How to be attentive to hierarchy ?
                 error_builder = self.get_default_error_builder()
                 error_body = error_builder.build_from_exception(
@@ -233,7 +246,6 @@ class PyramidContext(BaseContext):
                     http_code
                 )
             return view_func
-
         self.configurator.add_view(
             view=factory_view_func(
                 exception_class,
