@@ -24,6 +24,7 @@ from hapic.decorator import AsyncInputBodyControllerWrapper
 from hapic.decorator import InputHeadersControllerWrapper
 from hapic.decorator import InputPathControllerWrapper
 from hapic.decorator import InputQueryControllerWrapper
+from hapic.decorator import InputFormsControllerWrapper
 from hapic.decorator import InputFilesControllerWrapper
 from hapic.decorator import OutputBodyControllerWrapper
 from hapic.decorator import AsyncOutputBodyControllerWrapper
@@ -390,7 +391,7 @@ class Hapic(object):
         processor.schema = schema
         context = context or self._context_getter
 
-        decoration = InputBodyControllerWrapper(
+        decoration = InputFormsControllerWrapper(
             context=context,
             processor=processor,
             error_http_code=error_http_code,
