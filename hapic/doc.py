@@ -231,17 +231,40 @@ def bottle_generate_operations(
                 )
             )
 
+    if description.input_files or description.input_forms:
+        method_operations.setdefault('consumes', []).append('multipart/form-data')  # nopep8
+
     if description.input_files:
-        method_operations.setdefault('consumes', []).append('multipart/form-data')
-        for field_name, field in description.input_files.wrapper.processor.schema.fields.items():
-            # TODO - G.M - 01-06-2018 - Check if other fields can be used
-            # see generate_fields_description
-            method_operations.setdefault('parameters', []).append({
-                'in': 'formData',
-                'name': field_name,
-                'required': field.required,
-                'type': 'file',
-            })
+        schema_class = spec.schema_class_resolver(
+            spec,
+            description.input_files.wrapper.processor.schema
+        )
+        jsonschema = schema2jsonschema(schema_class, spec=spec)
+        for name, schema in jsonschema.get('properties', {}).items():
+            method_operations.setdefault('parameters', []).append(
+                generate_fields_description(
+                    schema=schema,
+                    in_='formData',
+                    name=name,
+                    required=name in jsonschema.get('required', []),
+                    type='file',
+                )
+            )
+    if description.input_forms:
+        schema_class = spec.schema_class_resolver(
+            spec,
+            description.input_forms.wrapper.processor.schema
+        )
+        jsonschema = schema2jsonschema(schema_class, spec=spec)
+        for name, schema in jsonschema.get('properties', {}).items():
+            method_operations.setdefault('parameters', []).append(
+                generate_fields_description(
+                    schema=schema,
+                    in_='formData',
+                    name=name,
+                    required=name in jsonschema.get('required', []),
+                )
+            )
 
     if description.tags:
         method_operations['tags'] = description.tags
