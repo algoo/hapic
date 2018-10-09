@@ -373,6 +373,87 @@ class TestDocGeneration(Base):
             'type': 'array'
         }
 
+    def test_func_schema_in_doc__ok__additionals_fields__file(self):
+        hapic = Hapic()
+        # TODO BS 20171113: Make this test non-bottle
+        app = bottle.Bottle()
+        hapic.set_context(MyContext(app=app))
+
+        class MySchema(marshmallow.Schema):
+            category = marshmallow.fields.Raw(
+                required=True,
+                description='a description',
+                example='00010',
+            )
+
+        @hapic.with_api_doc()
+        @hapic.input_files(MySchema())
+        def my_controller():
+            return
+
+        app.route('/upload', method='POST', callback=my_controller)
+        doc = hapic.generate_doc()
+        assert doc
+        assert '/upload' in doc['paths']
+        assert 'consumes' in doc['paths']['/upload']['post']
+        assert 'multipart/form-data' in doc['paths']['/upload']['post']['consumes']  # nopep8
+        assert doc.get('paths').get('/upload').get('post').get('parameters')[0]
+        field = doc.get('paths').get('/upload').get('post').get('parameters')[0]
+        assert field['description'] == 'a description\n\n*example value: 00010*'
+        # INFO - G.M - 01-06-2018 - Field example not allowed here,
+        # added in description instead
+        assert 'example' not in field
+        assert field['in'] == 'formData'
+        assert field['type'] == 'file'
+        assert field['required'] is True
+
+    def test_func_schema_in_doc__ok__additionals_fields__forms__string(self):
+        hapic = Hapic()
+        # TODO BS 20171113: Make this test non-bottle
+        app = bottle.Bottle()
+        hapic.set_context(MyContext(app=app))
+
+        class MySchema(marshmallow.Schema):
+            category = marshmallow.fields.String(
+                required=True,
+                description='a description',
+                example='00010',
+                format='binary',
+                enum=['01000', '11111'],
+                maxLength=5,
+                minLength=5,
+                # Theses none string specific parameters should disappear
+                # in query/path
+                maximum=400,
+                # exclusiveMaximun=False,
+                # minimum=0,
+                # exclusiveMinimum=True,
+                # multipleOf=1,
+            )
+
+        @hapic.with_api_doc()
+        @hapic.input_forms(MySchema())
+        def my_controller():
+            return
+
+        app.route('/paper', method='POST', callback=my_controller)
+        doc = hapic.generate_doc()
+        assert 'multipart/form-data' in doc['paths']['/paper']['post']['consumes']  # nopep8
+        assert doc.get('paths').get('/paper').get('post').get('parameters')[0]
+        field = doc.get('paths').get('/paper').get('post').get('parameters')[0]
+        assert field['description'] == 'a description\n\n*example value: 00010*'
+        # INFO - G.M - 01-06-2018 - Field example not allowed here,
+        # added in description instead
+        assert 'example' not in field
+        assert field['format'] == 'binary'
+        assert field['in'] == 'formData'
+        assert field['type'] == 'string'
+        assert field['maxLength'] == 5
+        assert field['minLength'] == 5
+        assert field['required'] is True
+        assert field['enum'] == ['01000', '11111']
+        assert 'maximum' not in field
+
     def test_func_schema_in_doc__ok__additionals_fields__query__string(self):
         hapic = Hapic()
         # TODO BS 20171113: Make this test non-bottle
