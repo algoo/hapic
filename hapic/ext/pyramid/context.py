@@ -22,6 +22,7 @@ from hapic.processor import RequestParameters
 from hapic.processor import ProcessValidationError
 from hapic.error import DefaultErrorBuilder
 from hapic.error import ErrorBuilderInterface
+import cgi
 
 if typing.TYPE_CHECKING:
     from pyramid.response import Response
@@ -54,13 +55,21 @@ class PyramidContext(BaseContext):
         else:
             json_body = {}
 
+        forms_parameters = {}
+        files_parameters = {}
+        for name, item in req.POST.items():
+            if isinstance(item, cgi.FieldStorage):
+                files_parameters[name] = item
+            else:
+                forms_parameters[name] = item
+
         return RequestParameters(
             path_parameters=req.matchdict,
             query_parameters=req.GET,
             body_parameters=json_body,
             form_parameters=req.POST,
             header_parameters=req.headers,
-            files_parameters={},  # TODO - G.M - 2017-11-05 - Code it
+            files_parameters=files_parameters,
         )
 
     def get_response(
