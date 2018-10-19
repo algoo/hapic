@@ -9,6 +9,7 @@ from aiohttp.web_response import Response
 from multidict import MultiDict
 
 from hapic.context import BaseContext
+from hapic.context import HandledException
 from hapic.context import RouteRepresentation
 from hapic.decorator import DecoratedController
 from hapic.decorator import DECORATION_ATTRIBUTE_NAME
@@ -82,6 +83,31 @@ class AiohttpContext(BaseContext):
         self._debug = debug
         self.default_error_builder = \
             default_error_builder or DefaultErrorBuilder()  # FDV
+
+        # Managed exceptions
+        @web.middleware
+        async def error_middleware(request, handler):
+            try:
+                response = await handler(request)
+                return response
+            except Exception as exc:
+                for handled_exception in self._handled_exceptions:
+                    if isinstance(exc, handled_exception.exception_class):
+                        error_builder = self.get_default_error_builder()
+                        error_body = error_builder.build_from_exception(
+                            exc,
+                            include_traceback=self.is_debug(),
+                        )
+                        dumped = error_builder.dump(error_body).data
+                        return self.get_response(
+                            json.dumps(dumped),
+                            handled_exception.http_code,
+                        )
+                raise exc
+
+        self._handled_exceptions = []  # type: typing.List[HandledException]
+        self._error_middleware = error_middleware
+        self._error_middleware_installed = False
 
     @property
     def app(self) -> web.Application:
@@ -226,16 +252,19 @@ class AiohttpContext(BaseContext):
         exception_class: typing.Type[Exception],
         http_code: int,
     ) -> None:
-        # TODO BS 2018-07-15: to do
-        raise NotImplementedError('todo')
+        handled_exception = HandledException(exception_class, http_code)
+        self._handled_exceptions.append(handled_exception)
+
+        if not self._error_middleware_installed:
+            self.app.middlewares.append(self._error_middleware)
 
     def handle_exceptions(
         self,
         exception_classes: typing.List[typing.Type[Exception]],
         http_code: int,
     ) -> None:
-        # TODO BS 2018-07-15: to do
-        raise NotImplementedError('todo')
+        for exception_class in exception_classes:
+            self.handle_exception(exception_class, http_code)
 
     async def get_stream_response_object(
         self,
