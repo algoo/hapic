@@ -446,3 +446,80 @@ class TestAiohttpExt(object):
             },
             'type': 'array',
         } == doc['paths']['/']['get']['responses'][200]['schema']
+
+    async def test_unit__general_exception_handling__ok__nominal_case(
+        self,
+        aiohttp_client,
+        loop,
+    ):
+        hapic = Hapic(async_=True)
+
+        @hapic.with_api_doc()
+        async def hello(request):
+            return 1 / 0
+
+        app = web.Application(debug=True)
+        app.router.add_get('/', hello)
+        context = AiohttpContext(app)
+        context.handle_exception(ZeroDivisionError, 400)
+        hapic.set_context(context)
+
+        client = await aiohttp_client(app)
+        resp = await client.get('/')
+
+        json = await resp.json()
+        assert resp.status == 400
+        assert {
+                   'details': {
+                       'error_detail': {}
+                   },
+                   'message': 'division by zero',
+                   'code': None
+               } == json
+
+    async def test_unit__general_exception_handling__ok__exception_list(
+        self,
+        aiohttp_client,
+        loop,
+    ):
+        hapic = Hapic(async_=True)
+
+        @hapic.with_api_doc()
+        async def zero(request):
+            return 1 / 0
+
+        @hapic.with_api_doc()
+        async def key(request):
+            return dict()['foo']
+
+        app = web.Application(debug=True)
+        app.router.add_get('/a', zero)
+        app.router.add_get('/b', key)
+        context = AiohttpContext(app)
+        context.handle_exceptions([ZeroDivisionError, KeyError], 400)
+        hapic.set_context(context)
+
+        client = await aiohttp_client(app)
+
+        resp = await client.get('/a')
+
+        json = await resp.json()
+        assert resp.status == 400
+        assert {
+                   'details': {
+                       'error_detail': {}
+                   },
+                   'message': 'division by zero',
+                   'code': None
+               } == json
+        resp = await client.get('/a')
+
+        json = await resp.json()
+        assert resp.status == 400
+        assert {
+                   'details': {
+                       'error_detail': {}
+                   },
+                   'message': 'division by zero',
+                   'code': None
+               } == json
