@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import typing
+import urllib.parse
 
 
 class HapicData(object):
@@ -32,5 +33,17 @@ class HapicFile(object):
         if self.as_attachment:
             disposition = 'attachment'
         if self.filename:
-            disposition = '{}; filename="{}"'.format(disposition, self.filename)
+            # INFO - G.M - 2018-10-26 - deal correctly with unicode filename
+            # see rfc6266 for more info.
+            ascii_filename = self.filename.encode('ascii', 'replace').decode()
+            # INFO - G.M - 2018-10-30 - Format correctly unicode.
+            # encoding is needed for correct unicode character support,
+            # Percent-encoding is best pratices, see also rfc5987.
+            urlencoded_unicode_filename = urllib.parse.quote(self.filename)
+
+            disposition = '{}; filename="{}"; filename*=UTF-8\'\'{};'.format(
+                disposition,
+                ascii_filename,
+                urlencoded_unicode_filename,
+            )
         return disposition
