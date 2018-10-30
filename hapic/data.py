@@ -36,6 +36,9 @@ class HapicFile(object):
             # INFO - G.M - 2018-10-26 - deal correctly with unicode filename
             # see rfc6266 for more info.
             ascii_filename = self.filename.encode('ascii', 'replace').decode()
+            # INFO - G.M - 2018-10-30 - Format correctly unicode.
+            # encoding is needed for correct unicode character support,
+            # Percent-encoding is best pratices, see also rfc5987.
             urlencoded_unicode_filename = quote(self.filename)
 
             disposition = '{}; filename="{}"; filename*=UTF-8\'\'{};'.format(
