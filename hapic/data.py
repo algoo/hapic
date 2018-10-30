@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import typing
-from urllib.parse import quote
+import urllib.parse
 
 
 class HapicData(object):
@@ -39,7 +39,7 @@ class HapicFile(object):
             # INFO - G.M - 2018-10-30 - Format correctly unicode.
             # encoding is needed for correct unicode character support,
             # Percent-encoding is best pratices, see also rfc5987.
-            urlencoded_unicode_filename = quote(self.filename)
+            urlencoded_unicode_filename = urllib.parse.quote(self.filename)
 
             disposition = '{}; filename="{}"; filename*=UTF-8\'\'{};'.format(
                 disposition,
