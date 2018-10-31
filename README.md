@@ -42,7 +42,7 @@ TODO can make reference to #X, this is github issues references.
 
 ## Installation
 
-```
+``` bash
 virtualenv -p /usr/bin/python3 venv
 source venv/bin/activate
 python setup.py develop
@@ -52,7 +52,7 @@ python setup.py develop
 
 ### Fast Flask example
 
-```
+``` python
 from datetime import datetime
 import flask
 import marshmallow
@@ -117,19 +117,19 @@ How to use it:
 
 Nominal cases:
 
-```
+``` bash
 $ curl "http://127.0.0.1:8080/hello/michel"
 # {"now": "2017-12-18T12:37:10.751623+00:00", "name": "michel"}
 ```
 
-```
+``` bash
 $ curl "http://127.0.0.1:8080/hello/michel/age/17"
 # {"name": "damien", "greetings": "Hello damien, it looks like you are 17", "now": "2017-12-18T12:41:58.229679+00:00"}
 ```
 
 Error case (returns a 400):
 
-```
+``` bash
 $ curl "http://127.0.0.1:8080/hello/michel/age/mistaken"
 # {"details": {"age": ["Not a valid integer."]}, "message": "Validation error of input data"}
 ```
@@ -150,13 +150,13 @@ In order to test it :
 
 Install the required dependencies:
 
-```
+``` bash
 pip install bottle flask pyramid`
 ```
 
 Run the instance you wan to test (one of the three following lines):
 
-```
+``` bash
 python example/usermanagement/serve_bottle.py
 python example/usermanagement/serve_flask.py
 python example/usermanagement/serve_pyramid.py
