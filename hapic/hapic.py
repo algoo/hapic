@@ -66,9 +66,9 @@ class Hapic(object):
         self._error_builder = None  # type: ErrorBuilderInterface
         self._async = async_
         self.doc_generator = DocGenerator()
-        logging.basicConfig()
-        logger = logging.getLogger(LOGGER_NAME)
-        logger.debug('Loading Hapic')
+
+        self.logger = logging.getLogger(LOGGER_NAME)
+        self.logger.debug('Create new Hapic instance')
 
         # This local function will be pass to different components
         # who will need context but declared (like with decorator)
@@ -128,6 +128,14 @@ class Hapic(object):
                 return func(*args, **kwargs)
 
             token = uuid.uuid4().hex
+            self.logger.debug(
+                'Collect description of "{}" and mark '
+                'it with token "{}"'.format(
+                    str(func),
+                    token,
+                )
+            )
+
             setattr(wrapper, DECORATION_ATTRIBUTE_NAME, token)
             setattr(func, DECORATION_ATTRIBUTE_NAME, token)
 
