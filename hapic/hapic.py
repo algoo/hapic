@@ -66,7 +66,6 @@ class Hapic(object):
         self._error_builder = None  # type: ErrorBuilderInterface
         self._async = async_
         self.doc_generator = DocGenerator()
-        logging.basicConfig()
         logger = logging.getLogger(LOGGER_NAME)
         logger.debug('Loading Hapic')
 
