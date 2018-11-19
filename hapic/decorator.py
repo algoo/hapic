@@ -378,11 +378,28 @@ class AsyncOutputStreamControllerWrapper(OutputControllerWrapper):
                 args,
                 kwargs,
             )
-            async for stream_item in await self._execute_wrapped_function(
+
+            response_object = self._execute_wrapped_function(
                 func,
                 args,
                 kwargs,
-            ):
+            )
+
+            # To be compatible with python3.5 and python3.7, we must inspect
+            # the object. If it is an async_generator, nothing to do. Else,
+            # we must await it.
+            # To see example, in python3.5:
+            #    tests.ext.unit.test_aiohttp.TestAiohttpExt#test_aiohttp_output_stream__ok__nominal_case
+            # In python 3.6+:
+            #    tests.ext.unit.test_aiohttp.TestAiohttpExt#test_aiohttp_output_stream__ok__py37
+            # TODO BS 2018-11-19: A cleaner way to test if it is an
+            # async_generator object ?
+            if type(response_object).__name__ == 'async_generator':
+                iterable_response_object = response_object
+            else:
+                iterable_response_object = await response_object
+
+            async for stream_item in iterable_response_object:
                 try:
                     serialized_item = self._get_serialized_item(stream_item)
                     await self.context.feed_stream_response(
