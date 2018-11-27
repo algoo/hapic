@@ -20,7 +20,7 @@ here = path.abspath(path.dirname(__file__))
 install_requires = [
     'apispec>=1.0.0b5',
     'multidict',
-    'yaml',
+    'pyyaml',
 ]
 marshmallow_require = [
     'marshmallow',
