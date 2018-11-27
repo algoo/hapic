@@ -182,7 +182,7 @@ serpyco_SWAGGER_DOC_API = {
                            'last_id': {'type': 'integer'},
                            'current_id': {'type': 'integer'}},
             'required': ['first_id', 'last_id', 'current_id'],
-            'description': 'PaginationSchema(first_id: int, last_id: int, current_id: int)',
+            'description': 'A docstring to prevent auto generated docstring',
             },
         'UserSchema_only_id_username_display_name_company': {
             'type': 'object',
@@ -193,7 +193,7 @@ serpyco_SWAGGER_DOC_API = {
                 'id': {'type': 'integer', 'default': None},
                 },
             'required': ['display_name', 'company', 'username', 'id'],
-            'description': 'UserSchema(first_name: str, last_name: str, display_name: str, company: str, username: str, email_address: str, id: int = None)',
+            'description': 'A docstring to prevent auto generated docstring',
             },
         'ListsUserSchema': {
             'type': 'object',
@@ -202,7 +202,7 @@ serpyco_SWAGGER_DOC_API = {
                            'minimum': 0}, 'items': {'type': 'array',
                            'items': {'$ref': '#/definitions/UserSchema_exclude_first_name_last_name_email_address'}}},
             'required': ['pagination', 'item_nb', 'items'],
-            'description': 'ListsUserSchema(pagination: example.fake_api.schema_serpyco.PaginationSchema, item_nb: int, items: List[example.fake_api.schema_serpyco.UserSchema])',
+            'description': 'A docstring to prevent auto generated docstring',
             },
         'AboutResponseSchema': {
             'type': 'object',
@@ -210,7 +210,7 @@ serpyco_SWAGGER_DOC_API = {
                            'datetime': {'type': 'string',
                            'format': 'date-time'}},
             'required': ['version', 'datetime'],
-            'description': 'AboutResponseSchema(version: str, datetime: datetime.datetime)',
+            'description': 'A docstring to prevent auto generated docstring',
             },
         'UserSchema': {
             'type': 'object',
@@ -233,9 +233,12 @@ serpyco_SWAGGER_DOC_API = {
                 'email_address',
                 'id',
                 ],
-            'description': 'UserSchema(first_name: str, last_name: str, display_name: str, company: str, username: str, email_address: str, id: int = None)',
+            'description': 'A docstring to prevent auto generated docstring',
             },
-        'NoContentSchema': {'type': 'object', 'properties': {},
-                            'description': 'NoContentSchema()'},
+        'NoContentSchema': {
+            'type': 'object',
+            'properties': {},
+            'description': 'A docstring to prevent auto generated docstring',
+        },
         },
     }
