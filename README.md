@@ -9,7 +9,7 @@ Why you should use Hapic :
 
 - Hapic adapt naturally to your existing libraries
 - Hapic map exceptions to HTTP errors without effort
-- Hapic really auto-documents your APIs according to marshmallow,  apispec and web framework routing. You do not "write your doc in docstrings": the documentation is really auto-generated
+- Hapic really auto-documents your APIs according to marshmallow or Serpyco dataclasses,  apispec and web framework routing. You do not "write your doc in docstrings": the documentation is really auto-generated
 - Hapic can be used out-of-the-box with Bottle, Flask or Pyramid
 
 Hapic works with JSON, but it can be used for XML or virtually any data structure format.
@@ -42,11 +42,21 @@ TODO can make reference to #X, this is github issues references.
 
 ## Installation
 
+## From source code
+
 ``` bash
 virtualenv -p /usr/bin/python3 venv
 source venv/bin/activate
 python setup.py develop
 ```
+
+To work with Marshmallow schemas, install necessary dependencies:
+
+    pip install -e ".[marshmallow]"
+
+To work with Serpyco schemas, install necessary dependencies:
+
+    pip install -e ".[serpyco]"
  
 ## Give it a try
 

@@ -18,9 +18,16 @@ version = infos_dict['__version__']
 here = path.abspath(path.dirname(__file__))
 
 install_requires = [
-    'marshmallow >2.0.0,<3.0.0a1',
-    'hapic_apispec==0.37.0',
-    'multidict'
+    'apispec>=1.0.0b5',
+    'multidict',
+]
+marshmallow_require = [
+    'marshmallow',
+    'apispec_hapic_marshmallow',
+]
+serpyco_require = [
+    'serpyco>=0.15',
+    'apispec_serpyco',
 ]
 tests_require = [
     'pytest',
@@ -32,7 +39,7 @@ tests_require = [
     'aiohttp',
     'pytest-aiohttp',
     'pillow'
-]
+] + marshmallow_require + serpyco_require
 dev_require = [
     'requests',
 ] + tests_require
@@ -90,6 +97,8 @@ setup(
     extras_require={
         'test': tests_require,
         'dev': dev_require,
+        'serpyco': dev_require,
+        'marshmallow': dev_require,
     },
 
     # If there are data files included in your packages that need to be
@@ -110,9 +119,7 @@ setup(
     # pip to create the appropriate form of executable for the target platform.
     entry_points={},
     setup_requires=[],
-    dependency_links=[
-        'git+https://github.com/algoo/apispec.git@hapic_apispec#egg=apispec-0.35.0-algoo'
-    ],
+    dependency_links=[],
     tests_require=tests_require,
     include_package_data=True,
 )

@@ -2,18 +2,17 @@
 import json
 import typing
 
+from multidict import MultiDict
+
+from hapic.context import HandledException
+from hapic.ext.bottle import BottleContext
+from hapic.processor.main import ProcessValidationError
+from hapic.processor.main import RequestParameters
 
 try:  # Python 3.5+
     from http import HTTPStatus
 except ImportError:
     from http import client as HTTPStatus
-
-from multidict import MultiDict
-
-from hapic.ext.bottle import BottleContext
-from hapic.processor import RequestParameters
-from hapic.processor import ProcessValidationError
-from hapic.context import HandledException
 
 
 class Base(object):

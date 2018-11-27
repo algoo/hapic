@@ -1,64 +1,91 @@
 # -*- coding: utf-8 -*-
 import json
-
-import pytest
 import typing
 
+import marshmallow
+from multidict import MultiDict
+import pytest
+
+from hapic.data import HapicData
+from hapic.decorator import ExceptionHandlerControllerWrapper
+from hapic.decorator import InputControllerWrapper
+from hapic.decorator import InputOutputControllerWrapper
+from hapic.decorator import InputQueryControllerWrapper
+from hapic.decorator import OutputControllerWrapper
+from hapic.error import DefaultErrorBuilder
 from hapic.exception import OutputValidationException
+from hapic.processor.main import Processor
+from hapic.processor.main import ProcessValidationError
+from hapic.processor.main import RequestParameters
+from hapic.processor.marshmallow import MarshmallowProcessor
+from tests.base import Base
+from tests.base import MyContext
 
 try:  # Python 3.5+
     from http import HTTPStatus
 except ImportError:
     from http import client as HTTPStatus
 
-import marshmallow
-from multidict import MultiDict
-
-from hapic.data import HapicData
-from hapic.decorator import ExceptionHandlerControllerWrapper
-from hapic.decorator import InputQueryControllerWrapper
-from hapic.decorator import InputControllerWrapper
-from hapic.decorator import InputOutputControllerWrapper
-from hapic.decorator import OutputControllerWrapper
-from hapic.error import DefaultErrorBuilder
-from hapic.processor import MarshmallowOutputProcessor
-from hapic.processor import ProcessValidationError
-from hapic.processor import ProcessorInterface
-from hapic.processor import RequestParameters
-from tests.base import Base
-from tests.base import MyContext
 
 
-class MyProcessor(ProcessorInterface):
-    def process(self, value):
-        return value + 1
 
-    def get_validation_error(
+class MyProcessor(Processor):
+    def get_input_files_validation_error(
         self,
-        request_context: RequestParameters,
+        data_to_validate: typing.Any,
+    ) -> ProcessValidationError:
+        pass
+
+    def load_files_input(self, input_data: typing.Any) -> typing.Any:
+        pass
+
+    def clean_data(self, raw_data: typing.Any) -> dict:
+        pass
+
+    def get_input_validation_error(
+        self, data_to_validate: typing.Any
     ) -> ProcessValidationError:
         return ProcessValidationError(
-            details={
-                'original_request_context': request_context,
-            },
+            details={},
             message='ERROR',
         )
 
-
-class MySimpleProcessor(ProcessorInterface):
-    def process(self, value):
-        return value
-
-    def get_validation_error(
-        self,
-        request_context: RequestParameters,
+    def get_output_validation_error(
+        self, data_to_validate: typing.Any
     ) -> ProcessValidationError:
         return ProcessValidationError(
-            details={
-                'original_request_context': request_context,
-            },
+            details={},
             message='ERROR',
         )
+
+    def get_output_file_validation_error(
+        self, data_to_validate: typing.Any
+    ) -> ProcessValidationError:
+        return ProcessValidationError(
+            details={},
+            message='ERROR',
+        )
+
+    def load_input(self, input_data: typing.Any) -> typing.Any:
+        return input_data + 1
+
+    def dump_output(
+        self, output_data: typing.Any
+    ) -> typing.Union[typing.Dict, typing.List]:
+        return output_data + 1
+
+    def dump_output_file(self, output_file: typing.Any) -> typing.Any:
+        pass
+
+
+class MySimpleProcessor(MyProcessor):
+    def load_input(self, input_data: typing.Any) -> typing.Any:
+        return input_data
+
+    def dump_output(
+        self, output_data: typing.Any
+    ) -> typing.Union[typing.Dict, typing.List]:
+        return output_data
 
 
 class MyControllerWrapper(InputOutputControllerWrapper):
@@ -101,7 +128,7 @@ class TestControllerWrapper(Base):
     def test_unit__base_controller_wrapper__ok__no_behaviour(self):
         context = MyContext(app=None)
         processor = MyProcessor()
-        wrapper = InputOutputControllerWrapper(context, processor)
+        wrapper = InputOutputControllerWrapper(context, lambda: processor)
 
         @wrapper.get_wrapper
         def func(foo):
@@ -113,7 +140,7 @@ class TestControllerWrapper(Base):
     def test_unit__base_controller__ok__replaced_response(self):
         context = MyContext(app=None)
         processor = MyProcessor()
-        wrapper = MyControllerWrapper(context, processor)
+        wrapper = MyControllerWrapper(context, lambda: processor)
 
         @wrapper.get_wrapper
         def func(foo):
@@ -127,7 +154,7 @@ class TestControllerWrapper(Base):
     def test_unit__controller_wrapper__ok__overload_input(self):
         context = MyContext(app=None)
         processor = MyProcessor()
-        wrapper = MyControllerWrapper(context, processor)
+        wrapper = MyControllerWrapper(context, lambda: processor)
 
         @wrapper.get_wrapper
         def func(foo, added_parameter=None):
@@ -151,7 +178,7 @@ class TestInputControllerWrapper(Base):
             )
         )
         processor = MyProcessor()
-        wrapper = MyInputQueryControllerWrapper(context, processor)
+        wrapper = MyInputQueryControllerWrapper(context, lambda: processor)
 
         @wrapper.get_wrapper
         def func(foo, hapic_data=None):
@@ -177,7 +204,7 @@ class TestInputControllerWrapper(Base):
         processor = MySimpleProcessor()
         wrapper = InputQueryControllerWrapper(
             context,
-            processor,
+            lambda: processor,
             as_list=['user_id'],
         )
 
@@ -205,7 +232,7 @@ class TestInputControllerWrapper(Base):
         processor = MySimpleProcessor()
         wrapper = InputQueryControllerWrapper(
             context,
-            processor,
+            lambda: processor,
         )
 
         @wrapper.get_wrapper
@@ -224,7 +251,7 @@ class TestOutputControllerWrapper(Base):
     def test_unit__output_data_wrapping__ok__nominal_case(self):
         context = MyContext(app=None)
         processor = MyProcessor()
-        wrapper = OutputControllerWrapper(context, processor)
+        wrapper = OutputControllerWrapper(context, lambda: processor)
 
         @wrapper.get_wrapper
         def func(foo, hapic_data=None):
@@ -238,9 +265,9 @@ class TestOutputControllerWrapper(Base):
 
     def test_unit__output_data_wrapping__fail__error_response(self):
         context = MyContext(app=None)
-        processor = MarshmallowOutputProcessor()
-        processor.schema = MySchema()
-        wrapper = OutputControllerWrapper(context, processor)
+        processor = MarshmallowProcessor()
+        processor.set_schema(MySchema())
+        wrapper = OutputControllerWrapper(context, lambda: processor)
 
         @wrapper.get_wrapper
         def func(foo):

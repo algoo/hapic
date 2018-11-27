@@ -1,10 +1,44 @@
 # -*- coding: utf-8 -*-
+import functools
 import logging
 import os
 import typing
 import uuid
-import functools
 
+from hapic.buffer import DecorationBuffer
+from hapic.context import ContextInterface
+from hapic.decorator import DECORATION_ATTRIBUTE_NAME
+from hapic.decorator import AsyncExceptionHandlerControllerWrapper
+from hapic.decorator import AsyncInputBodyControllerWrapper
+from hapic.decorator import AsyncOutputBodyControllerWrapper
+from hapic.decorator import AsyncOutputStreamControllerWrapper
+from hapic.decorator import ControllerReference
+from hapic.decorator import DecoratedController
+from hapic.decorator import ExceptionHandlerControllerWrapper
+from hapic.decorator import InputBodyControllerWrapper
+from hapic.decorator import InputFilesControllerWrapper
+from hapic.decorator import InputFormsControllerWrapper
+from hapic.decorator import InputHeadersControllerWrapper
+from hapic.decorator import InputPathControllerWrapper
+from hapic.decorator import InputQueryControllerWrapper
+from hapic.decorator import OutputBodyControllerWrapper
+from hapic.decorator import OutputFileControllerWrapper
+from hapic.decorator import OutputHeadersControllerWrapper
+from hapic.description import ErrorDescription
+from hapic.description import InputBodyDescription
+from hapic.description import InputFilesDescription
+from hapic.description import InputFormsDescription
+from hapic.description import InputHeadersDescription
+from hapic.description import InputPathDescription
+from hapic.description import InputQueryDescription
+from hapic.description import OutputBodyDescription
+from hapic.description import OutputFileDescription
+from hapic.description import OutputHeadersDescription
+from hapic.description import OutputStreamDescription
+from hapic.doc import DocGenerator
+from hapic.error import ErrorBuilderInterface
+from hapic.processor.main import Processor
+from hapic.processor.marshmallow import MarshmallowProcessor
 from hapic.util import LOGGER_NAME
 
 try:  # Python 3.5+
@@ -12,44 +46,11 @@ try:  # Python 3.5+
 except ImportError:
     from http import client as HTTPStatus
 
-from hapic.buffer import DecorationBuffer
-from hapic.context import ContextInterface
-from hapic.decorator import DecoratedController
-from hapic.decorator import DECORATION_ATTRIBUTE_NAME
-from hapic.decorator import ControllerReference
-from hapic.decorator import ExceptionHandlerControllerWrapper
-from hapic.decorator import AsyncExceptionHandlerControllerWrapper
-from hapic.decorator import InputBodyControllerWrapper
-from hapic.decorator import AsyncInputBodyControllerWrapper
-from hapic.decorator import InputHeadersControllerWrapper
-from hapic.decorator import InputPathControllerWrapper
-from hapic.decorator import InputQueryControllerWrapper
-from hapic.decorator import InputFormsControllerWrapper
-from hapic.decorator import InputFilesControllerWrapper
-from hapic.decorator import OutputBodyControllerWrapper
-from hapic.decorator import AsyncOutputBodyControllerWrapper
-from hapic.decorator import AsyncOutputStreamControllerWrapper
-from hapic.decorator import OutputHeadersControllerWrapper
-from hapic.decorator import OutputFileControllerWrapper
-from hapic.description import InputBodyDescription
-from hapic.description import ErrorDescription
-from hapic.description import InputFormsDescription
-from hapic.description import InputHeadersDescription
-from hapic.description import InputPathDescription
-from hapic.description import InputQueryDescription
-from hapic.description import InputFilesDescription
-from hapic.description import OutputBodyDescription
-from hapic.description import OutputStreamDescription
-from hapic.description import OutputHeadersDescription
-from hapic.description import OutputFileDescription
-from hapic.doc import DocGenerator
-from hapic.processor import ProcessorInterface
-from hapic.processor import FileOutputProcessor
-from hapic.processor import MarshmallowInputProcessor
-from hapic.processor import MarshmallowInputFilesProcessor
-from hapic.processor import MarshmallowOutputProcessor
-from hapic.error import ErrorBuilderInterface
 
+
+# Note: Schema can be anything. This is the Processor
+# responsability to be able deal with it.
+TYPE_SCHEMA = typing.Any
 
 # TODO: Gérer les cas ou c'est une liste la réponse (items, item_nb), see #12
 # TODO: Confusion nommage body/json/forms, see #13
@@ -83,6 +84,7 @@ class Hapic(object):
             return self._context.get_default_error_builder()
 
         self._context_getter = context_getter
+        self._processor_class = MarshmallowProcessor  # type: typing.Type[Processor]  # nopep8
         self._error_builder_getter = error_builder_getter
 
         # TODO: Permettre la surcharge des classes utilisés ci-dessous, see #14
@@ -101,6 +103,35 @@ class Hapic(object):
 
     def reset_context(self) -> None:
         self._context = None
+
+    def set_processor_class(
+        self,
+        processor_class: typing.Type[Processor],
+    ) -> None:
+        self._processor_class = processor_class
+
+    def _get_processor_factory(
+        self,
+        schema: typing.Any,
+        processor: Processor = None,
+    ) -> typing.Callable[[], Processor]:
+        """
+        :param schema: Schema to be give to final processor instance
+        :param processor: Optional Processor instance. If no given,
+            use hapic default processor class instance
+        :return: A callable able to return an Processor instance
+        """
+        if processor is not None:
+            def get_processor():
+                processor.set_schema(schema)
+                return processor
+            return get_processor
+
+        def get_default_processor():
+            processor_ = self._processor_class()
+            processor_.set_schema(schema)
+            return processor_
+        return get_default_processor
 
     def with_api_doc(self, tags: typing.List['str']=None):
         """
@@ -161,26 +192,25 @@ class Hapic(object):
     def output_body(
         self,
         schema: typing.Any,
-        processor: ProcessorInterface = None,
+        processor: Processor = None,
         context: ContextInterface = None,
         error_http_code: HTTPStatus = HTTPStatus.INTERNAL_SERVER_ERROR,
         default_http_code: HTTPStatus = HTTPStatus.OK,
     ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Any]:
-        processor = processor or MarshmallowOutputProcessor()
-        processor.schema = schema
+        processor_factory = self._get_processor_factory(schema, processor)
         context = context or self._context_getter
 
         if self._async:
             decoration = AsyncOutputBodyControllerWrapper(
                 context=context,
-                processor=processor,
+                processor_factory=processor_factory,
                 error_http_code=error_http_code,
                 default_http_code=default_http_code,
             )
         else:
             decoration = OutputBodyControllerWrapper(
                 context=context,
-                processor=processor,
+                processor_factory=processor_factory,
                 error_http_code=error_http_code,
                 default_http_code=default_http_code,
             )
@@ -193,7 +223,7 @@ class Hapic(object):
     def output_stream(
         self,
         item_schema: typing.Any,
-        processor: ProcessorInterface = None,
+        processor: Processor = None,
         context: ContextInterface = None,
         error_http_code: HTTPStatus = HTTPStatus.INTERNAL_SERVER_ERROR,
         default_http_code: HTTPStatus = HTTPStatus.OK,
@@ -204,7 +234,7 @@ class Hapic(object):
         stream.
 
         :param item_schema: Schema of output stream items
-        :param processor: ProcessorInterface object to process with given
+        :param processor: Processor object to process with given
         schema
         :param context: Context to use here
         :param error_http_code: http code in case of error
@@ -213,14 +243,13 @@ class Hapic(object):
         ignored: stream will not send this failed object
         :return: decorator
         """
-        processor = processor or MarshmallowOutputProcessor()
-        processor.schema = item_schema
+        processor_factory = self._get_processor_factory(item_schema, processor)
         context = context or self._context_getter
 
         if self._async:
             decoration = AsyncOutputStreamControllerWrapper(
                 context=context,
-                processor=processor,
+                processor_factory=processor_factory,
                 error_http_code=error_http_code,
                 default_http_code=default_http_code,
                 ignore_on_error=ignore_on_error,
@@ -237,18 +266,17 @@ class Hapic(object):
     def output_headers(
         self,
         schema: typing.Any,
-        processor: ProcessorInterface = None,
+        processor: Processor = None,
         context: ContextInterface = None,
         error_http_code: HTTPStatus = HTTPStatus.BAD_REQUEST,
         default_http_code: HTTPStatus = HTTPStatus.OK,
     ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Any]:
-        processor = processor or MarshmallowOutputProcessor()
-        processor.schema = schema
+        processor_factory = self._get_processor_factory(schema, processor)
         context = context or self._context_getter
 
         decoration = OutputHeadersControllerWrapper(
             context=context,
-            processor=processor,
+            processor_factory=processor_factory,
             error_http_code=error_http_code,
             default_http_code=default_http_code,
         )
@@ -263,15 +291,16 @@ class Hapic(object):
     def output_file(
         self,
         output_types: typing.List[str],
-        processor: ProcessorInterface = None,
+        processor: Processor = None,
         context: ContextInterface = None,
         default_http_code: HTTPStatus = HTTPStatus.OK,
     ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Any]:
-        processor = processor or FileOutputProcessor()
+        # TODO BS 2018-11-16: This is not smart to give None instead schema
+        processor_factory = self._get_processor_factory(None, processor)
         context = context or self._context_getter
         decoration = OutputFileControllerWrapper(
             context=context,
-            processor=processor,
+            processor_factory=processor_factory,
             output_types=output_types,
             default_http_code=default_http_code,
         )
@@ -284,18 +313,17 @@ class Hapic(object):
     def input_headers(
         self,
         schema: typing.Any,
-        processor: ProcessorInterface = None,
+        processor: Processor = None,
         context: ContextInterface = None,
         error_http_code: HTTPStatus = HTTPStatus.BAD_REQUEST,
         default_http_code: HTTPStatus = HTTPStatus.OK,
     ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Any]:
-        processor = processor or MarshmallowInputProcessor()
-        processor.schema = schema
+        processor_factory = self._get_processor_factory(schema, processor)
         context = context or self._context_getter
 
         decoration = InputHeadersControllerWrapper(
             context=context,
-            processor=processor,
+            processor_factory=processor_factory,
             error_http_code=error_http_code,
             default_http_code=default_http_code,
         )
@@ -308,18 +336,17 @@ class Hapic(object):
     def input_path(
         self,
         schema: typing.Any,
-        processor: ProcessorInterface = None,
+        processor: Processor = None,
         context: ContextInterface = None,
         error_http_code: HTTPStatus = HTTPStatus.BAD_REQUEST,
         default_http_code: HTTPStatus = HTTPStatus.OK,
     ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Any]:
-        processor = processor or MarshmallowInputProcessor()
-        processor.schema = schema
+        processor_factory = self._get_processor_factory(schema, processor)
         context = context or self._context_getter
 
         decoration = InputPathControllerWrapper(
             context=context,
-            processor=processor,
+            processor_factory=processor_factory,
             error_http_code=error_http_code,
             default_http_code=default_http_code,
         )
@@ -332,19 +359,18 @@ class Hapic(object):
     def input_query(
         self,
         schema: typing.Any,
-        processor: ProcessorInterface = None,
+        processor: Processor = None,
         context: ContextInterface = None,
         error_http_code: HTTPStatus = HTTPStatus.BAD_REQUEST,
         default_http_code: HTTPStatus = HTTPStatus.OK,
         as_list: typing.List[str]=None,
     ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Any]:
-        processor = processor or MarshmallowInputProcessor()
-        processor.schema = schema
+        processor_factory = self._get_processor_factory(schema, processor)
         context = context or self._context_getter
 
         decoration = InputQueryControllerWrapper(
             context=context,
-            processor=processor,
+            processor_factory=processor_factory,
             error_http_code=error_http_code,
             default_http_code=default_http_code,
             as_list=as_list,
@@ -358,26 +384,25 @@ class Hapic(object):
     def input_body(
         self,
         schema: typing.Any,
-        processor: ProcessorInterface = None,
+        processor: Processor = None,
         context: ContextInterface = None,
         error_http_code: HTTPStatus = HTTPStatus.BAD_REQUEST,
         default_http_code: HTTPStatus = HTTPStatus.OK,
     ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Any]:
-        processor = processor or MarshmallowInputProcessor()
-        processor.schema = schema
+        processor_factory = self._get_processor_factory(schema, processor)
         context = context or self._context_getter
 
         if self._async:
             decoration = AsyncInputBodyControllerWrapper(
                 context=context,
-                processor=processor,
+                processor_factory=processor_factory,
                 error_http_code=error_http_code,
                 default_http_code=default_http_code,
             )
         else:
             decoration = InputBodyControllerWrapper(
                 context=context,
-                processor=processor,
+                processor_factory=processor_factory,
                 error_http_code=error_http_code,
                 default_http_code=default_http_code,
             )
@@ -390,18 +415,17 @@ class Hapic(object):
     def input_forms(
         self,
         schema: typing.Any,
-        processor: ProcessorInterface=None,
+        processor: Processor=None,
         context: ContextInterface=None,
         error_http_code: HTTPStatus = HTTPStatus.BAD_REQUEST,
         default_http_code: HTTPStatus = HTTPStatus.OK,
     ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Any]:
-        processor = processor or MarshmallowInputProcessor()
-        processor.schema = schema
+        processor_factory = self._get_processor_factory(schema, processor)
         context = context or self._context_getter
 
         decoration = InputFormsControllerWrapper(
             context=context,
-            processor=processor,
+            processor_factory=processor_factory,
             error_http_code=error_http_code,
             default_http_code=default_http_code,
         )
@@ -414,18 +438,17 @@ class Hapic(object):
     def input_files(
         self,
         schema: typing.Any,
-        processor: ProcessorInterface=None,
+        processor: Processor=None,
         context: ContextInterface=None,
         error_http_code: HTTPStatus = HTTPStatus.BAD_REQUEST,
         default_http_code: HTTPStatus = HTTPStatus.OK,
     ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Any]:
-        processor = processor or MarshmallowInputFilesProcessor()
-        processor.schema = schema
+        processor_factory = self._get_processor_factory(schema, processor)
         context = context or self._context_getter
 
         decoration = InputFilesControllerWrapper(
             context=context,
-            processor=processor,
+            processor_factory=processor_factory,
             error_http_code=error_http_code,
             default_http_code=default_http_code,
         )
@@ -466,7 +489,12 @@ class Hapic(object):
             return decoration.get_wrapper(func)
         return decorator
 
-    def generate_doc(self, title: str='', description: str='') -> dict:
+    def generate_doc(
+        self,
+        title: str='',
+        description: str='',
+        version: str = '1.0.0',
+    ) -> dict:
         """
         See hapic.doc.DocGenerator#get_doc docstring
         :param title: Title of generated doc
@@ -474,10 +502,12 @@ class Hapic(object):
         :return: dict containing apispec doc
         """
         return self.doc_generator.get_doc(
+            self,
             self._controllers,
             self.context,
             title=title,
             description=description,
+            version=version,
         )
 
     def save_doc_in_file(
