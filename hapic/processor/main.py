@@ -2,6 +2,7 @@ import abc
 import os
 import typing
 
+from apispec import BasePlugin
 from multidict.__init__ import MultiDict
 
 from hapic.data import HapicFile
@@ -75,6 +76,17 @@ class Processor(metaclass=abc.ABCMeta):
         :param schema: schema object useable by the processor
         """
         self._schema = schema
+
+    @classmethod
+    @abc.abstractmethod
+    def create_apispec_plugin(
+        cls,
+        schema_name_resolver: typing.Callable,
+    ) -> BasePlugin:
+        """
+        Must return instance of matching apispec plugin to use for generate
+        OpenAPI documentation.
+        """
 
     @property
     def schema(self):

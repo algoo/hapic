@@ -8,7 +8,9 @@ python:
 
 install:
   - python setup.py develop
-  - pip install -e ."[test]"
+  - if [[ $TRAVIS_PYTHON_VERSION == 3.5 ]]; pip install -e ."[test_marshmallow]"; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; pip install -e ."[test]"; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == 3.7 ]]; pip install -e ."[test]"; fi
 
 script: 
   - pytest --cov=hapic tests -vvvvv

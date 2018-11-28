@@ -1,26 +1,18 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
 import json
 import typing
 
 from apispec import APISpec
 from apispec import BasePlugin
 from apispec.ext.marshmallow import MarshmallowPlugin
-from apispec_hapic_marshmallow import HapicMarshmallowPlugin
 from apispec_hapic_marshmallow import schema_class_resolver
-from apispec_serpyco import SerpycoPlugin
 import marshmallow
+import yaml
 
 from hapic.context import ContextInterface
 from hapic.context import RouteRepresentation
 from hapic.decorator import DecoratedController
 from hapic.description import ControllerDescription
-from hapic.processor.marshmallow import MarshmallowProcessor
-from hapic.processor.serpyco import SerpycoProcessor
-import yaml
-
-if typing.TYPE_CHECKING:
-    from hapic.hapic import Hapic
-
 
 FIELDS_PARAMS_GENERIC_ACCEPTED = [
     'type',
@@ -29,7 +21,6 @@ FIELDS_PARAMS_GENERIC_ACCEPTED = [
     'description',
     'enum',
 ]
-
 FIELDS_TYPE_ARRAY = [
     'array',
 ]
@@ -41,7 +32,6 @@ FIELDS_PARAMS_ARRAY_ACCEPTED = [
     'minitems',
     'uniqueitems',
 ]
-
 FIELDS_TYPE_STRING = [
     'string',
 ]
@@ -50,9 +40,8 @@ FIELDS_PARAMS_STRING_ACCEPTED = [
     'minLength',
     'pattern',
 ]
-
 FIELDS_TYPE_NUMERIC = [
-    'number', 
+    'number',
     'integer',
 ]
 FIELDS_PARAMS_NUMERIC_ACCEPTED = [
@@ -280,13 +269,6 @@ def bottle_generate_operations(
     return operations
 
 
-# def marshmallow_schema_sanitizer(schema_cls_or_instance) -> typing.Type[Schema]:
-#     if isinstance(schema_cls_or_instance, Schema):
-#         # FIXME BS 2018-11-22: What about many, only/exclude ... ?
-#         return schema_cls_or_instance.__class__
-#     return schema_cls_or_instance
-
-
 class DocGenerator(object):
     def get_doc(
         self,
@@ -307,26 +289,9 @@ class DocGenerator(object):
         :param description: The generated doc description
         :return: a apispec documentation dict
         """
-        main_plugin = None  # type: BasePlugin
-        # schema_sanitizer = None  # type: typing.Callable
-
-        # TODO BS 2018-11-22: This is a weak method to determine
-        # apispec plugings
-        if issubclass(hapic._processor_class, MarshmallowProcessor):
-            main_plugin = HapicMarshmallowPlugin(
-            # main_plugin = MarshmallowPlugin(
-                schema_name_resolver=generate_schema_name,
-            )
-            # schema_sanitizer = marshmallow_schema_sanitizer
-        elif issubclass(hapic._processor_class, SerpycoProcessor):
-            main_plugin = SerpycoPlugin(
-                schema_name_resolver=generate_schema_name,
-            )
-            # schema_sanitizer = lambda s: s
-        else:
-            raise NotImplementedError('Unknown processor "{}"'.format(
-                hapic._processor_class.__name__,
-            ))
+        main_plugin = hapic.processor_class.create_apispec_plugin(
+            schema_name_resolver=generate_schema_name,
+        )
 
         plugins = (main_plugin, )
         spec = APISpec(
@@ -445,7 +410,6 @@ class DocGenerator(object):
             doc_file.write(doc_yaml)
 
 
-# TODO BS 20171109: Must take care of already existing definition names
 def generate_schema_name(schema: marshmallow.Schema):
     """
     Return best candidate name for one schema cls or instance.

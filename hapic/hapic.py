@@ -35,7 +35,7 @@ from hapic.description import OutputBodyDescription
 from hapic.description import OutputFileDescription
 from hapic.description import OutputHeadersDescription
 from hapic.description import OutputStreamDescription
-from hapic.doc import DocGenerator
+from hapic.doc.main import DocGenerator
 from hapic.error import ErrorBuilderInterface
 from hapic.processor.main import Processor
 from hapic.processor.marshmallow import MarshmallowProcessor
@@ -88,6 +88,10 @@ class Hapic(object):
         self._error_builder_getter = error_builder_getter
 
         # TODO: Permettre la surcharge des classes utilisés ci-dessous, see #14
+
+    @property
+    def processor_class(self) -> typing.Type[Processor]:
+        return self._processor_class
 
     @property
     def controllers(self) -> typing.List[DecoratedController]:

@@ -1,6 +1,8 @@
 import logging
 import typing
 
+from apispec import BasePlugin
+from apispec_serpyco import SerpycoPlugin
 from multidict import MultiDictProxy
 import serpyco
 from serpyco import ValidationError
@@ -42,6 +44,15 @@ class SerpycoProcessor(Processor):
         self._only = only
         self._exclude = exclude
         self._many = many
+
+    @classmethod
+    def create_apispec_plugin(
+        cls,
+        schema_name_resolver: typing.Callable,
+    ) -> BasePlugin:
+        return SerpycoPlugin(
+            schema_name_resolver=schema_name_resolver,
+        )
 
     @property
     def serializer(self) -> Serializer:

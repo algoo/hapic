@@ -1,6 +1,9 @@
 import os
 import typing
 
+from apispec import BasePlugin
+from apispec_hapic_marshmallow import HapicMarshmallowPlugin
+
 from hapic.data import HapicFile
 from hapic.exception import OutputValidationException
 from hapic.processor.main import Processor
@@ -11,6 +14,15 @@ class MarshmallowProcessor(Processor):
     """
     Marshmallow implementation of Processor
     """
+    @classmethod
+    def create_apispec_plugin(
+        cls,
+        schema_name_resolver: typing.Callable,
+    ) -> BasePlugin:
+        return HapicMarshmallowPlugin(
+            schema_name_resolver=schema_name_resolver,
+        )
+
     def clean_data(self, data: typing.Any) -> dict:
         """
         Transform data in readable data for processor itself.

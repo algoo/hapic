@@ -27,10 +27,10 @@ marshmallow_require = [
     'apispec_hapic_marshmallow',
 ]
 serpyco_require = [
-    'serpyco>=0.15',
+    'serpyco>=0.15.1',
     'apispec_serpyco>=0.4',
 ]
-tests_require = [
+tests_base_require = [
     'pytest',
     'pytest-cov',
     'bottle',
@@ -40,10 +40,13 @@ tests_require = [
     'aiohttp',
     'pytest-aiohttp',
     'pillow'
-] + marshmallow_require + serpyco_require
+]
+tests_marshmallow_require = tests_base_require + marshmallow_require
+tests_serpyco_require = tests_base_require + serpyco_require
+tests_all_require = tests_base_require + serpyco_require + marshmallow_require
 dev_require = [
     'requests',
-] + tests_require
+] + tests_base_require + marshmallow_require + serpyco_require
 
 
 # Python 3.4 require
@@ -96,7 +99,9 @@ setup(
     # for example:
     # $ pip install -e ".[test]"
     extras_require={
-        'test': tests_require,
+        'test': tests_all_require,
+        'test_serpyco': tests_serpyco_require,
+        'test_marshmallow': tests_marshmallow_require,
         'dev': dev_require,
         'serpyco': dev_require,
         'marshmallow': dev_require,
@@ -121,6 +126,6 @@ setup(
     entry_points={},
     setup_requires=[],
     dependency_links=[],
-    tests_require=tests_require,
+    tests_require=tests_all_require,
     include_package_data=True,
 )

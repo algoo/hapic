@@ -27,8 +27,6 @@ except ImportError:
     from http import client as HTTPStatus
 
 
-
-
 class MyProcessor(Processor):
     def get_input_files_validation_error(
         self,
@@ -40,6 +38,13 @@ class MyProcessor(Processor):
         pass
 
     def clean_data(self, raw_data: typing.Any) -> dict:
+        pass
+
+    @classmethod
+    def create_apispec_plugin(
+        cls,
+        schema_name_resolver: typing.Callable,
+    ):
         pass
 
     def get_input_validation_error(
