@@ -8,6 +8,9 @@ from multidict.__init__ import MultiDict
 from hapic.data import HapicFile
 from hapic.exception import ConfigurationException
 
+if typing.TYPE_CHECKING:
+    from hapic.hapic import TYPE_SCHEMA
+
 
 class RequestParameters(object):
     def __init__(
@@ -81,11 +84,23 @@ class Processor(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def create_apispec_plugin(
         cls,
-        schema_name_resolver: typing.Callable,
+        schema_name_resolver: typing.Optional[typing.Callable] = None,
     ) -> BasePlugin:
         """
         Must return instance of matching apispec plugin to use for generate
         OpenAPI documentation.
+        """
+
+    @classmethod
+    @abc.abstractmethod
+    def generate_schema_ref(
+        cls,
+        main_plugin: BasePlugin,
+        schema: 'TYPE_SCHEMA',
+    ) -> dict:
+        """
+        Must return OpenApi $ref in a dict,
+        eg. {"$ref": "#/definitions/MySchema"}
         """
 
     @property

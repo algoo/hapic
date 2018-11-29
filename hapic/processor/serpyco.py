@@ -3,6 +3,7 @@ import typing
 
 from apispec import BasePlugin
 from apispec_serpyco import SerpycoPlugin
+from apispec_serpyco.utils import schema_name_resolver as schema_name_resolver_
 from multidict import MultiDictProxy
 import serpyco
 from serpyco import ValidationError
@@ -48,11 +49,30 @@ class SerpycoProcessor(Processor):
     @classmethod
     def create_apispec_plugin(
         cls,
-        schema_name_resolver: typing.Callable,
+        schema_name_resolver: typing.Optional[typing.Callable] = None,
     ) -> BasePlugin:
+        schema_name_resolver = schema_name_resolver or schema_name_resolver_
         return SerpycoPlugin(
             schema_name_resolver=schema_name_resolver,
         )
+
+    @classmethod
+    def generate_schema_ref(
+        cls,
+        main_plugin: SerpycoPlugin,
+        schema: type,
+    ) -> dict:
+        """
+        Return OpenApi $ref in a dict,
+        eg. {"$ref": "#/definitions/MySchema"}
+        """
+        ref = {
+            '$ref': '#/definitions/{}'.format(
+                main_plugin.schema_name_resolver(schema)
+            )
+        }
+
+        return ref
 
     @property
     def serializer(self) -> Serializer:

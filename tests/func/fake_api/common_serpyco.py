@@ -61,7 +61,7 @@ serpyco_SWAGGER_DOC_API = {
             'required': ['first_id', 'last_id', 'current_id'],
             'description': 'A docstring to prevent auto generated docstring',
             },
-        'UserSchema_only_id_username_display_name_company': {
+        'UserSchema_exclude_first_name_last_name_email_address': {
             'type': 'object',
             'properties': {
                 'display_name': {'type': 'string'},
@@ -74,7 +74,7 @@ serpyco_SWAGGER_DOC_API = {
             },
         'ListsUserSchema': {
             'type': 'object',
-            'properties': {'pagination': {'$ref': '#/definitions/PaginationSchema_exclude_first_id_last_id_current_id'},
+            'properties': {'pagination': {'$ref': '#/definitions/PaginationSchema'},
                            'item_nb': {'type': 'integer',
                            'minimum': 0}, 'items': {'type': 'array',
                            'items': {'$ref': '#/definitions/UserSchema_exclude_first_name_last_name_email_address'}}},

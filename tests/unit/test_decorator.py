@@ -2,6 +2,7 @@
 import json
 import typing
 
+from apispec import BasePlugin
 import marshmallow
 from multidict import MultiDict
 import pytest
@@ -27,7 +28,19 @@ except ImportError:
     from http import client as HTTPStatus
 
 
+if typing.TYPE_CHECKING:
+    from hapic.hapic import TYPE_SCHEMA
+
+
 class MyProcessor(Processor):
+    @classmethod
+    def generate_schema_ref(
+        cls,
+        main_plugin: BasePlugin,
+        schema: 'TYPE_SCHEMA',
+    ) -> dict:
+        pass
+
     def get_input_files_validation_error(
         self,
         data_to_validate: typing.Any,
@@ -43,7 +56,7 @@ class MyProcessor(Processor):
     @classmethod
     def create_apispec_plugin(
         cls,
-        schema_name_resolver: typing.Callable,
+        schema_name_resolver: typing.Optional[typing.Callable] = None,
     ):
         pass
 

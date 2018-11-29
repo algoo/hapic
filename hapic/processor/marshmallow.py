@@ -1,10 +1,11 @@
-import os
 import typing
 
 from apispec import BasePlugin
 from apispec_hapic_marshmallow import HapicMarshmallowPlugin
+from apispec_hapic_marshmallow.common import generate_schema_name
+from apispec_hapic_marshmallow.common import schema_class_resolver
+from marshmallow import Schema
 
-from hapic.data import HapicFile
 from hapic.exception import OutputValidationException
 from hapic.processor.main import Processor
 from hapic.processor.main import ProcessValidationError
@@ -17,11 +18,42 @@ class MarshmallowProcessor(Processor):
     @classmethod
     def create_apispec_plugin(
         cls,
-        schema_name_resolver: typing.Callable,
+        schema_name_resolver: typing.Optional[typing.Callable] = None,
     ) -> BasePlugin:
+        schema_name_resolver = schema_name_resolver or generate_schema_name
+
         return HapicMarshmallowPlugin(
             schema_name_resolver=schema_name_resolver,
         )
+
+    @classmethod
+    def generate_schema_ref(
+        cls,
+        main_plugin: HapicMarshmallowPlugin,
+        schema: Schema,
+    ) -> dict:
+        """
+        Return OpenApi $ref in a dict,
+        eg. {"$ref": "#/definitions/MySchema"} or
+            {'type': 'array', 'items': {"$ref": "#/definitions/MySchema"}}
+        """
+        schema_class = schema_class_resolver(
+            main_plugin,
+            schema
+        )
+        ref = {
+            '$ref': '#/definitions/{}'.format(
+                main_plugin.schema_name_resolver(schema_class)
+            )
+        }
+
+        if schema.many:
+            return {
+                'type': 'array',
+                'items': ref
+            }
+
+        return ref
 
     def clean_data(self, data: typing.Any) -> dict:
         """
