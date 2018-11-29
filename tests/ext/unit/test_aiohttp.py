@@ -1,9 +1,9 @@
 # coding: utf-8
 import sys
 
-import pytest
 from aiohttp import web
 import marshmallow
+import pytest
 
 from hapic import Hapic
 from hapic import HapicData

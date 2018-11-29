@@ -1,13 +1,14 @@
-import pytest
+# coding: utf-8
+from bottle import Bottle
 from flask import Flask
 from pyramid.config import Configurator
+import pytest
 from webtest import TestApp
-from bottle import Bottle
 
+from example.fake_api.bottle_api import BottleController
 from example.fake_api.flask_api import FlaskController
 from example.fake_api.pyramid_api import PyramidController
 from hapic.ext.bottle import BottleContext
-from example.fake_api.bottle_api import BottleController
 from hapic.ext.flask import FlaskContext
 from hapic.ext.pyramid import PyramidContext
 from tests.func.fake_api.common import SWAGGER_DOC_API
@@ -57,7 +58,7 @@ def get_pyramid_context():
                          [
                              get_bottle_context(),
                              get_flask_context(),
-                             get_pyramid_context()
+                             get_pyramid_context(),
                          ])
 def test_func__test_fake_api_endpoints_ok__all_framework(context):
     hapic = context['hapic']

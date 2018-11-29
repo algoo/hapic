@@ -1,9 +1,10 @@
 # coding: utf-8
+from http import HTTPStatus
 import json
 import re
 import typing
-from http import HTTPStatus
 
+from aiohttp import web
 from aiohttp.web_request import Request
 from aiohttp.web_response import Response
 from multidict import MultiDict
@@ -11,24 +12,22 @@ from multidict import MultiDict
 from hapic.context import BaseContext
 from hapic.context import HandledException
 from hapic.context import RouteRepresentation
-from hapic.decorator import DecoratedController
 from hapic.decorator import DECORATION_ATTRIBUTE_NAME
-from hapic.error import ErrorBuilderInterface
+from hapic.decorator import DecoratedController
 from hapic.error import DefaultErrorBuilder
-from hapic.exception import WorkflowException
-from hapic.exception import OutputValidationException
+from hapic.error import ErrorBuilderInterface
 from hapic.exception import NoRoutesException
+from hapic.exception import OutputValidationException
 from hapic.exception import RouteNotFound
-from hapic.processor import ProcessValidationError
-from hapic.processor import RequestParameters
-from aiohttp import web
-
+from hapic.exception import WorkflowException
+from hapic.processor.main import ProcessValidationError
+from hapic.processor.main import RequestParameters
 
 # Aiohttp regular expression to locate url parameters
 AIOHTTP_RE_PATH_URL = re.compile(r'{([^:<>]+)(?::[^<>]+)?}')
 
 
-class AiohttpRequestParameters(object):
+class AiohttpRequestParameters(RequestParameters):
     def __init__(
         self,
         request: Request,
@@ -132,14 +131,13 @@ class AiohttpContext(BaseContext):
         *args,
         **kwargs
     ) -> RequestParameters:
-        try:
-            request = args[0]
-        except IndexError:
-            raise WorkflowException(
-                'Unable to get aiohttp request object',
-            )
-        request = typing.cast(Request, request)
-        return AiohttpRequestParameters(request)
+        for arg in args:
+            if isinstance(arg, Request):
+                return AiohttpRequestParameters(arg)
+
+        raise WorkflowException(
+            'Unable to get aiohttp request object',
+        )
 
     def get_response(
         self,

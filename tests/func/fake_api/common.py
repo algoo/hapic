@@ -1,6 +1,5 @@
 from collections import OrderedDict
 
-
 SWAGGER_DOC_API = {
  'definitions': {
      'AboutResponseSchema': {'properties': {

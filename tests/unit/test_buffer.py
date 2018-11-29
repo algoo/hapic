@@ -4,14 +4,14 @@ from unittest import mock
 import pytest
 
 from hapic.buffer import DecorationBuffer
+from hapic.description import ErrorDescription
+from hapic.description import InputBodyDescription
+from hapic.description import InputFormsDescription
+from hapic.description import InputHeadersDescription
 from hapic.description import InputPathDescription
 from hapic.description import InputQueryDescription
-from hapic.description import InputBodyDescription
-from hapic.description import InputHeadersDescription
-from hapic.description import InputFormsDescription
 from hapic.description import OutputBodyDescription
 from hapic.description import OutputHeadersDescription
-from hapic.description import ErrorDescription
 from hapic.exception import AlreadyDecoratedException
 from tests.base import Base
 

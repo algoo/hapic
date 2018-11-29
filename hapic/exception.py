@@ -37,7 +37,7 @@ class InputValidationException(InputWorkflowException, ProcessException):
     pass
 
 
-class OutputValidationException(InputWorkflowException, ProcessException):
+class OutputValidationException(OutputWorkflowException, ProcessException):
     pass
 
 
