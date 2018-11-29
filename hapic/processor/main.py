@@ -103,6 +103,27 @@ class Processor(metaclass=abc.ABCMeta):
         eg. {"$ref": "#/definitions/MySchema"}
         """
 
+    @classmethod
+    def schema_class_resolver(
+        cls,
+        main_plugin: BasePlugin,
+        schema: 'TYPE_SCHEMA',
+    ) -> 'TYPE_SCHEMA':
+        """
+        Return schema class with adaptation if needed.
+        :param main_plugin: associated Apispec plugin
+        :param schema: schema to proceed
+        :return: schema generated from given schema or original schema if
+            no change required.
+        """
+        """
+        Return schema class with adaptation if needed.
+        :param schema: schema to proceed
+        :return: schema generated from given schema or original schema if
+            no change required.
+        """
+        return schema
+
     @property
     def schema(self):
         if not self._schema:

@@ -4,9 +4,6 @@ import typing
 
 from apispec import APISpec
 from apispec import BasePlugin
-from apispec.ext.marshmallow import MarshmallowPlugin
-from apispec_hapic_marshmallow import schema_class_resolver
-import marshmallow
 import yaml
 
 from hapic.context import ContextInterface
@@ -283,19 +280,19 @@ class DocGenerator(object):
             description = controller.description
 
             if description.input_body:
-                schemas.append(schema_class_resolver(
+                schemas.append(hapic.processor_class.schema_class_resolver(
                     main_plugin,
                     description.input_body.wrapper.processor.schema
                 ))
 
             if description.input_forms:
-                schemas.append(schema_class_resolver(
+                schemas.append(hapic.processor_class.schema_class_resolver(
                     main_plugin,
                     description.input_forms.wrapper.processor.schema
                 ))
 
             if description.output_body:
-                schemas.append(schema_class_resolver(
+                schemas.append(hapic.processor_class.schema_class_resolver(
                     spec,
                     description.output_body.wrapper.processor.schema
                 ))
