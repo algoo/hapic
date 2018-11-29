@@ -3,7 +3,8 @@ import typing
 from apispec import BasePlugin
 from apispec_hapic_marshmallow import HapicMarshmallowPlugin
 from apispec_hapic_marshmallow.common import generate_schema_name
-from apispec_hapic_marshmallow.common import schema_class_resolver
+from apispec_hapic_marshmallow.common import schema_class_resolver \
+    as schema_class_resolver_
 from marshmallow import Schema
 
 from hapic.exception import OutputValidationException
@@ -37,7 +38,7 @@ class MarshmallowProcessor(Processor):
         eg. {"$ref": "#/definitions/MySchema"} or
             {'type': 'array', 'items': {"$ref": "#/definitions/MySchema"}}
         """
-        schema_class = schema_class_resolver(
+        schema_class = schema_class_resolver_(
             main_plugin,
             schema
         )
@@ -54,6 +55,21 @@ class MarshmallowProcessor(Processor):
             }
 
         return ref
+
+    @classmethod
+    def schema_class_resolver(
+        cls,
+        main_plugin: HapicMarshmallowPlugin,
+        schema: Schema,
+    ) -> Schema:
+        """
+        Return schema class with adaptation if needed.
+        :param main_plugin: Apispec plugin associated for marshmallow
+        :param schema: schema to proceed
+        :return: schema generated from given schema or original schema if
+            no change required.
+        """
+        return schema_class_resolver_(main_plugin, schema)
 
     def clean_data(self, data: typing.Any) -> dict:
         """
