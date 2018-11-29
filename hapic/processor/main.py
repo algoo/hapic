@@ -116,12 +116,6 @@ class Processor(metaclass=abc.ABCMeta):
         :return: schema generated from given schema or original schema if
             no change required.
         """
-        """
-        Return schema class with adaptation if needed.
-        :param schema: schema to proceed
-        :return: schema generated from given schema or original schema if
-            no change required.
-        """
         return schema
 
     @property
