@@ -24,7 +24,7 @@ install_requires = [
 ]
 marshmallow_require = [
     'marshmallow',
-    'apispec_hapic_marshmallow',
+    'apispec_hapic_marshmallow>=0.2',
 ]
 serpyco_require = [
     'apispec_serpyco>=0.5',
