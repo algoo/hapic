@@ -38,7 +38,10 @@ class MarshmallowProcessor(Processor):
         eg. {"$ref": "#/definitions/MySchema"} or
             {'type': 'array', 'items': {"$ref": "#/definitions/MySchema"}}
         """
-        schema_class = main_plugin.openapi.resolve_schema_cls(schema)
+        schema_class = schema_class_resolver_(
+            main_plugin,
+            schema
+        )
         ref = {
             '$ref': '#/definitions/{}'.format(
                 main_plugin.schema_name_resolver(schema_class)
