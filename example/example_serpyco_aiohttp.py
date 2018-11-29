@@ -4,7 +4,8 @@ from dataclasses import dataclass
 
 from aiohttp import web
 
-from hapic import Hapic, HapicData
+from hapic import Hapic
+from hapic import HapicData
 from hapic.ext.aiohttp.context import AiohttpContext
 from hapic.processor.serpyco import SerpycoProcessor
 
