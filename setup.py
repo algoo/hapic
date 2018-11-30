@@ -103,8 +103,8 @@ setup(
         'test_serpyco': tests_serpyco_require,
         'test_marshmallow': tests_marshmallow_require,
         'dev': dev_require,
-        'serpyco': dev_require,
-        'marshmallow': dev_require,
+        'serpyco': serpyco_require,
+        'marshmallow': marshmallow_require,
     },
 
     # If there are data files included in your packages that need to be
