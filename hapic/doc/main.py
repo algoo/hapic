@@ -160,12 +160,28 @@ def generate_operations(
             'description': str(int(description.output_file.wrapper.default_http_code)),  # nopep8
         }
 
+
     if description.errors:
+        http_status_errors = {}
         for error in description.errors:
-            schema_class = type(error.wrapper.error_builder)
+            if error.wrapper.http_code not in http_status_errors:
+                http_status_errors[error.wrapper.http_code] = [error]
+            else:
+                http_status_errors[error.wrapper.http_code].append(error)
+
+        for http_status in http_status_errors:
+            # FIXME - G.M - 2018-11-30 - We use schema class from first error
+            # for each status as openapi 2.0 doesn't support different schema
+            # result. This may cause incoherent result.
+            default_error = http_status_errors[http_status][0]
+            schema_class = type(default_error.wrapper.error_builder)
+            errors_description = set()
+            for error in http_status_errors[http_status]:
+                errors_description.add(error.wrapper.description)
+
             method_operations.setdefault('responses', {})\
-                [int(error.wrapper.http_code)] = {
-                    'description': str(int(error.wrapper.http_code)),
+                [int(http_status)] = {
+                    'description': '\n\n'.join(errors_description),
                     'schema': {
                         '$ref': '#/definitions/{}'.format(
                             main_plugin.schema_name_resolver(schema_class)

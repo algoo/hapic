@@ -308,6 +308,52 @@ class TestDocGeneration(Base):
             }
         } == doc['paths']['/upload']['post']['responses'][400]
 
+    def test_func__errors__multiple_same_http_status_description(self):
+        hapic = Hapic()
+        app = bottle.Bottle()
+        hapic.set_context(MyContext(app=app))
+
+        class MyFirstException(Exception):
+            pass
+
+        class MySecondException(Exception):
+            "Just a docstring"
+
+        class MyThirdException(Exception):
+            "Docstring not used"
+            pass
+
+        class MyFourthException(Exception):
+            pass
+
+        @hapic.with_api_doc()
+        @hapic.handle_exception(MyFirstException, http_code=HTTPStatus.BAD_REQUEST)
+        @hapic.handle_exception(MySecondException, http_code=HTTPStatus.BAD_REQUEST)
+        @hapic.handle_exception(MyThirdException, http_code=HTTPStatus.BAD_REQUEST, description='explicit description')
+        @hapic.handle_exception(MyFourthException, http_code=400)
+        def my_controller(hapic_data=None):
+            assert hapic_data
+
+        app.route('/upload', method='POST', callback=my_controller)
+        doc = hapic.generate_doc()
+
+        assert doc.get('paths')
+        assert '/upload' in doc['paths']
+        assert 'post' in doc['paths']['/upload']
+        assert 'responses' in doc['paths']['/upload']['post']
+        assert 400 in doc['paths']['/upload']['post']['responses']
+        assert 'description'
+
+        assert doc['paths']['/upload']['post']['responses'][400]['description']
+        descriptions = doc['paths']['/upload']['post']['responses'][400]['description'].split('\n\n')
+        assert "BAD_REQUEST: Bad request syntax or unsupported method" in descriptions
+        assert "explicit description" in descriptions
+        assert "400" in descriptions
+        assert "Just a docstring" in descriptions
+        assert not "Docstring not used" in descriptions
+        assert doc['paths']['/upload']['post']['responses'][400]['schema']
+        assert {'$ref': '#/definitions/DefaultErrorBuilder'} == doc['paths']['/upload']['post']['responses'][400]['schema']
+
     def test_func__enum__nominal_case(self):
         hapic = Hapic()
         # TODO BS 20171113: Make this test non-bottle
