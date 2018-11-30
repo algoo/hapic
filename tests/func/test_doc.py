@@ -1,4 +1,6 @@
 # coding: utf-8
+from http import HTTPStatus
+
 import bottle
 import marshmallow
 from marshmallow.validate import OneOf
@@ -191,11 +193,120 @@ class TestDocGeneration(Base):
         assert 'responses' in doc['paths']['/upload']['post']
         assert 500 in doc['paths']['/upload']['post']['responses']
         assert {
-            'description': "500",
+            'description': Exception.__doc__,
             'schema': {
                 '$ref': '#/definitions/DefaultErrorBuilder'
             }
         } == doc['paths']['/upload']['post']['responses'][500]
+
+    def test_func__errors__explicit_description(self):
+        hapic = Hapic()
+        app = bottle.Bottle()
+        hapic.set_context(MyContext(app=app))
+
+        @hapic.with_api_doc()
+        @hapic.handle_exception(description='Any Exception')
+        def my_controller(hapic_data=None):
+            assert hapic_data
+
+        app.route('/upload', method='POST', callback=my_controller)
+        doc = hapic.generate_doc()
+
+        assert doc.get('paths')
+        assert '/upload' in doc['paths']
+        assert 'post' in doc['paths']['/upload']
+        assert 'responses' in doc['paths']['/upload']['post']
+        assert 500 in doc['paths']['/upload']['post']['responses']
+        assert {
+            'description': "Any Exception",
+            'schema': {
+                '$ref': '#/definitions/DefaultErrorBuilder'
+            }
+        } == doc['paths']['/upload']['post']['responses'][500]
+
+    def test_func__errors__docstring_exception(self):
+        hapic = Hapic()
+        app = bottle.Bottle()
+        hapic.set_context(MyContext(app=app))
+
+        class MyException(Exception):
+            "Just a docstring"
+
+        @hapic.with_api_doc()
+        @hapic.handle_exception(description='Just a docstring')
+        def my_controller(hapic_data=None):
+            assert hapic_data
+
+        app.route('/upload', method='POST', callback=my_controller)
+        doc = hapic.generate_doc()
+
+        assert doc.get('paths')
+        assert '/upload' in doc['paths']
+        assert 'post' in doc['paths']['/upload']
+        assert 'responses' in doc['paths']['/upload']['post']
+        assert 500 in doc['paths']['/upload']['post']['responses']
+        assert {
+            'description': "Just a docstring",
+            'schema': {
+                '$ref': '#/definitions/DefaultErrorBuilder'
+            }
+        } == doc['paths']['/upload']['post']['responses'][500]
+
+    def test_func__errors__http_status_description(self):
+        hapic = Hapic()
+        app = bottle.Bottle()
+        hapic.set_context(MyContext(app=app))
+
+        class MyException(Exception):
+            pass
+
+        @hapic.with_api_doc()
+        @hapic.handle_exception(MyException, http_code=HTTPStatus.BAD_REQUEST)
+        def my_controller(hapic_data=None):
+            assert hapic_data
+
+        app.route('/upload', method='POST', callback=my_controller)
+        doc = hapic.generate_doc()
+
+        assert doc.get('paths')
+        assert '/upload' in doc['paths']
+        assert 'post' in doc['paths']['/upload']
+        assert 'responses' in doc['paths']['/upload']['post']
+        assert 400 in doc['paths']['/upload']['post']['responses']
+        assert {
+            'description': "BAD_REQUEST: Bad request syntax or unsupported method",
+            'schema': {
+                '$ref': '#/definitions/DefaultErrorBuilder'
+            }
+        } == doc['paths']['/upload']['post']['responses'][400]
+
+    def test_func__errors__http_status_as_int_description(self):
+        hapic = Hapic()
+        app = bottle.Bottle()
+        hapic.set_context(MyContext(app=app))
+
+        class MyException(Exception):
+            pass
+
+        @hapic.with_api_doc()
+        @hapic.handle_exception(MyException, http_code=400)
+        def my_controller(hapic_data=None):
+            assert hapic_data
+
+        app.route('/upload', method='POST', callback=my_controller)
+        doc = hapic.generate_doc()
+
+        assert doc.get('paths')
+        assert '/upload' in doc['paths']
+        assert 'post' in doc['paths']['/upload']
+        assert 'responses' in doc['paths']['/upload']['post']
+        assert 400 in doc['paths']['/upload']['post']['responses']
+        assert {
+            'description': "400",
+            'schema': {
+                '$ref': '#/definitions/DefaultErrorBuilder'
+            }
+        } == doc['paths']['/upload']['post']['responses'][400]
 
     def test_func__enum__nominal_case(self):
         hapic = Hapic()
