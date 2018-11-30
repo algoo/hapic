@@ -527,6 +527,7 @@ class Hapic(object):
         :param description: Description of generated doc
         """
         self.doc_generator.save_in_file(
+            self,
             file_path,
             controllers=self._controllers,
             context=self.context,
@@ -553,6 +554,7 @@ class Hapic(object):
 
         # Documentation file view
         doc_yaml = self.doc_generator.get_doc_yaml(
+            hapic=self,
             controllers=self._controllers,
             context=self.context,
             title=title,
