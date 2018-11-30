@@ -3,7 +3,7 @@ import traceback
 
 import marshmallow
 
-from hapic.processor import ProcessValidationError
+from hapic.processor.main import ProcessValidationError
 
 
 class ErrorBuilderInterface(marshmallow.Schema):

@@ -1,6 +1,9 @@
 # coding: utf-8
+import sys
+
 from aiohttp import web
 import marshmallow
+import pytest
 
 from hapic import Hapic
 from hapic import HapicData
@@ -209,6 +212,10 @@ class TestAiohttpExt(object):
         data = await resp.json()
         assert 'division by zero' == data.get('message')
 
+    @pytest.mark.skipif(
+        sys.version_info > (3, 6),
+        reason="requires python3.6 or inferior"
+    )
     async def test_aiohttp_output_stream__ok__nominal_case(
         self,
         aiohttp_client,
@@ -250,6 +257,41 @@ class TestAiohttpExt(object):
         line = await resp.content.readline()
         assert b'{"name": "Hello, franck"}\n' == line
 
+    @pytest.mark.skipif(
+        sys.version_info < (3, 7),
+        reason="requires python3.7 or higher"
+    )
+    async def test_aiohttp_output_stream__ok__py37(
+        self,
+        aiohttp_client,
+        loop,
+    ):
+        hapic = Hapic(async_=True)
+
+        class OuputStreamItemSchema(marshmallow.Schema):
+            name = marshmallow.fields.String()
+
+        from .py37.stream import get_func_with_output_stream
+        hello = get_func_with_output_stream(hapic, OuputStreamItemSchema)
+
+        app = web.Application(debug=True)
+        app.router.add_get('/', hello)
+        hapic.set_context(AiohttpContext(app))
+        client = await aiohttp_client(app)
+
+        resp = await client.get('/')
+        assert resp.status == 200
+
+        line = await resp.content.readline()
+        assert b'{"name": "Hello, bob"}\n' == line
+
+        line = await resp.content.readline()
+        assert b'{"name": "Hello, franck"}\n' == line
+
+    @pytest.mark.skipif(
+        sys.version_info > (3, 6),
+        reason="requires python3.6 or inferior"
+    )
     async def test_aiohttp_output_stream__error__ignore(
         self,
         aiohttp_client,
@@ -292,6 +334,44 @@ class TestAiohttpExt(object):
         line = await resp.content.readline()
         assert b'{"name": "Hello, franck"}\n' == line
 
+    @pytest.mark.skipif(
+        sys.version_info < (3, 7),
+        reason="requires python3.7 or higher"
+    )
+    async def test_aiohttp_output_stream__error__ignore_py37(
+        self,
+        aiohttp_client,
+        loop,
+    ):
+        hapic = Hapic(async_=True)
+
+        class OuputStreamItemSchema(marshmallow.Schema):
+            name = marshmallow.fields.String(required=True)
+
+        from .py37.stream import get_func_with_output_stream_and_error
+        hello = get_func_with_output_stream_and_error(
+            hapic,
+            OuputStreamItemSchema,
+        )
+
+        app = web.Application(debug=True)
+        app.router.add_get('/', hello)
+        hapic.set_context(AiohttpContext(app))
+        client = await aiohttp_client(app)
+
+        resp = await client.get('/')
+        assert resp.status == 200
+
+        line = await resp.content.readline()
+        assert b'{"name": "Hello, bob"}\n' == line
+
+        line = await resp.content.readline()
+        assert b'{"name": "Hello, franck"}\n' == line
+
+    @pytest.mark.skipif(
+        sys.version_info > (3, 6),
+        reason="requires python3.6 or inferior"
+    )
     async def test_aiohttp_output_stream__error__interrupt(
         self,
         aiohttp_client,
@@ -319,6 +399,41 @@ class TestAiohttpExt(object):
         @hapic.output_stream(OuputStreamItemSchema(), ignore_on_error=False)
         async def hello(request):
             return AsyncGenerator()
+
+        app = web.Application(debug=True)
+        app.router.add_get('/', hello)
+        hapic.set_context(AiohttpContext(app))
+        client = await aiohttp_client(app)
+
+        resp = await client.get('/')
+        assert resp.status == 200
+
+        line = await resp.content.readline()
+        assert b'{"name": "Hello, bob"}\n' == line
+
+        line = await resp.content.readline()
+        assert b'' == line
+
+    @pytest.mark.skipif(
+        sys.version_info < (3, 7),
+        reason="requires python3.7 or higher"
+    )
+    async def test_aiohttp_output_stream__error__interrupt_py37(
+        self,
+        aiohttp_client,
+        loop,
+    ):
+        hapic = Hapic(async_=True)
+
+        class OuputStreamItemSchema(marshmallow.Schema):
+            name = marshmallow.fields.String(required=True)
+
+        from .py37.stream import get_func_with_output_stream_and_error
+        hello = get_func_with_output_stream_and_error(
+            hapic,
+            OuputStreamItemSchema,
+            ignore_on_error=False,
+        )
 
         app = web.Application(debug=True)
         app.router.add_get('/', hello)

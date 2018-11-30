@@ -1,6 +1,6 @@
 # coding: utf-8
-import marshmallow
 import bottle
+import marshmallow
 from marshmallow.validate import OneOf
 
 from hapic import Hapic

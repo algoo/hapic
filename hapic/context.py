@@ -4,14 +4,14 @@ import typing
 
 from hapic.data import HapicFile
 from hapic.error import ErrorBuilderInterface
+from hapic.processor.main import ProcessValidationError
+from hapic.processor.main import RequestParameters
 
 try:  # Python 3.5+
     from http import HTTPStatus
 except ImportError:
     from http import client as HTTPStatus
 
-from hapic.processor import RequestParameters
-from hapic.processor import ProcessValidationError
 
 if typing.TYPE_CHECKING:
     from hapic.decorator import DecoratedController

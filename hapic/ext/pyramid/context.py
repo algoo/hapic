@@ -1,11 +1,21 @@
 # -*- coding: utf-8 -*-
+import cgi
 import json
 import logging
 import re
 import traceback
 import typing
 
+from hapic.context import BaseContext
+from hapic.context import RouteRepresentation
 from hapic.data import HapicFile
+from hapic.decorator import DECORATION_ATTRIBUTE_NAME
+from hapic.decorator import DecoratedController
+from hapic.error import DefaultErrorBuilder
+from hapic.error import ErrorBuilderInterface
+from hapic.exception import OutputValidationException
+from hapic.processor.main import ProcessValidationError
+from hapic.processor.main import RequestParameters
 from hapic.util import LOGGER_NAME
 
 try:  # Python 3.5+
@@ -13,16 +23,6 @@ try:  # Python 3.5+
 except ImportError:
     from http import client as HTTPStatus
 
-from hapic.context import BaseContext
-from hapic.context import RouteRepresentation
-from hapic.decorator import DecoratedController
-from hapic.decorator import DECORATION_ATTRIBUTE_NAME
-from hapic.exception import OutputValidationException
-from hapic.processor import RequestParameters
-from hapic.processor import ProcessValidationError
-from hapic.error import DefaultErrorBuilder
-from hapic.error import ErrorBuilderInterface
-import cgi
 
 if typing.TYPE_CHECKING:
     from pyramid.response import Response

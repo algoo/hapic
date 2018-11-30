@@ -1,11 +1,21 @@
 # -*- coding: utf-8 -*-
-import json
-
 import functools
+import json
 import logging
 import traceback
 import typing
 
+from multidict import MultiDict
+
+from hapic.context import ContextInterface
+from hapic.data import HapicData
+from hapic.description import ControllerDescription
+from hapic.error import ErrorBuilderInterface
+from hapic.exception import OutputValidationException
+from hapic.exception import ProcessException
+from hapic.processor.main import Processor
+from hapic.processor.main import ProcessValidationError
+from hapic.processor.main import RequestParameters
 from hapic.util import LOGGER_NAME
 
 try:  # Python 3.5+
@@ -13,15 +23,6 @@ try:  # Python 3.5+
 except ImportError:
     from http import client as HTTPStatus
 
-from multidict import MultiDict
-from hapic.data import HapicData
-from hapic.description import ControllerDescription
-from hapic.exception import ProcessException
-from hapic.exception import OutputValidationException
-from hapic.context import ContextInterface
-from hapic.processor import ProcessorInterface
-from hapic.processor import RequestParameters
-from hapic.error import ErrorBuilderInterface
 
 # TODO: Ensure usage of DECORATION_ATTRIBUTE_NAME is documented and
 # var names correctly choose.  see #6
@@ -31,8 +32,8 @@ DECORATION_ATTRIBUTE_NAME = '_hapic_decoration_token'
 class ControllerReference(object):
     def __init__(
         self,
-        wrapper: typing.Callable[..., typing.Any],
-        wrapped: typing.Callable[..., typing.Any],
+        wrapper: typing.Callable,
+        wrapped: typing.Callable,
         token: str,
     ) -> None:
         """
@@ -76,8 +77,8 @@ class ControllerWrapper(object):
 
     def get_wrapper(
         self,
-        func: 'typing.Callable[..., typing.Any]',
-    ) -> 'typing.Callable[..., typing.Any]':
+        func: 'typing.Callable',
+    ) -> 'typing.Callable':
         # async def wrapper(*args, **kwargs) -> typing.Any:
         def wrapper(*args, **kwargs) -> typing.Any:
             # Note: Design of before_wrapped_func can be to update kwargs
@@ -104,12 +105,13 @@ class InputOutputControllerWrapper(ControllerWrapper):
     def __init__(
         self,
         context: typing.Union[ContextInterface, typing.Callable[[], ContextInterface]],  # nopep8
-        processor: ProcessorInterface,
+        processor_factory: typing.Callable[[], Processor],
         error_http_code: HTTPStatus=HTTPStatus.BAD_REQUEST,
         default_http_code: HTTPStatus=HTTPStatus.OK,
     ) -> None:
         self._context = context
-        self.processor = processor
+        self._processor_factory = processor_factory
+        self._processor = None  # type: Processor
         self.error_http_code = error_http_code
         self.default_http_code = default_http_code
 
@@ -118,6 +120,13 @@ class InputOutputControllerWrapper(ControllerWrapper):
         if callable(self._context):
             return self._context()
         return self._context
+
+    @property
+    def processor(self) -> Processor:
+        if self._processor is None:
+            self._processor = self._processor_factory()
+
+        return self._processor
 
 
 class InputControllerWrapper(InputOutputControllerWrapper):
@@ -170,7 +179,7 @@ class InputControllerWrapper(InputOutputControllerWrapper):
         request_parameters: RequestParameters,
     ) -> typing.Any:
         parameters_data = self.get_parameters_data(request_parameters)
-        processed_data = self.processor.process(parameters_data)
+        processed_data = self.processor.load_input(parameters_data)
         return processed_data
 
     def get_parameters_data(self, request_parameters: RequestParameters) -> dict:
@@ -188,12 +197,18 @@ class InputControllerWrapper(InputOutputControllerWrapper):
         request_parameters: RequestParameters,
     ) -> typing.Any:
         parameters_data = self.get_parameters_data(request_parameters)
-        error = self.processor.get_validation_error(parameters_data)
+        error = self._get_processor_error(parameters_data)
         error_response = self.context.get_validation_error_response(
             error,
             http_code=self.error_http_code,
         )
         return error_response
+
+    def _get_processor_error(
+        self,
+        parameters_data: typing.Any,
+    ) -> ProcessValidationError:
+        return self.processor.get_input_validation_error(parameters_data)
 
 
 # TODO BS 2018-07-23: This class is an async version of InputControllerWrapper
@@ -202,8 +217,8 @@ class InputControllerWrapper(InputOutputControllerWrapper):
 class AsyncInputControllerWrapper(InputControllerWrapper):
     def get_wrapper(
         self,
-        func: 'typing.Callable[..., typing.Any]',
-    ) -> 'typing.Callable[..., typing.Any]':
+        func: 'typing.Callable',
+    ) -> 'typing.Callable':
         async def wrapper(*args, **kwargs) -> typing.Any:
             # Note: Design of before_wrapped_func can be to update kwargs
             # by reference here
@@ -242,7 +257,7 @@ class AsyncInputControllerWrapper(InputControllerWrapper):
         request_parameters: RequestParameters,
     ) -> typing.Any:
         parameters_data = await self.get_parameters_data(request_parameters)
-        processed_data = self.processor.process(parameters_data)
+        processed_data = self.processor.load_input(parameters_data)
         return processed_data
 
 
@@ -250,13 +265,13 @@ class OutputControllerWrapper(InputOutputControllerWrapper):
     def __init__(
         self,
         context: typing.Union[ContextInterface, typing.Callable[[], ContextInterface]],  # nopep8
-        processor: ProcessorInterface,
+        processor_factory: typing.Callable[[], Processor],
         error_http_code: HTTPStatus=HTTPStatus.INTERNAL_SERVER_ERROR,
         default_http_code: HTTPStatus=HTTPStatus.OK,
     ) -> None:
         super().__init__(
             context,
-            processor,
+            processor_factory,
             error_http_code,
             default_http_code,
         )
@@ -265,7 +280,7 @@ class OutputControllerWrapper(InputOutputControllerWrapper):
         self,
         response: typing.Any,
     ) -> typing.Any:
-        error = self.processor.get_validation_error(response)
+        error = self.processor.get_output_validation_error(response)
         error_response = self.context.get_validation_error_response(
             error,
             http_code=self.error_http_code,
@@ -277,7 +292,7 @@ class OutputControllerWrapper(InputOutputControllerWrapper):
             if self.context.by_pass_output_wrapping(response):
                 return response
 
-            processed_response = self.processor.process(response)
+            processed_response = self.processor.dump_output(response)
             prepared_response = self.context.get_response(
                 json.dumps(processed_response),
                 self.default_http_code,
@@ -325,8 +340,8 @@ class OutputBodyControllerWrapper(OutputControllerWrapper):
 class AsyncOutputBodyControllerWrapper(OutputControllerWrapper):
     def get_wrapper(
         self,
-        func: 'typing.Callable[..., typing.Any]',
-    ) -> 'typing.Callable[..., typing.Any]':
+        func: 'typing.Callable',
+    ) -> 'typing.Callable':
         # async def wrapper(*args, **kwargs) -> typing.Any:
         async def wrapper(*args, **kwargs) -> typing.Any:
             # Note: Design of before_wrapped_func can be to update kwargs
@@ -349,14 +364,14 @@ class AsyncOutputStreamControllerWrapper(OutputControllerWrapper):
     def __init__(
         self,
         context: typing.Union[ContextInterface, typing.Callable[[], ContextInterface]],  # nopep8
-        processor: ProcessorInterface,
+        processor_factory: typing.Callable[[], Processor],
         error_http_code: HTTPStatus=HTTPStatus.INTERNAL_SERVER_ERROR,
         default_http_code: HTTPStatus=HTTPStatus.OK,
         ignore_on_error: bool = True,
     ) -> None:
         super().__init__(
             context,
-            processor,
+            processor_factory,
             error_http_code,
             default_http_code,
         )
@@ -364,8 +379,8 @@ class AsyncOutputStreamControllerWrapper(OutputControllerWrapper):
 
     def get_wrapper(
         self,
-        func: 'typing.Callable[..., typing.Any]',
-    ) -> 'typing.Callable[..., typing.Any]':
+        func: 'typing.Callable',
+    ) -> 'typing.Callable':
         # async def wrapper(*args, **kwargs) -> typing.Any:
         async def wrapper(*args, **kwargs) -> typing.Any:
             # Note: Design of before_wrapped_func can be to update kwargs
@@ -378,11 +393,28 @@ class AsyncOutputStreamControllerWrapper(OutputControllerWrapper):
                 args,
                 kwargs,
             )
-            async for stream_item in await self._execute_wrapped_function(
+
+            response_object = self._execute_wrapped_function(
                 func,
                 args,
                 kwargs,
-            ):
+            )
+
+            # To be compatible with python3.5 and python3.7, we must inspect
+            # the object. If it is an async_generator, nothing to do. Else,
+            # we must await it.
+            # To see example, in python3.5:
+            #    tests.ext.unit.test_aiohttp.TestAiohttpExt#test_aiohttp_output_stream__ok__nominal_case
+            # In python 3.6+:
+            #    tests.ext.unit.test_aiohttp.TestAiohttpExt#test_aiohttp_output_stream__ok__py37
+            # TODO BS 2018-11-19: A cleaner way to test if it is an
+            # async_generator object ?
+            if type(response_object).__name__ == 'async_generator':
+                iterable_response_object = response_object
+            else:
+                iterable_response_object = await response_object
+
+            async for stream_item in iterable_response_object:
                 try:
                     serialized_item = self._get_serialized_item(stream_item)
                     await self.context.feed_stream_response(
@@ -403,7 +435,7 @@ class AsyncOutputStreamControllerWrapper(OutputControllerWrapper):
         self,
         item_object: typing.Any,
     ) -> dict:
-        return self.processor.process(item_object)
+        return self.processor.dump_output(item_object)
 
 
 class OutputHeadersControllerWrapper(OutputControllerWrapper):
@@ -414,14 +446,14 @@ class OutputFileControllerWrapper(OutputControllerWrapper):
     def __init__(
         self,
         context: typing.Union[ContextInterface, typing.Callable[[], ContextInterface]],  # nopep8
-        processor: ProcessorInterface,
+        processor_factory: typing.Callable[[], Processor],
         output_types: typing.List[str],
         error_http_code: HTTPStatus = HTTPStatus.INTERNAL_SERVER_ERROR,
         default_http_code: HTTPStatus = HTTPStatus.OK,
     ) -> None:
         super().__init__(
             context,
-            processor,
+            processor_factory,
             error_http_code,
             default_http_code,
         )
@@ -432,7 +464,7 @@ class OutputFileControllerWrapper(OutputControllerWrapper):
             if self.context.by_pass_output_wrapping(response):
                 return response
 
-            processed_response = self.processor.process(response)
+            processed_response = self.processor.dump_output_file(response)
             prepared_response = self.context.get_file_response(
                 processed_response,
                 self.default_http_code,
@@ -460,14 +492,14 @@ class InputQueryControllerWrapper(InputControllerWrapper):
     def __init__(
         self,
         context: typing.Union[ContextInterface, typing.Callable[[], ContextInterface]],  # nopep8
-        processor: ProcessorInterface,
+        processor_factory: typing.Callable[[], Processor],
         error_http_code: HTTPStatus=HTTPStatus.BAD_REQUEST,
         default_http_code: HTTPStatus=HTTPStatus.OK,
         as_list: typing.List[str]=None
     ) -> None:
         super().__init__(
             context,
-            processor,
+            processor_factory,
             error_http_code,
             default_http_code,
         )
@@ -531,7 +563,7 @@ class AsyncInputBodyControllerWrapper(AsyncInputControllerWrapper):
         request_parameters: RequestParameters,
     ) -> typing.Any:
         parameters_data = await self.get_parameters_data(request_parameters)
-        error = self.processor.get_validation_error(parameters_data)
+        error = self.processor.get_input_validation_error(parameters_data)
         error_response = self.context.get_validation_error_response(
             error,
             http_code=self.error_http_code,
@@ -568,8 +600,22 @@ class InputFilesControllerWrapper(InputControllerWrapper):
     ) -> None:
         hapic_data.files = processed_data
 
+    def get_processed_data(
+        self,
+        request_parameters: RequestParameters,
+    ) -> typing.Any:
+        parameters_data = self.get_parameters_data(request_parameters)
+        processed_data = self.processor.load_files_input(parameters_data)
+        return processed_data
+
     def get_parameters_data(self, request_parameters: RequestParameters) -> dict:  # nopep8
         return request_parameters.files_parameters
+
+    def _get_processor_error(
+        self,
+        parameters_data: typing.Any,
+    ) -> ProcessValidationError:
+        return self.processor.get_input_files_validation_error(parameters_data)
 
 
 class ExceptionHandlerControllerWrapper(ControllerWrapper):
@@ -657,8 +703,8 @@ class ExceptionHandlerControllerWrapper(ControllerWrapper):
 class AsyncExceptionHandlerControllerWrapper(ExceptionHandlerControllerWrapper):
     def get_wrapper(
         self,
-        func: 'typing.Callable[..., typing.Any]',
-    ) -> 'typing.Callable[..., typing.Any]':
+        func: 'typing.Callable',
+    ) -> 'typing.Callable':
         # async def wrapper(*args, **kwargs) -> typing.Any:
         async def wrapper(*args, **kwargs) -> typing.Any:
             # Note: Design of before_wrapped_func can be to update kwargs

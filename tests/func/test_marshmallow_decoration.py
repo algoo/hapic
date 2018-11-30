@@ -1,16 +1,18 @@
 # coding: utf-8
 import json
 
-try:  # Python 3.5+
-    from http import HTTPStatus
-except ImportError:
-    from http import client as HTTPStatus
-
 import marshmallow
 
 from hapic import Hapic
 from tests.base import Base
 from tests.base import MyContext
+
+try:  # Python 3.5+
+    from http import HTTPStatus
+except ImportError:
+    from http import client as HTTPStatus
+
+
 
 
 class TestMarshmallowDecoration(Base):
@@ -59,7 +61,7 @@ class TestMarshmallowDecoration(Base):
                     'http_code': 400,
                     'original_error': {
                         'details': {
-                            'file_abc': ['Missing data for required field.']
+                            'file_abc': ['Missing data for required field']
                         },
                         'message': 'Validation error of input data'
                     }

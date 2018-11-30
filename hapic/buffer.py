@@ -2,17 +2,17 @@
 import typing
 
 from hapic.description import ControllerDescription
+from hapic.description import ErrorDescription
+from hapic.description import InputBodyDescription
+from hapic.description import InputFilesDescription
+from hapic.description import InputFormsDescription
+from hapic.description import InputHeadersDescription
 from hapic.description import InputPathDescription
 from hapic.description import InputQueryDescription
-from hapic.description import InputBodyDescription
-from hapic.description import InputHeadersDescription
-from hapic.description import InputFormsDescription
-from hapic.description import InputFilesDescription
 from hapic.description import OutputBodyDescription
-from hapic.description import OutputStreamDescription
 from hapic.description import OutputFileDescription
 from hapic.description import OutputHeadersDescription
-from hapic.description import ErrorDescription
+from hapic.description import OutputStreamDescription
 from hapic.exception import AlreadyDecoratedException
 
 

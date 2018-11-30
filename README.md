@@ -1,56 +1,81 @@
 [![Build Status](https://travis-ci.org/algoo/hapic.svg?branch=master)](https://travis-ci.org/algoo/hapic)
 [![Coverage Status](https://coveralls.io/repos/github/algoo/hapic/badge.svg?branch=master)](https://coveralls.io/github/algoo/hapic?branch=master)
 
-# Hapic in a nutshell
+# hapic in a nutshell
 
-Hapic is a framework-agnostic library for implementation of professionnal REST APIs.
+hapic is a framework-agnostic library for coding professionnal REST APIs.
 
-Why you should use Hapic :
+# Philosophy
 
-- Hapic adapt naturally to your existing libraries
-- Hapic map exceptions to HTTP errors without effort
-- Hapic really auto-documents your APIs according to marshmallow,  apispec and web framework routing. You do not "write your doc in docstrings": the documentation is really auto-generated
-- Hapic can be used out-of-the-box with Bottle, Flask or Pyramid
+hapic as been developed by algoo in the context of a large service oriented project. The lack of a tool allowing real auto-documentation of Rest API has decided us to develop hapic.
 
-Hapic works with JSON, but it can be used for XML or virtually any data structure format.
+target usage is not for "quick and dirty" stuff but for professionnal, maintainable, long-term targeted projects.
 
-Auto-generated documentation can be visualised with swagger.
+The separation of concerns between REST APIs layer and business stuff layer is in the DNA of hapic.
 
-## Philosophy
+hapic is *just* the HTTP layer glue code over your business code.
 
-Hapic as been developed by algoo in the context of a large client project. The lack of a tool allowing real auto-documentation of Rest API has decided us to develop Hapic.
+# Direct benefits of using hapic
 
-Target projects of Hapic are not "quick and dirty" but professionnally architectured projects.
+When you decide to base your development on hapic, you'll get direct benefits:
 
-The separation of concerns between REST APIs layer and Business Stuff layer is in the DNA of Hapic. Hapic is *just* the HTTP Layer over your business code.
+## Ready-to-use
 
-## Licence
+- supports aiohttp, flask, pyramid and bottle 
+- ready-to-use with your existing libraries
+- effortless mapping of exceptions to HTTP errors
+- serialisation based on marshmallow schemas or serpyco dataclasses
 
-Hapic is licenced under the MIT licence. You can use it in your projects, closed or open sourced.
+## Full API documentation ready
 
-## Status, contributions
+- your code *IS* the documentation
+- swagger generated documentation
+- embed the documentation in 1 line of code
+- supports python 3.5, 3.6 and 3.7 
 
-Hapic source code is ready for production. Some refactoring are identified and required for maintainability, but public APIs are stable so you can rely on Hapic for your developments.
+## Professionnal and maintanable source code
 
-Hapic is under active development, based on Algoo projects. We will answer your questions and accept merge requests if you find bugs or want to include functionnalities.
+- separation of concerns between business logic and HTTP stuff
+- very fast when used in conjunction with both aiohttp and serpyco
+- extensible framework for supporting other web framework and serialisation libraries
 
-Hapic is currently tested on python 3.5 and 3.6.
+# Licence
+
+hapic is licenced under the MIT licence. You can use it in your projects, closed or open sourced.
+
+## status, contributions
+
+hapic source code is ready for production. Some refactoring are identified and required for maintainability, but public APIs are stable so you can rely on hapic for your developments.
+
+hapic is under active development, based on different professional projects. we will answer your questions and accept merge requests if you find bugs or want to include features.
+
+hapic is automatically tested on python 3.5, 3.6 and 3.7
 
 ## TODO references
 
-TODO can make reference to #X, this is github issues references.
+TODOs in the code can include some `#xxx` - these are github issues references.
 
 ## Installation
+
+## From source code
 
 ``` bash
 virtualenv -p /usr/bin/python3 venv
 source venv/bin/activate
 python setup.py develop
 ```
+
+To work with Marshmallow schemas, install necessary dependencies:
+
+    pip install -e ".[marshmallow]"
+
+To work with Serpyco dataclasses, install necessary dependencies:
+
+    pip install -e ".[serpyco]"
  
 ## Give it a try
 
-### Fast Flask example
+### short Flask example
 
 ``` python
 from datetime import datetime

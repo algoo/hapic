@@ -1,15 +1,19 @@
 sudo: false
 language: python
+dist: xenial
 python:
   - "3.5"
   - "3.6"
+  - "3.7"
 
 install:
   - python setup.py develop
-  - pip install -e ."[test]"
+  - if [[ $TRAVIS_PYTHON_VERSION == 3.5 ]]; then pip install -e ."[test_marshmallow]"; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then pip install -e ."[test]"; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == 3.7 ]]; then pip install -e ."[test]"; fi
 
 script: 
-  - pytest --cov=hapic tests
+  - pytest --cov=hapic tests -vvvvv
 
 after_success:
   - coveralls

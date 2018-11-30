@@ -3,22 +3,24 @@ import json
 import re
 import typing
 
+from flask import Flask
+from flask import send_from_directory
+
+from hapic.context import BaseContext
+from hapic.context import RouteRepresentation
+from hapic.decorator import DECORATION_ATTRIBUTE_NAME
+from hapic.decorator import DecoratedController
+from hapic.error import DefaultErrorBuilder
+from hapic.error import ErrorBuilderInterface
+from hapic.exception import OutputValidationException
+from hapic.processor.main import ProcessValidationError
+from hapic.processor.main import RequestParameters
+
 try:  # Python 3.5+
     from http import HTTPStatus
 except ImportError:
     from http import client as HTTPStatus
 
-from hapic.context import BaseContext
-from hapic.context import RouteRepresentation
-from hapic.decorator import DecoratedController
-from hapic.decorator import DECORATION_ATTRIBUTE_NAME
-from hapic.exception import OutputValidationException
-from hapic.processor import RequestParameters
-from hapic.processor import ProcessValidationError
-from hapic.error import DefaultErrorBuilder
-from hapic.error import ErrorBuilderInterface
-from flask import Flask
-from flask import send_from_directory
 
 if typing.TYPE_CHECKING:
     from flask import Response
