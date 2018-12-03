@@ -6,10 +6,11 @@ from apispec import BasePlugin
 from multidict.__init__ import MultiDict
 
 from hapic.data import HapicFile
+from hapic.doc.schema import SchemaUsage
 from hapic.exception import ConfigurationException
 
 if typing.TYPE_CHECKING:
-    from hapic.hapic import TYPE_SCHEMA
+    from hapic.type import TYPE_SCHEMA
 
 
 class RequestParameters(object):
@@ -91,32 +92,28 @@ class Processor(metaclass=abc.ABCMeta):
         OpenAPI documentation.
         """
 
-    @classmethod
     @abc.abstractmethod
     def generate_schema_ref(
-        cls,
+        self,
         main_plugin: BasePlugin,
-        schema: 'TYPE_SCHEMA',
     ) -> dict:
         """
         Must return OpenApi $ref in a dict,
         eg. {"$ref": "#/definitions/MySchema"}
         """
 
-    @classmethod
     def schema_class_resolver(
-        cls,
+        self,
         main_plugin: BasePlugin,
-        schema: 'TYPE_SCHEMA',
-    ) -> 'TYPE_SCHEMA':
+    ) -> SchemaUsage:
         """
         Return schema class with adaptation if needed.
         :param main_plugin: associated Apispec plugin
-        :param schema: schema to proceed
-        :return: schema generated from given schema or original schema if
-            no change required.
+        :return: SchemaUsage containing schema generated from
+        given schema or original schema if no change required and optional
+        apispec plugin kwargs for json_schema generation.
         """
-        return schema
+        return SchemaUsage(self.schema)
 
     @property
     def schema(self):

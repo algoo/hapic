@@ -9,6 +9,7 @@ import serpyco
 from serpyco import ValidationError
 from serpyco.serializer import Serializer
 
+from hapic.doc.schema import SchemaUsage
 from hapic.exception import InputValidationException
 from hapic.exception import OutputValidationException
 from hapic.exception import WorkflowException
@@ -56,23 +57,54 @@ class SerpycoProcessor(Processor):
             schema_name_resolver=schema_name_resolver,
         )
 
-    @classmethod
     def generate_schema_ref(
-        cls,
+        self,
         main_plugin: SerpycoPlugin,
-        schema: type,
     ) -> dict:
         """
         Return OpenApi $ref in a dict,
         eg. {"$ref": "#/definitions/MySchema"}
         """
+        schema_usage = self.schema_class_resolver(main_plugin)
         ref = {
             '$ref': '#/definitions/{}'.format(
-                main_plugin.schema_name_resolver(schema)
+                main_plugin.schema_name_resolver(
+                    schema_usage.schema,
+                    **schema_usage.plugin_name_resolver_kwargs,
+                )
             )
         }
 
         return ref
+
+    def schema_class_resolver(
+        self,
+        main_plugin: SerpycoPlugin,
+    ) -> SchemaUsage:
+        """
+        Return schema class with adaptation if needed.
+        :param main_plugin: Apispec plugin associated for marshmallow
+        :return: schema generated from given schema or original schema if
+            no change required.
+        """
+        serpyco_plugin_kwargs = {}
+        serpyco_name_resolver_kwargs = {}
+
+        if self._exclude:
+            serpyco_plugin_kwargs['exclude'] = self._exclude
+            serpyco_name_resolver_kwargs['exclude'] = self._exclude
+
+        if self._only:
+            serpyco_plugin_kwargs['only'] = self._only
+            serpyco_name_resolver_kwargs['only'] = self._only
+
+        return SchemaUsage(
+            self.schema,
+            plugin_helper_kwargs={
+                'serpyco_builder_args': serpyco_plugin_kwargs
+            },
+            plugin_name_resolver_kwargs=serpyco_name_resolver_kwargs,
+        )
 
     @property
     def serializer(self) -> Serializer:

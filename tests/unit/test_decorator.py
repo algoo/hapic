@@ -29,7 +29,7 @@ except ImportError:
 
 
 if typing.TYPE_CHECKING:
-    from hapic.hapic import TYPE_SCHEMA
+    from hapic.type import TYPE_SCHEMA
 
 
 class MyProcessor(Processor):
