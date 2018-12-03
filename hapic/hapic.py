@@ -47,11 +47,6 @@ except ImportError:
     from http import client as HTTPStatus
 
 
-
-# Note: Schema can be anything. This is the Processor
-# responsability to be able deal with it.
-TYPE_SCHEMA = typing.Any
-
 # TODO: Gérer les cas ou c'est une liste la réponse (items, item_nb), see #12
 # TODO: Confusion nommage body/json/forms, see #13
 

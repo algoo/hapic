@@ -23,6 +23,7 @@ class DictLikeObject(dict):
 class AiohttpSerpycoController(object):
     @hapic.with_api_doc()
     @hapic.output_body(AboutResponseSchema)
+    # @hapic.handle_exception(ZeroDivisionError, http_code=400)
     async def about(self, request):
         """
         General information about this API.
