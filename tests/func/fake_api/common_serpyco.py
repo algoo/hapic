@@ -69,7 +69,12 @@ serpyco_SWAGGER_DOC_API = {
                 'username': {'type': 'string', 'pattern': '[\\w-]+'},
                 'id': {'type': 'integer', 'default': None},
                 },
-            'required': ['display_name', 'company', 'username', 'id'],
+            'required': [
+                'display_name',
+                'company',
+                'username',
+                # 'id',
+            ],
             'description': 'A docstring to prevent auto generated docstring',
             },
         'ListsUserSchema': {
@@ -108,7 +113,7 @@ serpyco_SWAGGER_DOC_API = {
                 'company',
                 'username',
                 'email_address',
-                'id',
+                # 'id',
                 ],
             'description': 'A docstring to prevent auto generated docstring',
             },
