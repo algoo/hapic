@@ -27,7 +27,7 @@ marshmallow_require = [
     'apispec_marshmallow_advanced>=0.3',
 ]
 serpyco_require = [
-    'apispec_serpyco>=0.7',
+    'apispec_serpyco>=0.8',
     'serpyco',
 ]
 tests_base_require = [
