@@ -1,9 +1,9 @@
 import typing
 
 from apispec import BasePlugin
-from apispec_hapic_marshmallow import HapicMarshmallowPlugin
-from apispec_hapic_marshmallow.common import generate_schema_name
-from apispec_hapic_marshmallow.common import schema_class_resolver \
+from apispec_marshmallow_advanced import MarshmallowAdvancedPlugin
+from apispec_marshmallow_advanced.common import generate_schema_name
+from apispec_marshmallow_advanced.common import schema_class_resolver \
     as schema_class_resolver_
 from marshmallow import Schema
 
@@ -23,14 +23,14 @@ class MarshmallowProcessor(Processor):
     ) -> BasePlugin:
         schema_name_resolver = schema_name_resolver or generate_schema_name
 
-        return HapicMarshmallowPlugin(
+        return MarshmallowAdvancedPlugin(
             schema_name_resolver=schema_name_resolver,
         )
 
     @classmethod
     def generate_schema_ref(
         cls,
-        main_plugin: HapicMarshmallowPlugin,
+        main_plugin: MarshmallowAdvancedPlugin,
         schema: Schema,
     ) -> dict:
         """
@@ -59,7 +59,7 @@ class MarshmallowProcessor(Processor):
     @classmethod
     def schema_class_resolver(
         cls,
-        main_plugin: HapicMarshmallowPlugin,
+        main_plugin: MarshmallowAdvancedPlugin,
         schema: Schema,
     ) -> Schema:
         """
