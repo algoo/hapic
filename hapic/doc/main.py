@@ -333,7 +333,7 @@ class DocGenerator(object):
 
             if description.errors:
                 for error in description.errors:
-                    # FIXME BS 2018-12-03: Serpyco working ??
+                    # FIXME BS 2018-12-03: Serpyco error support (#118)
                     schema_usages.append(
                         SchemaUsage(type(error.wrapper.error_builder))
                     )
