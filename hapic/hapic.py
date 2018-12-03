@@ -468,6 +468,7 @@ class Hapic(object):
         http_code: HTTPStatus = HTTPStatus.INTERNAL_SERVER_ERROR,
         error_builder: ErrorBuilderInterface=None,
         context: ContextInterface = None,
+        description: str = None,
     ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Any]:
         context = context or self._context_getter
         error_builder = error_builder or self._error_builder_getter
@@ -478,6 +479,7 @@ class Hapic(object):
                 context,
                 error_builder=error_builder,
                 http_code=http_code,
+                description=description
             )
 
         else:
@@ -486,6 +488,7 @@ class Hapic(object):
                 context,
                 error_builder=error_builder,
                 http_code=http_code,
+                description=description
             )
 
         def decorator(func):
