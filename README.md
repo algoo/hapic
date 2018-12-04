@@ -57,9 +57,11 @@ TODOs in the code can include some `#xxx` - these are github issues references.
 
 ## Installation
 
-For better performances with yaml module, you can install following (instructions for debian):
+For better performances with yaml module, you can install following (debian instruction):
 
     sudo apt-get install libyaml-dev
+
+`libyaml-dev` package can be removed after hapic install.
 
 ## From source code
 
