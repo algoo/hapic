@@ -23,7 +23,7 @@ install_requires = [
     'pyyaml',
 ]
 marshmallow_require = [
-    'marshmallow',
+    'marshmallow<3.0.0rc1',
     'apispec_marshmallow_advanced>=0.3',
 ]
 serpyco_require = [
