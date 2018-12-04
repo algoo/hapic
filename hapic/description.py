@@ -6,7 +6,7 @@ if typing.TYPE_CHECKING:
 
 
 class Description(object):
-    def __init__(self, wrapper: 'ControllerWrapper') -> None:
+    def __init__(self, wrapper: "ControllerWrapper") -> None:
         self.wrapper = wrapper
 
 
@@ -57,18 +57,18 @@ class ErrorDescription(Description):
 class ControllerDescription(object):
     def __init__(
         self,
-        input_path: InputPathDescription=None,
-        input_query: InputQueryDescription=None,
-        input_body: InputBodyDescription=None,
-        input_headers: InputHeadersDescription=None,
-        input_forms: InputFormsDescription=None,
-        input_files: InputFilesDescription=None,
-        output_body: OutputBodyDescription=None,
-        output_stream: OutputStreamDescription=None,
-        output_file: OutputFileDescription=None,
-        output_headers: OutputHeadersDescription=None,
-        errors: typing.List[ErrorDescription]=None,
-        tags: typing.List[str]=None
+        input_path: InputPathDescription = None,
+        input_query: InputQueryDescription = None,
+        input_body: InputBodyDescription = None,
+        input_headers: InputHeadersDescription = None,
+        input_forms: InputFormsDescription = None,
+        input_files: InputFilesDescription = None,
+        output_body: OutputBodyDescription = None,
+        output_stream: OutputStreamDescription = None,
+        output_file: OutputFileDescription = None,
+        output_headers: OutputHeadersDescription = None,
+        errors: typing.List[ErrorDescription] = None,
+        tags: typing.List[str] = None,
     ):
         self.input_path = input_path
         self.input_query = input_query

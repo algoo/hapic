@@ -23,12 +23,22 @@ class TestBuffer(Base):
         buffer = DecorationBuffer()
 
         input_path_description = InputPathDescription(fake_controller_wrapper)
-        input_query_description = InputQueryDescription(fake_controller_wrapper)  # nopep8
+        input_query_description = InputQueryDescription(
+            fake_controller_wrapper
+        )  # nopep8
         input_body_description = InputBodyDescription(fake_controller_wrapper)
-        input_headers_description = InputHeadersDescription(fake_controller_wrapper)  # nopep8
-        input_forms_description = InputFormsDescription(fake_controller_wrapper)  # nopep8
-        output_headers_description = OutputHeadersDescription(fake_controller_wrapper)  # nopep8
-        output_body_description = OutputBodyDescription(fake_controller_wrapper)  # nopep8
+        input_headers_description = InputHeadersDescription(
+            fake_controller_wrapper
+        )  # nopep8
+        input_forms_description = InputFormsDescription(
+            fake_controller_wrapper
+        )  # nopep8
+        output_headers_description = OutputHeadersDescription(
+            fake_controller_wrapper
+        )  # nopep8
+        output_body_description = OutputBodyDescription(
+            fake_controller_wrapper
+        )  # nopep8
         error_description = ErrorDescription(fake_controller_wrapper)
 
         buffer.input_path = input_path_description
@@ -66,12 +76,22 @@ class TestBuffer(Base):
         buffer = DecorationBuffer()
 
         input_path_description = InputPathDescription(fake_controller_wrapper)
-        input_query_description = InputQueryDescription(fake_controller_wrapper)  # nopep8
+        input_query_description = InputQueryDescription(
+            fake_controller_wrapper
+        )  # nopep8
         input_body_description = InputBodyDescription(fake_controller_wrapper)
-        input_headers_description = InputHeadersDescription(fake_controller_wrapper)  # nopep8
-        input_forms_description = InputFormsDescription(fake_controller_wrapper)  # nopep8
-        output_headers_description = OutputHeadersDescription(fake_controller_wrapper)  # nopep8
-        output_body_description = OutputBodyDescription(fake_controller_wrapper)  # nopep8
+        input_headers_description = InputHeadersDescription(
+            fake_controller_wrapper
+        )  # nopep8
+        input_forms_description = InputFormsDescription(
+            fake_controller_wrapper
+        )  # nopep8
+        output_headers_description = OutputHeadersDescription(
+            fake_controller_wrapper
+        )  # nopep8
+        output_body_description = OutputBodyDescription(
+            fake_controller_wrapper
+        )  # nopep8
 
         buffer.input_path = input_path_description
         buffer.input_query = input_query_description

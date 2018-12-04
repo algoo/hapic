@@ -19,10 +19,7 @@ if typing.TYPE_CHECKING:
 
 class RouteRepresentation(object):
     def __init__(
-        self,
-        rule: str,
-        method: str,
-        original_route_object: typing.Any=None,
+        self, rule: str, method: str, original_route_object: typing.Any = None
     ) -> None:
         self.rule = rule
         self.method = method
@@ -38,27 +35,22 @@ class ContextInterface(object):
         # TODO BS 20171228: rename into response_content
         response: str,
         http_code: int,
-        mimetype: str='application/json',
+        mimetype: str = "application/json",
     ) -> typing.Any:
         raise NotImplementedError()
 
-    def get_file_response(
-        self,
-        file_response: HapicFile,
-        http_code: int,
-    ) -> typing.Any:
+    def get_file_response(self, file_response: HapicFile, http_code: int) -> typing.Any:
         raise NotImplementedError()
 
     def get_validation_error_response(
         self,
         error: ProcessValidationError,
-        http_code: HTTPStatus=HTTPStatus.BAD_REQUEST,
+        http_code: HTTPStatus = HTTPStatus.BAD_REQUEST,
     ) -> typing.Any:
         raise NotImplementedError()
 
     def find_route(
-        self,
-        decorated_controller: 'DecoratedController',
+        self, decorated_controller: "DecoratedController"
     ) -> RouteRepresentation:
         raise NotImplementedError()
 
@@ -90,10 +82,7 @@ class ContextInterface(object):
         raise NotImplementedError()
 
     def add_view(
-        self,
-        route: str,
-        http_method: str,
-        view_func: typing.Callable[..., typing.Any],
+        self, route: str, http_method: str, view_func: typing.Callable[..., typing.Any]
     ) -> None:
         """
         This method must permit to add a view in current context
@@ -103,11 +92,7 @@ class ContextInterface(object):
         """
         raise NotImplementedError()
 
-    def serve_directory(
-        self,
-        route_prefix: str,
-        directory_path: str,
-    ) -> None:
+    def serve_directory(self, route_prefix: str, directory_path: str) -> None:
         """
         Configure a path to serve a directory content
         :param route_prefix: The base url for serve the directory, eg /static
@@ -116,9 +101,7 @@ class ContextInterface(object):
         raise NotImplementedError()
 
     def handle_exception(
-        self,
-        exception_class: typing.Type[Exception],
-        http_code: int,
+        self, exception_class: typing.Type[Exception], http_code: int
     ) -> None:
         """
         Enable management of this exception during execution of views. If this
@@ -130,9 +113,7 @@ class ContextInterface(object):
         raise NotImplementedError()
 
     def handle_exceptions(
-        self,
-        exception_classes: typing.List[typing.Type[Exception]],
-        http_code: int,
+        self, exception_classes: typing.List[typing.Type[Exception]], http_code: int
     ) -> None:
         """
         Enable management of these exceptions during execution of views. If
@@ -157,11 +138,8 @@ class HandledException(object):
     """
     Representation of an handled exception with it's http code
     """
-    def __init__(
-        self,
-        exception_class: typing.Type[Exception],
-        http_code: int = 500,
-    ):
+
+    def __init__(self, exception_class: typing.Type[Exception], http_code: int = 500):
         self.exception_class = exception_class
         self.http_code = http_code
 
@@ -172,23 +150,18 @@ class BaseContext(ContextInterface):
         return self.default_error_builder
 
     def handle_exception(
-        self,
-        exception_class: typing.Type[Exception],
-        http_code: int,
+        self, exception_class: typing.Type[Exception], http_code: int
     ) -> None:
         self._add_exception_class_to_catch(exception_class, http_code)
 
     def handle_exceptions(
-        self,
-        exception_classes: typing.List[typing.Type[Exception]],
-        http_code: int,
+        self, exception_classes: typing.List[typing.Type[Exception]], http_code: int
     ) -> None:
         for exception_class in exception_classes:
             self._add_exception_class_to_catch(exception_class, http_code)
 
     def handle_exceptions_decorator_builder(
-        self,
-        func: typing.Callable[..., typing.Any],
+        self, func: typing.Callable[..., typing.Any]
     ) -> typing.Callable[..., typing.Any]:
         """
         Return a decorator who catch exceptions raised during given function
@@ -197,6 +170,7 @@ class BaseContext(ContextInterface):
         :param func: decorated function
         :return: the decorator
         """
+
         def decorator(*args, **kwargs):
             try:
                 return func(*args, **kwargs)
@@ -204,20 +178,18 @@ class BaseContext(ContextInterface):
                 # Reverse list to read first user given exception before
                 # the hapic default Exception catch
                 handled_exceptions = reversed(
-                    self._get_handled_exception_class_and_http_codes(),
+                    self._get_handled_exception_class_and_http_codes()
                 )
                 for handled_exception in handled_exceptions:
                     # TODO BS 2018-05-04: How to be attentive to hierarchy ?
                     if isinstance(exc, handled_exception.exception_class):
                         error_builder = self.get_default_error_builder()
                         error_body = error_builder.build_from_exception(
-                            exc,
-                            include_traceback=self.is_debug(),
+                            exc, include_traceback=self.is_debug()
                         )
                         dumped = error_builder.dump(error_body).data
                         return self.get_response(
-                            json.dumps(dumped),
-                            handled_exception.http_code,
+                            json.dumps(dumped), handled_exception.http_code
                         )
                 raise exc
 
@@ -234,9 +206,7 @@ class BaseContext(ContextInterface):
         raise NotImplementedError()
 
     def _add_exception_class_to_catch(
-        self,
-        exception_class: typing.Type[Exception],
-        http_code: int,
+        self, exception_class: typing.Type[Exception], http_code: int
     ) -> None:
         """
         Add an exception class to catch and matching http code. Will be used by

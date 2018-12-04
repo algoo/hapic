@@ -1,2 +1,2 @@
 # -*- coding: utf-8 -*-
-LOGGER_NAME = 'hapic'
+LOGGER_NAME = "hapic"

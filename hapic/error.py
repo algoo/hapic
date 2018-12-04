@@ -11,10 +11,9 @@ class ErrorBuilderInterface(marshmallow.Schema):
     ErrorBuilder is a class who represent a Schema (marshmallow.Schema) and
     can generate a response content from exception (build_from_exception)
     """
+
     def build_from_exception(
-        self,
-        exception: Exception,
-        include_traceback: bool = False,
+        self, exception: Exception, include_traceback: bool = False
     ) -> dict:
         """
         Build the error response content from given exception
@@ -23,10 +22,7 @@ class ErrorBuilderInterface(marshmallow.Schema):
         """
         raise NotImplementedError()
 
-    def build_from_validation_error(
-        self,
-        error: ProcessValidationError,
-    ) -> dict:
+    def build_from_validation_error(self, error: ProcessValidationError) -> dict:
         """
         Build the error response content from given process validation error
         :param error: Original ProcessValidationError who invoke this method
@@ -41,9 +37,7 @@ class DefaultErrorBuilder(ErrorBuilderInterface):
     code = marshmallow.fields.Raw(missing=None)
 
     def build_from_exception(
-        self,
-        exception: Exception,
-        include_traceback: bool = False,
+        self, exception: Exception, include_traceback: bool = False
     ) -> dict:
         """
         See hapic.error.ErrorBuilderInterface#build_from_exception docstring
@@ -53,28 +47,15 @@ class DefaultErrorBuilder(ErrorBuilderInterface):
         if not message:
             message = type(exception).__name__
 
-        details = {
-            'error_detail': getattr(exception, 'error_detail', {}),
-        }
+        details = {"error_detail": getattr(exception, "error_detail", {})}
         if include_traceback:
-            details['traceback'] = traceback.format_exc()
+            details["traceback"] = traceback.format_exc()
 
-        return {
-            'message': message,
-            'details': details,
-            'code': None,
-        }
+        return {"message": message, "details": details, "code": None}
 
-    def build_from_validation_error(
-        self,
-        error: ProcessValidationError,
-    ) -> dict:
+    def build_from_validation_error(self, error: ProcessValidationError) -> dict:
         """
         See hapic.error.ErrorBuilderInterface#build_from_validation_error
         docstring
         """
-        return {
-            'message': error.message,
-            'details': error.details,
-            'code': None,
-        }
+        return {"message": error.message, "details": error.details, "code": None}

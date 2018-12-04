@@ -52,10 +52,7 @@ except ImportError:
 
 
 class Hapic(object):
-    def __init__(
-        self,
-        async_: bool = False,
-    ):
+    def __init__(self, async_: bool = False):
         self._buffer = DecorationBuffer()
         self._controllers = []  # type: typing.List[DecoratedController]
         self._context = None  # type: ContextInterface
@@ -64,7 +61,7 @@ class Hapic(object):
         self.doc_generator = DocGenerator()
 
         self.logger = logging.getLogger(LOGGER_NAME)
-        self.logger.debug('Create new Hapic instance')
+        self.logger.debug("Create new Hapic instance")
 
         # This local function will be pass to different components
         # who will need context but declared (like with decorator)
@@ -79,7 +76,9 @@ class Hapic(object):
             return self._context.get_default_error_builder()
 
         self._context_getter = context_getter
-        self._processor_class = MarshmallowProcessor  # type: typing.Type[Processor]  # nopep8
+        self._processor_class = (
+            MarshmallowProcessor
+        )  # type: typing.Type[Processor]  # nopep8
         self._error_builder_getter = error_builder_getter
 
         # TODO: Permettre la surcharge des classes utilisés ci-dessous, see #14
@@ -103,16 +102,11 @@ class Hapic(object):
     def reset_context(self) -> None:
         self._context = None
 
-    def set_processor_class(
-        self,
-        processor_class: typing.Type[Processor],
-    ) -> None:
+    def set_processor_class(self, processor_class: typing.Type[Processor]) -> None:
         self._processor_class = processor_class
 
     def _get_processor_factory(
-        self,
-        schema: typing.Any,
-        processor: Processor = None,
+        self, schema: typing.Any, processor: Processor = None
     ) -> typing.Callable[[], Processor]:
         """
         :param schema: Schema to be give to final processor instance
@@ -121,18 +115,21 @@ class Hapic(object):
         :return: A callable able to return an Processor instance
         """
         if processor is not None:
+
             def get_processor():
                 processor.set_schema(schema)
                 return processor
+
             return get_processor
 
         def get_default_processor():
             processor_ = self._processor_class()
             processor_.set_schema(schema)
             return processor_
+
         return get_default_processor
 
-    def with_api_doc(self, tags: typing.List['str']=None):
+    def with_api_doc(self, tags: typing.List["str"] = None):
         """
         Permit to generate doc about a controller. Use as a decorator:
 
@@ -160,10 +157,7 @@ class Hapic(object):
             token = uuid.uuid4().hex
             self.logger.debug(
                 'Collect description of "{}" and mark '
-                'it with token "{}"'.format(
-                    str(func),
-                    token,
-                )
+                'it with token "{}"'.format(str(func), token)
             )
 
             setattr(wrapper, DECORATION_ATTRIBUTE_NAME, token)
@@ -172,15 +166,9 @@ class Hapic(object):
             description = self._buffer.get_description()
             description.tags = tags
 
-            reference = ControllerReference(
-                wrapper=wrapper,
-                wrapped=func,
-                token=token,
-            )
+            reference = ControllerReference(wrapper=wrapper, wrapped=func, token=token)
             decorated_controller = DecoratedController(
-                reference=reference,
-                description=description,
-                name=func.__name__,
+                reference=reference, description=description, name=func.__name__
             )
             self._buffer.clear()
             self._controllers.append(decorated_controller)
@@ -217,6 +205,7 @@ class Hapic(object):
         def decorator(func):
             self._buffer.output_body = OutputBodyDescription(decoration)
             return decoration.get_wrapper(func)
+
         return decorator
 
     def output_stream(
@@ -255,11 +244,12 @@ class Hapic(object):
             )
         else:
             # TODO BS 2018-07-25: To do
-            raise NotImplementedError('todo')
+            raise NotImplementedError("todo")
 
         def decorator(func):
             self._buffer.output_stream = OutputStreamDescription(decoration)
             return decoration.get_wrapper(func)
+
         return decorator
 
     def output_headers(
@@ -283,6 +273,7 @@ class Hapic(object):
         def decorator(func):
             self._buffer.output_headers = OutputHeadersDescription(decoration)
             return decoration.get_wrapper(func)
+
         return decorator
 
     # TODO BS 20171102: Think about possibilities to validate output ?
@@ -307,6 +298,7 @@ class Hapic(object):
         def decorator(func):
             self._buffer.output_file = OutputFileDescription(decoration)
             return decoration.get_wrapper(func)
+
         return decorator
 
     def input_headers(
@@ -330,6 +322,7 @@ class Hapic(object):
         def decorator(func):
             self._buffer.input_headers = InputHeadersDescription(decoration)
             return decoration.get_wrapper(func)
+
         return decorator
 
     def input_path(
@@ -353,6 +346,7 @@ class Hapic(object):
         def decorator(func):
             self._buffer.input_path = InputPathDescription(decoration)
             return decoration.get_wrapper(func)
+
         return decorator
 
     def input_query(
@@ -362,7 +356,7 @@ class Hapic(object):
         context: ContextInterface = None,
         error_http_code: HTTPStatus = HTTPStatus.BAD_REQUEST,
         default_http_code: HTTPStatus = HTTPStatus.OK,
-        as_list: typing.List[str]=None,
+        as_list: typing.List[str] = None,
     ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Any]:
         processor_factory = self._get_processor_factory(schema, processor)
         context = context or self._context_getter
@@ -378,6 +372,7 @@ class Hapic(object):
         def decorator(func):
             self._buffer.input_query = InputQueryDescription(decoration)
             return decoration.get_wrapper(func)
+
         return decorator
 
     def input_body(
@@ -409,13 +404,14 @@ class Hapic(object):
         def decorator(func):
             self._buffer.input_body = InputBodyDescription(decoration)
             return decoration.get_wrapper(func)
+
         return decorator
 
     def input_forms(
         self,
         schema: typing.Any,
-        processor: Processor=None,
-        context: ContextInterface=None,
+        processor: Processor = None,
+        context: ContextInterface = None,
         error_http_code: HTTPStatus = HTTPStatus.BAD_REQUEST,
         default_http_code: HTTPStatus = HTTPStatus.OK,
     ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Any]:
@@ -432,13 +428,14 @@ class Hapic(object):
         def decorator(func):
             self._buffer.input_forms = InputFormsDescription(decoration)
             return decoration.get_wrapper(func)
+
         return decorator
 
     def input_files(
         self,
         schema: typing.Any,
-        processor: Processor=None,
-        context: ContextInterface=None,
+        processor: Processor = None,
+        context: ContextInterface = None,
         error_http_code: HTTPStatus = HTTPStatus.BAD_REQUEST,
         default_http_code: HTTPStatus = HTTPStatus.OK,
     ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Any]:
@@ -455,13 +452,14 @@ class Hapic(object):
         def decorator(func):
             self._buffer.input_files = InputFilesDescription(decoration)
             return decoration.get_wrapper(func)
+
         return decorator
 
     def handle_exception(
         self,
-        handled_exception_class: typing.Type[Exception]=Exception,
+        handled_exception_class: typing.Type[Exception] = Exception,
         http_code: HTTPStatus = HTTPStatus.INTERNAL_SERVER_ERROR,
-        error_builder: ErrorBuilderInterface=None,
+        error_builder: ErrorBuilderInterface = None,
         context: ContextInterface = None,
         description: str = None,
     ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Any]:
@@ -474,7 +472,7 @@ class Hapic(object):
                 context,
                 error_builder=error_builder,
                 http_code=http_code,
-                description=description
+                description=description,
             )
 
         else:
@@ -483,19 +481,17 @@ class Hapic(object):
                 context,
                 error_builder=error_builder,
                 http_code=http_code,
-                description=description
+                description=description,
             )
 
         def decorator(func):
             self._buffer.errors.append(ErrorDescription(decoration))
             return decoration.get_wrapper(func)
+
         return decorator
 
     def generate_doc(
-        self,
-        title: str='',
-        description: str='',
-        version: str = '1.0.0',
+        self, title: str = "", description: str = "", version: str = "1.0.0"
     ) -> dict:
         """
         See hapic.doc.DocGenerator#get_doc docstring
@@ -513,10 +509,7 @@ class Hapic(object):
         )
 
     def save_doc_in_file(
-        self,
-        file_path: str,
-        title: str='',
-        description: str='',
+        self, file_path: str, title: str = "", description: str = ""
     ) -> None:
         """
         See hapic.doc.DocGenerator#get_doc docstring
@@ -534,20 +527,15 @@ class Hapic(object):
         )
 
     def add_documentation_view(
-        self,
-        route: str,
-        title: str='',
-        description: str='',
+        self, route: str, title: str = "", description: str = ""
     ) -> None:
         # Ensure "/" at end of route, else web browser will not consider it as
         # a path
-        if not route.endswith('/'):
-            route = '{}/'.format(route)
+        if not route.endswith("/"):
+            route = "{}/".format(route)
 
         swaggerui_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)),
-            'static',
-            'swaggerui',
+            os.path.dirname(os.path.abspath(__file__)), "static", "swaggerui"
         )
 
         # Documentation file view
@@ -569,19 +557,14 @@ class Hapic(object):
             allow any arguments patterns (args, kwargs).
             """
             return self.context.get_response(
-                doc_yaml,
-                mimetype='text/x-yaml',
-                http_code=HTTPStatus.OK,
+                doc_yaml, mimetype="text/x-yaml", http_code=HTTPStatus.OK
             )
 
         # Prepare views html content
-        doc_index_path = os.path.join(swaggerui_path, 'index.html')
-        with open(doc_index_path, 'r') as doc_page:
+        doc_index_path = os.path.join(swaggerui_path, "index.html")
+        with open(doc_index_path, "r") as doc_page:
             doc_page_content = doc_page.read()
-        doc_page_content = doc_page_content.replace(
-            '{{ spec_uri }}',
-            'spec.yml',
-        )
+        doc_page_content = doc_page_content.replace("{{ spec_uri }}", "spec.yml")
 
         # Declare the swaggerui view
         def api_doc_view(*args, **kwargs):
@@ -594,27 +577,18 @@ class Hapic(object):
             allow any arguments patterns (args, kwargs).
             """
             return self.context.get_response(
-                doc_page_content,
-                http_code=HTTPStatus.OK,
-                mimetype='text/html',
+                doc_page_content, http_code=HTTPStatus.OK, mimetype="text/html"
             )
 
         # Add a view to generate the html index page of swagger-ui
-        self.context.add_view(
-            route=route,
-            http_method='GET',
-            view_func=api_doc_view,
-        )
+        self.context.add_view(route=route, http_method="GET", view_func=api_doc_view)
 
         # Add a doc yaml view
         self.context.add_view(
-            route=os.path.join(route, 'spec.yml'),
-            http_method='GET',
+            route=os.path.join(route, "spec.yml"),
+            http_method="GET",
             view_func=spec_yaml_view,
         )
 
         # Add swagger directory as served static dir
-        self.context.serve_directory(
-            route,
-            swaggerui_path,
-        )
+        self.context.serve_directory(route, swaggerui_path)

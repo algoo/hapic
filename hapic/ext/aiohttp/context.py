@@ -24,22 +24,19 @@ from hapic.processor.main import ProcessValidationError
 from hapic.processor.main import RequestParameters
 
 # Aiohttp regular expression to locate url parameters
-AIOHTTP_RE_PATH_URL = re.compile(r'{([^:<>]+)(?::[^<>]+)?}')
+AIOHTTP_RE_PATH_URL = re.compile(r"{([^:<>]+)(?::[^<>]+)?}")
 
 
 class AiohttpRequestParameters(RequestParameters):
-    def __init__(
-        self,
-        request: Request,
-    ) -> None:
+    def __init__(self, request: Request) -> None:
         self._request = request
         self._parsed_body = None
 
     @property
     async def body_parameters(self) -> dict:
         if self._parsed_body is None:
-            content_type = self.header_parameters.get('Content-Type')
-            is_json = content_type == 'application/json'
+            content_type = self.header_parameters.get("Content-Type")
+            is_json = content_type == "application/json"
 
             if is_json:
                 self._parsed_body = await self._request.json()
@@ -68,26 +65,26 @@ class AiohttpRequestParameters(RequestParameters):
     @property
     def files_parameters(self):
         # TODO BS 2018-07-24: To do
-        raise NotImplementedError('todo')
+        raise NotImplementedError("todo")
 
 
 class AiohttpContext(BaseContext):
     def __init__(
         self,
         app: web.Application,
-        default_error_builder: ErrorBuilderInterface=None,
+        default_error_builder: ErrorBuilderInterface = None,
         debug: bool = False,
     ) -> None:
         self._app = app
         self._debug = debug
-        self.default_error_builder = \
-            default_error_builder or DefaultErrorBuilder()  # FDV
+        self.default_error_builder = (
+            default_error_builder or DefaultErrorBuilder()
+        )  # FDV
 
         # Managed exceptions
         @web.middleware
         async def error_middleware(
-            request: Request,
-            handler: typing.Callable[..., typing.Any],
+            request: Request, handler: typing.Callable[..., typing.Any]
         ) -> typing.Any:
             """
             Wrapper installed by aiohttp who wrap real controller. This wrapper
@@ -108,13 +105,11 @@ class AiohttpContext(BaseContext):
                     if isinstance(exc, handled_exception.exception_class):
                         error_builder = self.get_default_error_builder()
                         error_body = error_builder.build_from_exception(
-                            exc,
-                            include_traceback=self.is_debug(),
+                            exc, include_traceback=self.is_debug()
                         )
                         dumped = error_builder.dump(error_body).data
                         return self.get_response(
-                            json.dumps(dumped),
-                            handled_exception.http_code,
+                            json.dumps(dumped), handled_exception.http_code
                         )
                 raise exc
 
@@ -126,35 +121,22 @@ class AiohttpContext(BaseContext):
     def app(self) -> web.Application:
         return self._app
 
-    def get_request_parameters(
-        self,
-        *args,
-        **kwargs
-    ) -> RequestParameters:
+    def get_request_parameters(self, *args, **kwargs) -> RequestParameters:
         for arg in args:
             if isinstance(arg, Request):
                 return AiohttpRequestParameters(arg)
 
-        raise WorkflowException(
-            'Unable to get aiohttp request object',
-        )
+        raise WorkflowException("Unable to get aiohttp request object")
 
     def get_response(
-        self,
-        response: str,
-        http_code: int,
-        mimetype: str = 'application/json',
+        self, response: str, http_code: int, mimetype: str = "application/json"
     ) -> typing.Any:
         # A 204 no content response should not have content type header
         if http_code == HTTPStatus.NO_CONTENT:
             mimetype = None
-            response = ''
+            response = ""
 
-        return Response(
-            body=response,
-            status=http_code,
-            content_type=mimetype,
-        )
+        return Response(body=response, status=http_code, content_type=mimetype)
 
     def get_validation_error_response(
         self,
@@ -162,43 +144,34 @@ class AiohttpContext(BaseContext):
         http_code: HTTPStatus = HTTPStatus.BAD_REQUEST,
     ) -> typing.Any:
         error_builder = self.get_default_error_builder()
-        error_content = error_builder.build_from_validation_error(
-            error,
-        )
+        error_content = error_builder.build_from_validation_error(error)
 
         # Check error
         dumped = error_builder.dump(error_content).data
         unmarshall = error_builder.load(dumped)
         if unmarshall.errors:
             raise OutputValidationException(
-                'Validation error during dump of error response: {}'.format(
+                "Validation error during dump of error response: {}".format(
                     str(unmarshall.errors)
                 )
             )
 
         return web.Response(
             text=json.dumps(dumped),
-            headers=[
-                ('Content-Type', 'application/json'),
-            ],
+            headers=[("Content-Type", "application/json")],
             status=int(http_code),
         )
 
     def find_route(
-        self,
-        decorated_controller: DecoratedController,
+        self, decorated_controller: DecoratedController
     ) -> RouteRepresentation:
         if not len(self.app.router.routes()):
-            raise NoRoutesException('There is no routes in your aiohttp app')
+            raise NoRoutesException("There is no routes in your aiohttp app")
 
         reference = decorated_controller.reference
 
         for route in self.app.router.routes():
-            route_token = getattr(
-                route.handler,
-                DECORATION_ATTRIBUTE_NAME,
-                None,
-            )
+            route_token = getattr(route.handler, DECORATION_ATTRIBUTE_NAME, None)
 
             match_with_wrapper = route.handler == reference.wrapper
             match_with_wrapped = route.handler == reference.wrapped
@@ -206,10 +179,12 @@ class AiohttpContext(BaseContext):
 
             # TODO BS 2018-07-27: token is set in HEAD view to, must solve this
             # case
-            if not match_with_wrapper \
-                    and not match_with_wrapped \
-                    and match_with_token \
-                    and route.method.lower() == 'head':
+            if (
+                not match_with_wrapper
+                and not match_with_wrapped
+                and match_with_token
+                and route.method.lower() == "head"
+            ):
                 continue
 
             if match_with_wrapper or match_with_wrapped or match_with_token:
@@ -221,48 +196,31 @@ class AiohttpContext(BaseContext):
         # TODO BS 20171010: Raise exception or print error ? see #10
         raise RouteNotFound(
             'Decorated route "{}" was not found in aiohttp routes'.format(
-                decorated_controller.name,
+                decorated_controller.name
             )
         )
 
-    def get_swagger_path(
-        self,
-        contextualised_rule: str,
-    ) -> str:
-        return AIOHTTP_RE_PATH_URL.sub(r'{\1}', contextualised_rule)
+    def get_swagger_path(self, contextualised_rule: str) -> str:
+        return AIOHTTP_RE_PATH_URL.sub(r"{\1}", contextualised_rule)
 
-    def by_pass_output_wrapping(
-        self,
-        response: typing.Any,
-    ) -> bool:
+    def by_pass_output_wrapping(self, response: typing.Any) -> bool:
         return isinstance(response, web.Response)
 
     def add_view(
-        self,
-        route: str,
-        http_method: str,
-        view_func: typing.Callable[..., typing.Any],
+        self, route: str, http_method: str, view_func: typing.Callable[..., typing.Any]
     ) -> None:
         # TODO BS 2018-07-15: to do
-        raise NotImplementedError('todo')
+        raise NotImplementedError("todo")
 
-    def serve_directory(
-        self,
-        route_prefix: str,
-        directory_path: str,
-    ) -> None:
+    def serve_directory(self, route_prefix: str, directory_path: str) -> None:
         # TODO BS 2018-07-15: to do
-        raise NotImplementedError('todo')
+        raise NotImplementedError("todo")
 
-    def is_debug(
-        self,
-    ) -> bool:
+    def is_debug(self,) -> bool:
         return self._debug
 
     def handle_exception(
-        self,
-        exception_class: typing.Type[Exception],
-        http_code: int,
+        self, exception_class: typing.Type[Exception], http_code: int
     ) -> None:
         """
         Manage an exception class (and it's children) by associating an http
@@ -279,9 +237,7 @@ class AiohttpContext(BaseContext):
             self.app.middlewares.append(self._error_middleware)
 
     def handle_exceptions(
-        self,
-        exception_classes: typing.List[typing.Type[Exception]],
-        http_code: int,
+        self, exception_classes: typing.List[typing.Type[Exception]], http_code: int
     ) -> None:
         """
         Manage exception classes (and theirs children) by associating an http
@@ -299,21 +255,14 @@ class AiohttpContext(BaseContext):
         http_code: HTTPStatus = HTTPStatus.OK,
         headers: dict = None,
     ) -> web.StreamResponse:
-        headers = headers or {
-            'Content-Type': 'text/plain; charset=utf-8',
-        }
+        headers = headers or {"Content-Type": "text/plain; charset=utf-8"}
 
-        response = web.StreamResponse(
-            status=http_code,
-            headers=headers,
-        )
+        response = web.StreamResponse(status=http_code, headers=headers)
 
         try:
             request = func_args[0]
         except IndexError:
-            raise WorkflowException(
-                'Unable to get aiohttp request object',
-            )
+            raise WorkflowException("Unable to get aiohttp request object")
         request = typing.cast(Request, request)
 
         await response.prepare(request)
@@ -321,11 +270,10 @@ class AiohttpContext(BaseContext):
         return response
 
     async def feed_stream_response(
-        self,
-        stream_response: web.StreamResponse,
-        serialized_item: dict,
+        self, stream_response: web.StreamResponse, serialized_item: dict
     ) -> None:
         await stream_response.write(
             # FIXME BS 2018-07-25: need \n :/
-            json.dumps(serialized_item).encode('utf-8') + b'\n',
+            json.dumps(serialized_item).encode("utf-8")
+            + b"\n"
         )

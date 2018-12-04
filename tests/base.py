@@ -54,29 +54,27 @@ class MyContext(BottleContext):
     def get_validation_error_response(
         self,
         error: ProcessValidationError,
-        http_code: HTTPStatus=HTTPStatus.BAD_REQUEST,
+        http_code: HTTPStatus = HTTPStatus.BAD_REQUEST,
     ) -> typing.Any:
         return self.get_response(
-            response=json.dumps({
-                'original_error': {
-                    'details': error.details,
-                    'message': error.message,
-                },
-                'http_code': http_code,
-            }),
+            response=json.dumps(
+                {
+                    "original_error": {
+                        "details": error.details,
+                        "message": error.message,
+                    },
+                    "http_code": http_code,
+                }
+            ),
             http_code=http_code,
         )
 
     def _add_exception_class_to_catch(
-        self,
-        exception_class: typing.Type[Exception],
-        http_code: int,
+        self, exception_class: typing.Type[Exception], http_code: int
     ) -> None:
         if not self._exceptions_handler_installed:
             self._install_exceptions_handler()
-        self._handled_exceptions.append(
-            HandledException(exception_class, http_code),
-        )
+        self._handled_exceptions.append(HandledException(exception_class, http_code))
 
     def _get_handled_exception_class_and_http_codes(
         self,
