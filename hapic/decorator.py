@@ -630,10 +630,17 @@ class ExceptionHandlerControllerWrapper(ControllerWrapper):
         context: typing.Union[ContextInterface, typing.Callable[[], ContextInterface]],  # nopep8
         error_builder: typing.Union[ErrorBuilderInterface, typing.Callable[[], ErrorBuilderInterface]],  # nopep8
         http_code: HTTPStatus=HTTPStatus.INTERNAL_SERVER_ERROR,
+        description: str = None,
     ) -> None:
         self.handled_exception_class = handled_exception_class
         self._context = context
         self.http_code = http_code
+        # TODO - G.M - 2018-11-30 - Deal better with int/HTTPStatus conversion
+        if isinstance(http_code, HTTPStatus):
+            default_description = '{}: {}'.format(http_code.name, http_code.description)
+        else:
+            default_description = str(int(http_code))
+        self.description = description or self.handled_exception_class.__doc__ or default_description  # DFV
         self._error_builder = error_builder
 
     @property

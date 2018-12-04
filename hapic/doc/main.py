@@ -10,6 +10,7 @@ from hapic.context import ContextInterface
 from hapic.context import RouteRepresentation
 from hapic.decorator import DecoratedController
 from hapic.description import ControllerDescription
+from hapic.doc.schema import SchemaUsage
 from hapic.processor.main import Processor
 
 FIELDS_PARAMS_GENERIC_ACCEPTED = [
@@ -108,47 +109,48 @@ def generate_fields_description(
 
 
 def generate_operations(
-    processor_class: typing.Type[Processor],
     main_plugin: BasePlugin,
     route: RouteRepresentation,
     description: ControllerDescription,
 ):
     method_operations = dict()
     if description.input_body:
+        schema_ref = description\
+            .input_body\
+            .wrapper\
+            .processor\
+            .generate_schema_ref(main_plugin)
         method_operations.setdefault('parameters', []).append({
             'in': 'body',
             'name': 'body',
-            'schema': processor_class.generate_schema_ref(
-                main_plugin,
-                description.input_body.wrapper.processor.schema,
-            )
+            'schema': schema_ref,
         })
 
     if description.output_body:
+        schema_ref = description\
+            .output_body\
+            .wrapper\
+            .processor\
+            .generate_schema_ref(main_plugin)
         method_operations.setdefault('responses', {})\
             [int(description.output_body.wrapper.default_http_code)] = {
                 'description': str(int(description.output_body.wrapper.default_http_code)),  # nopep8
-                'schema': processor_class.generate_schema_ref(
-                    main_plugin,
-                    description.output_body.wrapper.processor.schema,
-                )
+                'schema': schema_ref,
             }
 
     if description.output_stream:
-        # TODO BS 2018-07-31: Is that a correct way to re
-        # instanciate with .__class__ ... ?
+        schema_ref = description\
+            .output_stream\
+            .wrapper\
+            .processor\
+            .generate_schema_ref(main_plugin)
         method_operations.setdefault('responses', {})\
             [int(description.output_stream.wrapper.default_http_code)] = {
                 'description': str(int(description.output_stream.wrapper.default_http_code)),  # nopep8
-                'schema': processor_class.generate_schema_ref(
-                    main_plugin,
-                    description
-                        .output_stream
-                        .wrapper
-                        .processor
-                        .schema
-                        .__class__(many=True),
-                )
+                'schema': {
+                    'type': 'array',
+                    'items': schema_ref,
+                },
             }
 
     if description.output_file:
@@ -161,11 +163,25 @@ def generate_operations(
         }
 
     if description.errors:
+        http_status_errors = {}
         for error in description.errors:
-            schema_class = type(error.wrapper.error_builder)
+            http_status_errors.setdefault(
+                error.wrapper.http_code, []
+            ).append(error)
+
+        for http_status in http_status_errors:
+            # FIXME - G.M - 2018-11-30 - We use schema class from first error
+            # for each status as openapi 2.0 doesn't support different schema
+            # result. This may cause incoherent result.
+            default_error = http_status_errors[http_status][0]
+            schema_class = type(default_error.wrapper.error_builder)
+            errors_description = set()
+            for error in http_status_errors[http_status]:
+                errors_description.add(error.wrapper.description)
+
             method_operations.setdefault('responses', {})\
-                [int(error.wrapper.http_code)] = {
-                    'description': str(int(error.wrapper.http_code)),
+                [int(http_status)] = {
+                    'description': '\n\n'.join(errors_description),
                     'schema': {
                         '$ref': '#/definitions/{}'.format(
                             main_plugin.schema_name_resolver(schema_class)
@@ -175,9 +191,20 @@ def generate_operations(
 
     # jsonschema based
     if description.input_path:
-        jsonschema = main_plugin.openapi.schema2jsonschema(
-            description.input_path.wrapper.processor.schema,
+        schema_usage = description\
+            .input_path\
+            .wrapper\
+            .processor\
+            .schema_class_resolver(main_plugin)
+        jsonschema = main_plugin.schema_helper(
+            main_plugin.schema_name_resolver(
+                schema_usage.schema,
+                **schema_usage.plugin_name_resolver_kwargs,
+            ),
+            schema=schema_usage.schema,
+            **schema_usage.plugin_helper_kwargs,
         )
+
         for name, schema in jsonschema.get('properties', {}).items():
             method_operations.setdefault('parameters', []).append(
                 generate_fields_description(
@@ -189,9 +216,20 @@ def generate_operations(
             )
 
     if description.input_query:
-        jsonschema = main_plugin.openapi.schema2jsonschema(
-            description.input_query.wrapper.processor.schema,
+        schema_usage = description\
+            .input_query\
+            .wrapper\
+            .processor\
+            .schema_class_resolver(main_plugin)
+        jsonschema = main_plugin.schema_helper(
+            main_plugin.schema_name_resolver(
+                schema_usage.schema,
+                **schema_usage.plugin_name_resolver_kwargs,
+            ),
+            schema=schema_usage.schema,
+            **schema_usage.plugin_helper_kwargs,
         )
+
         for name, schema in jsonschema.get('properties', {}).items():
             method_operations.setdefault('parameters', []).append(
                 generate_fields_description(
@@ -274,37 +312,40 @@ class DocGenerator(object):
             openapi_version='2.0',
         )
 
-        schemas = []
-        # parse schemas
+        schema_usages = []  # type: typing.List[SchemaUsage]
+        # Parse used schema and pre-index them into apispec plugin
         for controller in controllers:
             description = controller.description
 
-            if description.input_body:
-                schemas.append(hapic.processor_class.schema_class_resolver(
-                    main_plugin,
-                    description.input_body.wrapper.processor.schema
-                ))
-
-            if description.input_forms:
-                schemas.append(hapic.processor_class.schema_class_resolver(
-                    main_plugin,
-                    description.input_forms.wrapper.processor.schema
-                ))
-
-            if description.output_body:
-                schemas.append(hapic.processor_class.schema_class_resolver(
-                    spec,
-                    description.output_body.wrapper.processor.schema
-                ))
+            for description_item in [
+                description.input_body,
+                description.input_path,
+                description.input_query,
+                description.input_forms,
+                description.output_body,
+            ]:
+                if description_item:
+                    schema_usage = description_item\
+                        .wrapper\
+                        .processor\
+                        .schema_class_resolver(main_plugin)
+                    schema_usages.append(schema_usage)
 
             if description.errors:
                 for error in description.errors:
-                    schemas.append(type(error.wrapper.error_builder))
+                    # FIXME BS 2018-12-03: Serpyco error support (#118)
+                    schema_usages.append(
+                        SchemaUsage(type(error.wrapper.error_builder))
+                    )
 
-        for schema in set(schemas):
+        for schema_usage in set(schema_usages):
             spec.components.schema(
-                main_plugin.schema_name_resolver(schema),
-                schema=schema
+                main_plugin.schema_name_resolver(
+                    schema_usage.schema,
+                    **schema_usage.plugin_name_resolver_kwargs,
+                ),
+                schema=schema_usage.schema,
+                **schema_usage.plugin_helper_kwargs,
             )
 
         # add views
@@ -313,7 +354,6 @@ class DocGenerator(object):
             swagger_path = context.get_swagger_path(route.rule)
 
             operations = generate_operations(
-                hapic.processor_class,
                 main_plugin,
                 route,
                 controller.description,

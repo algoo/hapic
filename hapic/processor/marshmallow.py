@@ -1,12 +1,13 @@
 import typing
 
 from apispec import BasePlugin
-from apispec_hapic_marshmallow import HapicMarshmallowPlugin
-from apispec_hapic_marshmallow.common import generate_schema_name
-from apispec_hapic_marshmallow.common import schema_class_resolver \
+from apispec_marshmallow_advanced import MarshmallowAdvancedPlugin
+from apispec_marshmallow_advanced.common import generate_schema_name
+from apispec_marshmallow_advanced.common import schema_class_resolver \
     as schema_class_resolver_
 from marshmallow import Schema
 
+from hapic.doc.schema import SchemaUsage
 from hapic.exception import OutputValidationException
 from hapic.processor.main import Processor
 from hapic.processor.main import ProcessValidationError
@@ -23,15 +24,13 @@ class MarshmallowProcessor(Processor):
     ) -> BasePlugin:
         schema_name_resolver = schema_name_resolver or generate_schema_name
 
-        return HapicMarshmallowPlugin(
+        return MarshmallowAdvancedPlugin(
             schema_name_resolver=schema_name_resolver,
         )
 
-    @classmethod
     def generate_schema_ref(
-        cls,
-        main_plugin: HapicMarshmallowPlugin,
-        schema: Schema,
+        self,
+        main_plugin: MarshmallowAdvancedPlugin,
     ) -> dict:
         """
         Return OpenApi $ref in a dict,
@@ -40,7 +39,7 @@ class MarshmallowProcessor(Processor):
         """
         schema_class = schema_class_resolver_(
             main_plugin,
-            schema
+            self.schema,
         )
         ref = {
             '$ref': '#/definitions/{}'.format(
@@ -48,7 +47,7 @@ class MarshmallowProcessor(Processor):
             )
         }
 
-        if schema.many:
+        if self.schema.many:
             return {
                 'type': 'array',
                 'items': ref
@@ -56,20 +55,17 @@ class MarshmallowProcessor(Processor):
 
         return ref
 
-    @classmethod
     def schema_class_resolver(
-        cls,
-        main_plugin: HapicMarshmallowPlugin,
-        schema: Schema,
-    ) -> Schema:
+        self,
+        main_plugin: MarshmallowAdvancedPlugin,
+    ) -> SchemaUsage:
         """
         Return schema class with adaptation if needed.
         :param main_plugin: Apispec plugin associated for marshmallow
-        :param schema: schema to proceed
         :return: schema generated from given schema or original schema if
             no change required.
         """
-        return schema_class_resolver_(main_plugin, schema)
+        return SchemaUsage(schema_class_resolver_(main_plugin, self.schema))
 
     def clean_data(self, data: typing.Any) -> dict:
         """
