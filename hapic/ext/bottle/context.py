@@ -36,7 +36,9 @@ class BottleContext(BaseContext):
         default_error_builder: ErrorBuilderInterface = None,
         debug: bool = False,
     ):
-        self._handled_exceptions = []  # type: typing.List[HandledException]  # nopep8
+        self._handled_exceptions = (
+            []
+        )  # type: typing.List[HandledException]  # nopep8
         self._exceptions_handler_installed = False
         self.app = app
         self.default_error_builder = (
@@ -65,7 +67,9 @@ class BottleContext(BaseContext):
         self, response: str, http_code: int, mimetype: str = "application/json"
     ) -> bottle.HTTPResponse:
         return bottle.HTTPResponse(
-            body=response, headers=[("Content-Type", mimetype)], status=http_code
+            body=response,
+            headers=[("Content-Type", mimetype)],
+            status=http_code,
         )
 
     def get_validation_error_response(
@@ -73,7 +77,9 @@ class BottleContext(BaseContext):
         error: ProcessValidationError,
         http_code: HTTPStatus = HTTPStatus.BAD_REQUEST,
     ) -> typing.Any:
-        error_content = self.default_error_builder.build_from_validation_error(error)
+        error_content = self.default_error_builder.build_from_validation_error(
+            error
+        )
 
         # Check error
         dumped = self.default_error_builder.dump(error).data
@@ -99,7 +105,9 @@ class BottleContext(BaseContext):
 
         reference = decorated_controller.reference
         for route in self.app.routes:
-            route_token = getattr(route.callback, DECORATION_ATTRIBUTE_NAME, None)
+            route_token = getattr(
+                route.callback, DECORATION_ATTRIBUTE_NAME, None
+            )
 
             match_with_wrapper = route.callback == reference.wrapper
             match_with_wrapped = route.callback == reference.wrapped
@@ -132,7 +140,9 @@ class BottleContext(BaseContext):
         if not self._exceptions_handler_installed:
             self._install_exceptions_handler()
 
-        self._handled_exceptions.append(HandledException(exception_class, http_code))
+        self._handled_exceptions.append(
+            HandledException(exception_class, http_code)
+        )
 
     def _install_exceptions_handler(self) -> None:
         """

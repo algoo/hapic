@@ -12,7 +12,11 @@ SWAGGER_DOC_API = {
         },
         "ListsUserSchema": {
             "properties": {
-                "item_nb": {"format": "int32", "minimum": 0, "type": "integer"},
+                "item_nb": {
+                    "format": "int32",
+                    "minimum": 0,
+                    "type": "integer",
+                },
                 "items": {
                     "items": {
                         "$ref": "#/definitions/UserSchema_without_email_address_first_name_last_name"
@@ -101,7 +105,9 @@ SWAGGER_DOC_API = {
                         "responses": {
                             200: {
                                 "description": "200",
-                                "schema": {"$ref": "#/definitions/AboutResponseSchema"},
+                                "schema": {
+                                    "$ref": "#/definitions/AboutResponseSchema"
+                                },
                             }
                         },
                     }
@@ -115,7 +121,9 @@ SWAGGER_DOC_API = {
                         "responses": {
                             200: {
                                 "description": "200",
-                                "schema": {"$ref": "#/definitions/ListsUserSchema"},
+                                "schema": {
+                                    "$ref": "#/definitions/ListsUserSchema"
+                                },
                             }
                         },
                     }
@@ -139,7 +147,9 @@ SWAGGER_DOC_API = {
                         "responses": {
                             204: {
                                 "description": "204",
-                                "schema": {"$ref": "#/definitions/NoContentSchema"},
+                                "schema": {
+                                    "$ref": "#/definitions/NoContentSchema"
+                                },
                             }
                         },
                     },

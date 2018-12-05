@@ -26,10 +26,12 @@ class TestBottleExt(Base):
         assert route
         assert route.original_route_object.callback != controller_a
         assert (
-            route.original_route_object.callback == decoration.reference.wrapped
+            route.original_route_object.callback
+            == decoration.reference.wrapped
         )  # nopep8
         assert (
-            route.original_route_object.callback != decoration.reference.wrapper
+            route.original_route_object.callback
+            != decoration.reference.wrapper
         )  # nopep8
 
     def test_unit__map_binding__ok__mapped_function(self):
@@ -51,10 +53,12 @@ class TestBottleExt(Base):
         assert route
         assert route.original_route_object.callback == controller_a
         assert (
-            route.original_route_object.callback == decoration.reference.wrapper
+            route.original_route_object.callback
+            == decoration.reference.wrapper
         )  # nopep8
         assert (
-            route.original_route_object.callback != decoration.reference.wrapped
+            route.original_route_object.callback
+            != decoration.reference.wrapped
         )  # nopep8
 
     def test_unit__map_binding__ok__mapped_method(self):
@@ -85,10 +89,12 @@ class TestBottleExt(Base):
             route.original_route_object.callback != MyControllers.controller_a
         )  # nopep8
         assert (
-            route.original_route_object.callback != decoration.reference.wrapped
+            route.original_route_object.callback
+            != decoration.reference.wrapped
         )  # nopep8
         assert (
-            route.original_route_object.callback != decoration.reference.wrapper
+            route.original_route_object.callback
+            != decoration.reference.wrapper
         )  # nopep8
 
     def test_unit__general_exception_handling__ok__nominal_case(self):

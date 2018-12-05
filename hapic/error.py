@@ -22,7 +22,9 @@ class ErrorBuilderInterface(marshmallow.Schema):
         """
         raise NotImplementedError()
 
-    def build_from_validation_error(self, error: ProcessValidationError) -> dict:
+    def build_from_validation_error(
+        self, error: ProcessValidationError
+    ) -> dict:
         """
         Build the error response content from given process validation error
         :param error: Original ProcessValidationError who invoke this method
@@ -53,9 +55,15 @@ class DefaultErrorBuilder(ErrorBuilderInterface):
 
         return {"message": message, "details": details, "code": None}
 
-    def build_from_validation_error(self, error: ProcessValidationError) -> dict:
+    def build_from_validation_error(
+        self, error: ProcessValidationError
+    ) -> dict:
         """
         See hapic.error.ErrorBuilderInterface#build_from_validation_error
         docstring
         """
-        return {"message": error.message, "details": error.details, "code": None}
+        return {
+            "message": error.message,
+            "details": error.details,
+            "code": None,
+        }

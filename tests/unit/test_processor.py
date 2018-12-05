@@ -56,7 +56,9 @@ class TestProcessor(Base):
         file.name = "test_image.png"
         file.seek(0)
         tested_data = HapicFile(
-            file_path=os.path.abspath(__file__), file_object=file, mimetype="image/png"
+            file_path=os.path.abspath(__file__),
+            file_object=file,
+            mimetype="image/png",
         )
         with pytest.raises(OutputValidationException):
             data = processor.dump_output_file(tested_data)

@@ -13,7 +13,13 @@ from hapic.description import ControllerDescription
 from hapic.doc.schema import SchemaUsage
 from hapic.processor.main import Processor
 
-FIELDS_PARAMS_GENERIC_ACCEPTED = ["type", "format", "required", "description", "enum"]
+FIELDS_PARAMS_GENERIC_ACCEPTED = [
+    "type",
+    "format",
+    "required",
+    "description",
+    "enum",
+]
 FIELDS_TYPE_ARRAY = ["array"]
 FIELDS_PARAMS_ARRAY_ACCEPTED = [
     "items",
@@ -38,10 +44,17 @@ FIELDS_PARAMS_NUMERIC_ACCEPTED = [
 def field_accepted_param(type: str, param_name: str) -> bool:
     return (
         param_name in FIELDS_PARAMS_GENERIC_ACCEPTED
-        or (type in FIELDS_TYPE_STRING and param_name in FIELDS_PARAMS_STRING_ACCEPTED)
-        or (type in FIELDS_TYPE_ARRAY and param_name in FIELDS_PARAMS_ARRAY_ACCEPTED)
         or (
-            type in FIELDS_TYPE_NUMERIC and param_name in FIELDS_PARAMS_NUMERIC_ACCEPTED
+            type in FIELDS_TYPE_STRING
+            and param_name in FIELDS_PARAMS_STRING_ACCEPTED
+        )
+        or (
+            type in FIELDS_TYPE_ARRAY
+            and param_name in FIELDS_PARAMS_ARRAY_ACCEPTED
+        )
+        or (
+            type in FIELDS_TYPE_NUMERIC
+            and param_name in FIELDS_PARAMS_NUMERIC_ACCEPTED
         )
     )
 
@@ -142,7 +155,9 @@ def generate_operations(
     if description.errors:
         http_status_errors = {}
         for error in description.errors:
-            http_status_errors.setdefault(error.wrapper.http_code, []).append(error)
+            http_status_errors.setdefault(error.wrapper.http_code, []).append(
+                error
+            )
 
         for http_status in http_status_errors:
             # FIXME - G.M - 2018-11-30 - We use schema class from first error
@@ -301,12 +316,15 @@ class DocGenerator(object):
             if description.errors:
                 for error in description.errors:
                     # FIXME BS 2018-12-03: Serpyco error support (#118)
-                    schema_usages.append(SchemaUsage(type(error.wrapper.error_builder)))
+                    schema_usages.append(
+                        SchemaUsage(type(error.wrapper.error_builder))
+                    )
 
         for schema_usage in set(schema_usages):
             spec.components.schema(
                 main_plugin.schema_name_resolver(
-                    schema_usage.schema, **schema_usage.plugin_name_resolver_kwargs
+                    schema_usage.schema,
+                    **schema_usage.plugin_name_resolver_kwargs,
                 ),
                 schema=schema_usage.schema,
                 **schema_usage.plugin_helper_kwargs,
@@ -317,7 +335,9 @@ class DocGenerator(object):
             route = context.find_route(controller)
             swagger_path = context.get_swagger_path(route.rule)
 
-            operations = generate_operations(main_plugin, route, controller.description)
+            operations = generate_operations(
+                main_plugin, route, controller.description
+            )
 
             doc_string = controller.reference.get_doc_string()
             if doc_string:

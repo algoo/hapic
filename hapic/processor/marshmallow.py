@@ -25,9 +25,13 @@ class MarshmallowProcessor(Processor):
     ) -> BasePlugin:
         schema_name_resolver = schema_name_resolver or generate_schema_name
 
-        return MarshmallowAdvancedPlugin(schema_name_resolver=schema_name_resolver)
+        return MarshmallowAdvancedPlugin(
+            schema_name_resolver=schema_name_resolver
+        )
 
-    def generate_schema_ref(self, main_plugin: MarshmallowAdvancedPlugin) -> dict:
+    def generate_schema_ref(
+        self, main_plugin: MarshmallowAdvancedPlugin
+    ) -> dict:
         """
         Return OpenApi $ref in a dict,
         eg. {"$ref": "#/definitions/MySchema"} or
@@ -79,7 +83,8 @@ class MarshmallowProcessor(Processor):
         marshmallow_errors = self.schema.load(clean_data).errors
 
         return ProcessValidationError(
-            message="Validation error of input data", details=marshmallow_errors
+            message="Validation error of input data",
+            details=marshmallow_errors,
         )
 
     def get_input_files_validation_error(
@@ -168,7 +173,9 @@ class MarshmallowProcessor(Processor):
 
         return unmarshall.data
 
-    def _get_input_files_errors(self, validated_data: dict) -> typing.Dict[str, str]:
+    def _get_input_files_errors(
+        self, validated_data: dict
+    ) -> typing.Dict[str, str]:
         """
         Additional check of data
         :param validated_data: previously validated data by marshmallow schema
@@ -181,7 +188,8 @@ class MarshmallowProcessor(Processor):
             # TODO BS 20171102: Think about case where test file content is
             # more complicated
             if field.required and (
-                field_name not in validated_data or not validated_data[field_name]
+                field_name not in validated_data
+                or not validated_data[field_name]
             ):
                 errors.setdefault(field_name, []).append(
                     "Missing data for required field"
@@ -224,8 +232,12 @@ class MarshmallowProcessor(Processor):
         Raise OutputValidationException if given object cannot be accepted as file
         :param data: object to be check as acceptable file
         """
-        validation_error_message = self._get_ouput_file_validation_error_message(data)
+        validation_error_message = self._get_ouput_file_validation_error_message(
+            data
+        )
         if validation_error_message:
             raise OutputValidationException(
-                "Error when validate output file : {}".format(validation_error_message)
+                "Error when validate output file : {}".format(
+                    validation_error_message
+                )
             )

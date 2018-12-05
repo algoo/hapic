@@ -39,7 +39,9 @@ class ContextInterface(object):
     ) -> typing.Any:
         raise NotImplementedError()
 
-    def get_file_response(self, file_response: HapicFile, http_code: int) -> typing.Any:
+    def get_file_response(
+        self, file_response: HapicFile, http_code: int
+    ) -> typing.Any:
         raise NotImplementedError()
 
     def get_validation_error_response(
@@ -82,7 +84,10 @@ class ContextInterface(object):
         raise NotImplementedError()
 
     def add_view(
-        self, route: str, http_method: str, view_func: typing.Callable[..., typing.Any]
+        self,
+        route: str,
+        http_method: str,
+        view_func: typing.Callable[..., typing.Any],
     ) -> None:
         """
         This method must permit to add a view in current context
@@ -113,7 +118,9 @@ class ContextInterface(object):
         raise NotImplementedError()
 
     def handle_exceptions(
-        self, exception_classes: typing.List[typing.Type[Exception]], http_code: int
+        self,
+        exception_classes: typing.List[typing.Type[Exception]],
+        http_code: int,
     ) -> None:
         """
         Enable management of these exceptions during execution of views. If
@@ -139,7 +146,9 @@ class HandledException(object):
     Representation of an handled exception with it's http code
     """
 
-    def __init__(self, exception_class: typing.Type[Exception], http_code: int = 500):
+    def __init__(
+        self, exception_class: typing.Type[Exception], http_code: int = 500
+    ):
         self.exception_class = exception_class
         self.http_code = http_code
 
@@ -155,7 +164,9 @@ class BaseContext(ContextInterface):
         self._add_exception_class_to_catch(exception_class, http_code)
 
     def handle_exceptions(
-        self, exception_classes: typing.List[typing.Type[Exception]], http_code: int
+        self,
+        exception_classes: typing.List[typing.Type[Exception]],
+        http_code: int,
     ) -> None:
         for exception_class in exception_classes:
             self._add_exception_class_to_catch(exception_class, http_code)

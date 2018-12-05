@@ -21,7 +21,9 @@ class TestDocSerpyco(object):
             password: str
 
         @hapic.with_api_doc()
-        @hapic.output_body(UserSchema, processor=SerpycoProcessor(exclude=["password"]))
+        @hapic.output_body(
+            UserSchema, processor=SerpycoProcessor(exclude=["password"])
+        )
         def my_view():
             pass
 
@@ -30,7 +32,9 @@ class TestDocSerpyco(object):
 
         assert (
             "#/definitions/UserSchema_exclude_password"
-            == doc["paths"]["/hello"]["get"]["responses"][200]["schema"]["$ref"]
+            == doc["paths"]["/hello"]["get"]["responses"][200]["schema"][
+                "$ref"
+            ]
         )
         assert "UserSchema_exclude_password" in doc["definitions"]
 
@@ -47,7 +51,9 @@ class TestDocSerpyco(object):
             password: str
 
         @hapic.with_api_doc()
-        @hapic.input_body(UserSchema, processor=SerpycoProcessor(exclude=["password"]))
+        @hapic.input_body(
+            UserSchema, processor=SerpycoProcessor(exclude=["password"])
+        )
         def my_view(hapic_data):
             pass
 
@@ -73,7 +79,9 @@ class TestDocSerpyco(object):
             password: str
 
         @hapic.with_api_doc()
-        @hapic.input_query(UserSchema, processor=SerpycoProcessor(exclude=["password"]))
+        @hapic.input_query(
+            UserSchema, processor=SerpycoProcessor(exclude=["password"])
+        )
         def my_view(hapic_data):
             pass
 
@@ -98,18 +106,28 @@ class TestDocSerpyco(object):
             password: str
 
         @hapic.with_api_doc()
-        @hapic.input_path(UserSchema, processor=SerpycoProcessor(exclude=["password"]))
+        @hapic.input_path(
+            UserSchema, processor=SerpycoProcessor(exclude=["password"])
+        )
         def my_view(hapic_data):
             pass
 
         app.route("/hello/{id}/{name}", "GET", callback=my_view)
         doc = hapic.generate_doc()
 
-        assert 2 == len(doc["paths"]["/hello/{id}/{name}"]["get"]["parameters"])
-        assert (
-            "id" == doc["paths"]["/hello/{id}/{name}"]["get"]["parameters"][0]["name"]
+        assert 2 == len(
+            doc["paths"]["/hello/{id}/{name}"]["get"]["parameters"]
         )
         assert (
-            "name" == doc["paths"]["/hello/{id}/{name}"]["get"]["parameters"][1]["name"]
+            "id"
+            == doc["paths"]["/hello/{id}/{name}"]["get"]["parameters"][0][
+                "name"
+            ]
+        )
+        assert (
+            "name"
+            == doc["paths"]["/hello/{id}/{name}"]["get"]["parameters"][1][
+                "name"
+            ]
         )
         assert "UserSchema_exclude_password" in doc["definitions"]
