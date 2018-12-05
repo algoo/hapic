@@ -102,7 +102,9 @@ class Hapic(object):
     def reset_context(self) -> None:
         self._context = None
 
-    def set_processor_class(self, processor_class: typing.Type[Processor]) -> None:
+    def set_processor_class(
+        self, processor_class: typing.Type[Processor]
+    ) -> None:
         self._processor_class = processor_class
 
     def _get_processor_factory(
@@ -166,9 +168,13 @@ class Hapic(object):
             description = self._buffer.get_description()
             description.tags = tags
 
-            reference = ControllerReference(wrapper=wrapper, wrapped=func, token=token)
+            reference = ControllerReference(
+                wrapper=wrapper, wrapped=func, token=token
+            )
             decorated_controller = DecoratedController(
-                reference=reference, description=description, name=func.__name__
+                reference=reference,
+                description=description,
+                name=func.__name__,
             )
             self._buffer.clear()
             self._controllers.append(decorated_controller)
@@ -564,7 +570,9 @@ class Hapic(object):
         doc_index_path = os.path.join(swaggerui_path, "index.html")
         with open(doc_index_path, "r") as doc_page:
             doc_page_content = doc_page.read()
-        doc_page_content = doc_page_content.replace("{{ spec_uri }}", "spec.yml")
+        doc_page_content = doc_page_content.replace(
+            "{{ spec_uri }}", "spec.yml"
+        )
 
         # Declare the swaggerui view
         def api_doc_view(*args, **kwargs):
@@ -581,7 +589,9 @@ class Hapic(object):
             )
 
         # Add a view to generate the html index page of swagger-ui
-        self.context.add_view(route=route, http_method="GET", view_func=api_doc_view)
+        self.context.add_view(
+            route=route, http_method="GET", view_func=api_doc_view
+        )
 
         # Add a doc yaml view
         self.context.add_view(

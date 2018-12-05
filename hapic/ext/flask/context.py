@@ -36,7 +36,9 @@ class FlaskContext(BaseContext):
         default_error_builder: ErrorBuilderInterface = None,
         debug: bool = False,
     ):
-        self._handled_exceptions = []  # type: typing.List[HandledException]  # nopep8
+        self._handled_exceptions = (
+            []
+        )  # type: typing.List[HandledException]  # nopep8
         self.app = app
         self.default_error_builder = (
             default_error_builder or DefaultErrorBuilder()
@@ -67,7 +69,9 @@ class FlaskContext(BaseContext):
         error: ProcessValidationError,
         http_code: HTTPStatus = HTTPStatus.BAD_REQUEST,
     ) -> typing.Any:
-        error_content = self.default_error_builder.build_from_validation_error(error)
+        error_content = self.default_error_builder.build_from_validation_error(
+            error
+        )
 
         # Check error
         dumped = self.default_error_builder.dump(error_content).data
@@ -93,7 +97,9 @@ class FlaskContext(BaseContext):
             if route.endpoint not in self.app.view_functions:
                 continue
             route_callback = self.app.view_functions[route.endpoint]
-            route_token = getattr(route_callback, DECORATION_ATTRIBUTE_NAME, None)
+            route_token = getattr(
+                route_callback, DECORATION_ATTRIBUTE_NAME, None
+            )
             match_with_wrapper = route_callback == reference.wrapper
             match_with_wrapped = route_callback == reference.wrapped
             match_with_token = route_token == reference.token
@@ -101,7 +107,9 @@ class FlaskContext(BaseContext):
             # FIXME - G.M - 2017-12-04 - return list instead of one method
             # This fix, return only 1 allowed method, change this when
             # RouteRepresentation is adapted to return multiples methods.
-            method = [x for x in route.methods if x not in ["OPTIONS", "HEAD"]][0]
+            method = [
+                x for x in route.methods if x not in ["OPTIONS", "HEAD"]
+            ][0]
 
             if match_with_wrapper or match_with_wrapped or match_with_token:
                 return RouteRepresentation(
@@ -120,9 +128,14 @@ class FlaskContext(BaseContext):
         return isinstance(response, Response)
 
     def add_view(
-        self, route: str, http_method: str, view_func: typing.Callable[..., typing.Any]
+        self,
+        route: str,
+        http_method: str,
+        view_func: typing.Callable[..., typing.Any],
     ) -> None:
-        self.app.add_url_rule(methods=[http_method], rule=route, view_func=view_func)
+        self.app.add_url_rule(
+            methods=[http_method], rule=route, view_func=view_func
+        )
 
     def serve_directory(self, route_prefix: str, directory_path: str) -> None:
         if not route_prefix.endswith("/"):

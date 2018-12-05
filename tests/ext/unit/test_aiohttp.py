@@ -23,7 +23,9 @@ class TestAiohttpExt(object):
         text = await resp.text()
         assert "Hello, world" in text
 
-    async def test_aiohttp_input_path__ok__nominal_case(self, aiohttp_client, loop):
+    async def test_aiohttp_input_path__ok__nominal_case(
+        self, aiohttp_client, loop
+    ):
         hapic = Hapic(async_=True)
 
         class InputPathSchema(marshmallow.Schema):
@@ -70,7 +72,9 @@ class TestAiohttpExt(object):
         assert "Validation error of input data" in error.get("message")
         assert {"i": ["Not a valid integer."]} == error.get("details")
 
-    async def test_aiohttp_input_body__ok_nominal_case(self, aiohttp_client, loop):
+    async def test_aiohttp_input_body__ok_nominal_case(
+        self, aiohttp_client, loop
+    ):
         hapic = Hapic(async_=True)
 
         class InputBodySchema(marshmallow.Schema):
@@ -117,7 +121,9 @@ class TestAiohttpExt(object):
         assert "Validation error of input data" in error.get("message")
         assert {"i": ["Not a valid integer."]} == error.get("details")
 
-    async def test_aiohttp_output_body__ok__nominal_case(self, aiohttp_client, loop):
+    async def test_aiohttp_output_body__ok__nominal_case(
+        self, aiohttp_client, loop
+    ):
         hapic = Hapic(async_=True)
 
         class OuputBodySchema(marshmallow.Schema):
@@ -160,7 +166,9 @@ class TestAiohttpExt(object):
 
         data = await resp.json()
         assert "Validation error of output data" == data.get("message")
-        assert {"i": ["Missing data for required field."]} == data.get("details")
+        assert {"i": ["Missing data for required field."]} == data.get(
+            "details"
+        )
 
     async def test_aiohttp_handle_excpetion__ok__nominal_case(
         self, aiohttp_client, loop
@@ -185,7 +193,9 @@ class TestAiohttpExt(object):
     @pytest.mark.skipif(
         sys.version_info > (3, 6), reason="requires python3.6 or inferior"
     )
-    async def test_aiohttp_output_stream__ok__nominal_case(self, aiohttp_client, loop):
+    async def test_aiohttp_output_stream__ok__nominal_case(
+        self, aiohttp_client, loop
+    ):
         hapic = Hapic(async_=True)
 
         class AsyncGenerator:
@@ -251,7 +261,9 @@ class TestAiohttpExt(object):
     @pytest.mark.skipif(
         sys.version_info > (3, 6), reason="requires python3.6 or inferior"
     )
-    async def test_aiohttp_output_stream__error__ignore(self, aiohttp_client, loop):
+    async def test_aiohttp_output_stream__error__ignore(
+        self, aiohttp_client, loop
+    ):
         hapic = Hapic(async_=True)
 
         class AsyncGenerator:
@@ -304,7 +316,9 @@ class TestAiohttpExt(object):
 
         from .py37.stream import get_func_with_output_stream_and_error
 
-        hello = get_func_with_output_stream_and_error(hapic, OuputStreamItemSchema)
+        hello = get_func_with_output_stream_and_error(
+            hapic, OuputStreamItemSchema
+        )
 
         app = web.Application(debug=True)
         app.router.add_get("/", hello)
@@ -323,7 +337,9 @@ class TestAiohttpExt(object):
     @pytest.mark.skipif(
         sys.version_info > (3, 6), reason="requires python3.6 or inferior"
     )
-    async def test_aiohttp_output_stream__error__interrupt(self, aiohttp_client, loop):
+    async def test_aiohttp_output_stream__error__interrupt(
+        self, aiohttp_client, loop
+    ):
         hapic = Hapic(async_=True)
 
         class AsyncGenerator:
@@ -332,7 +348,9 @@ class TestAiohttpExt(object):
                     [
                         {"name": "Hello, bob"},
                         {"nameZ": "Hello, Z"},  # This line is incorrect
-                        {"name": "Hello, franck"},  # This line must not be reached
+                        {
+                            "name": "Hello, franck"
+                        },  # This line must not be reached
                     ]
                 )
 
@@ -426,15 +444,20 @@ class TestAiohttpExt(object):
 
         doc = hapic.generate_doc("aiohttp", "testing")
         assert "UserSchema" in doc.get("definitions")
-        assert {"name": {"type": "string"}} == doc["definitions"]["UserSchema"].get(
-            "properties"
-        )
+        assert {"name": {"type": "string"}} == doc["definitions"][
+            "UserSchema"
+        ].get("properties")
         assert "/{username}" in doc.get("paths")
         assert "get" in doc["paths"]["/{username}"]
         assert "post" in doc["paths"]["/{username}"]
 
         assert [
-            {"name": "username", "in": "path", "required": True, "type": "string"},
+            {
+                "name": "username",
+                "in": "path",
+                "required": True,
+                "type": "string",
+            },
             {
                 "name": "show_deleted",
                 "in": "query",
@@ -443,14 +466,25 @@ class TestAiohttpExt(object):
             },
         ] == doc["paths"]["/{username}"]["get"]["parameters"]
         assert {
-            200: {"schema": {"$ref": "#/definitions/UserSchema"}, "description": "200"}
+            200: {
+                "schema": {"$ref": "#/definitions/UserSchema"},
+                "description": "200",
+            }
         } == doc["paths"]["/{username}"]["get"]["responses"]
 
         assert [
-            {"name": "username", "in": "path", "required": True, "type": "string"}
+            {
+                "name": "username",
+                "in": "path",
+                "required": True,
+                "type": "string",
+            }
         ] == doc["paths"]["/{username}"]["post"]["parameters"]
         assert {
-            200: {"schema": {"$ref": "#/definitions/UserSchema"}, "description": "200"}
+            200: {
+                "schema": {"$ref": "#/definitions/UserSchema"},
+                "description": "200",
+            }
         } == doc["paths"]["/{username}"]["get"]["responses"]
 
     def test_unit__generate_output_stream_doc__ok__nominal_case(

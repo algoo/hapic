@@ -171,7 +171,9 @@ class AiohttpContext(BaseContext):
         reference = decorated_controller.reference
 
         for route in self.app.router.routes():
-            route_token = getattr(route.handler, DECORATION_ATTRIBUTE_NAME, None)
+            route_token = getattr(
+                route.handler, DECORATION_ATTRIBUTE_NAME, None
+            )
 
             match_with_wrapper = route.handler == reference.wrapper
             match_with_wrapped = route.handler == reference.wrapped
@@ -207,7 +209,10 @@ class AiohttpContext(BaseContext):
         return isinstance(response, web.Response)
 
     def add_view(
-        self, route: str, http_method: str, view_func: typing.Callable[..., typing.Any]
+        self,
+        route: str,
+        http_method: str,
+        view_func: typing.Callable[..., typing.Any],
     ) -> None:
         # TODO BS 2018-07-15: to do
         raise NotImplementedError("todo")
@@ -237,7 +242,9 @@ class AiohttpContext(BaseContext):
             self.app.middlewares.append(self._error_middleware)
 
     def handle_exceptions(
-        self, exception_classes: typing.List[typing.Type[Exception]], http_code: int
+        self,
+        exception_classes: typing.List[typing.Type[Exception]],
+        http_code: int,
     ) -> None:
         """
         Manage exception classes (and theirs children) by associating an http

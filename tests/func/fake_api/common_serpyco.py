@@ -21,7 +21,9 @@ serpyco_SWAGGER_DOC_API = {
                         "responses": {
                             200: {
                                 "description": "200",
-                                "schema": {"$ref": "#/definitions/AboutResponseSchema"},
+                                "schema": {
+                                    "$ref": "#/definitions/AboutResponseSchema"
+                                },
                             }
                         },
                         "description": "General information about this API.",
@@ -35,7 +37,9 @@ serpyco_SWAGGER_DOC_API = {
                         "responses": {
                             200: {
                                 "description": "200",
-                                "schema": {"$ref": "#/definitions/ListsUserSchema"},
+                                "schema": {
+                                    "$ref": "#/definitions/ListsUserSchema"
+                                },
                             }
                         },
                         "description": "Obtain users list.",
@@ -83,7 +87,9 @@ serpyco_SWAGGER_DOC_API = {
                         "responses": {
                             204: {
                                 "description": "204",
-                                "schema": {"$ref": "#/definitions/NoContentSchema"},
+                                "schema": {
+                                    "$ref": "#/definitions/NoContentSchema"
+                                },
                             }
                         },
                         "parameters": [
@@ -173,7 +179,10 @@ serpyco_SWAGGER_DOC_API = {
                 "display_name": {"type": "string"},
                 "company": {"type": "string"},
                 "username": {"type": "string", "pattern": "[\\w-]+"},
-                "email_address": {"type": "string", "format": StringFormat.EMAIL},
+                "email_address": {
+                    "type": "string",
+                    "format": StringFormat.EMAIL,
+                },
             },
             "required": [
                 "first_name",
@@ -198,7 +207,10 @@ serpyco_SWAGGER_DOC_API = {
                 "display_name": {"type": "string"},
                 "company": {"type": "string"},
                 "username": {"type": "string", "pattern": "[\\w-]+"},
-                "email_address": {"type": "string", "format": StringFormat.EMAIL},
+                "email_address": {
+                    "type": "string",
+                    "format": StringFormat.EMAIL,
+                },
                 "id": {"type": "integer", "default": None},
             },
             "required": [

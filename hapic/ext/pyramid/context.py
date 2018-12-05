@@ -39,7 +39,9 @@ class PyramidContext(BaseContext):
         default_error_builder: ErrorBuilderInterface = None,
         debug: bool = False,
     ):
-        self._handled_exceptions = []  # type: typing.List[HandledException]  # nopep8
+        self._handled_exceptions = (
+            []
+        )  # type: typing.List[HandledException]  # nopep8
         self.configurator = configurator
         self.default_error_builder = (
             default_error_builder or DefaultErrorBuilder()
@@ -121,7 +123,9 @@ class PyramidContext(BaseContext):
     ) -> typing.Any:
         from pyramid.response import Response
 
-        error_content = self.default_error_builder.build_from_validation_error(error)
+        error_content = self.default_error_builder.build_from_validation_error(
+            error
+        )
 
         # Check error
         dumped = self.default_error_builder.dump(error).data
@@ -187,15 +191,22 @@ class PyramidContext(BaseContext):
         return isinstance(response, Response)
 
     def add_view(
-        self, route: str, http_method: str, view_func: typing.Callable[..., typing.Any]
+        self,
+        route: str,
+        http_method: str,
+        view_func: typing.Callable[..., typing.Any],
     ) -> None:
 
-        self.configurator.add_route(name=route, path=route, request_method=http_method)
+        self.configurator.add_route(
+            name=route, path=route, request_method=http_method
+        )
 
         self.configurator.add_view(view_func, route_name=route)
 
     def serve_directory(self, route_prefix: str, directory_path: str) -> None:
-        self.configurator.add_static_view(name=route_prefix, path=directory_path)
+        self.configurator.add_static_view(
+            name=route_prefix, path=directory_path
+        )
 
     def _add_exception_class_to_catch(
         self, exception_class: typing.Type[Exception], http_code: int
@@ -208,7 +219,9 @@ class PyramidContext(BaseContext):
                 logger = logging.getLogger(LOGGER_NAME)
                 logger.info(
                     "Exception {exc} occured, return {http_code} http_code : {msg}".format(  # nopep8
-                        exc=type(exc).__name__, http_code=http_code, msg=str(exc)
+                        exc=type(exc).__name__,
+                        http_code=http_code,
+                        msg=str(exc),
                     )
                 )
                 logger.debug(traceback.format_exc())
@@ -222,7 +235,8 @@ class PyramidContext(BaseContext):
             return view_func
 
         self.configurator.add_view(
-            view=factory_view_func(exception_class, http_code), context=exception_class
+            view=factory_view_func(exception_class, http_code),
+            context=exception_class,
         )
 
     def is_debug(self) -> bool:

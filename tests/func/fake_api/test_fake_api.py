@@ -49,7 +49,8 @@ def get_pyramid_context():
 
 
 @pytest.mark.parametrize(
-    "context", [get_bottle_context(), get_flask_context(), get_pyramid_context()]
+    "context",
+    [get_bottle_context(), get_flask_context(), get_pyramid_context()],
 )
 def test_func__test_fake_api_endpoints_ok__all_framework(context):
     hapic = context["hapic"]
@@ -141,7 +142,8 @@ def test_func__test_fake_api_endpoints_ok__all_framework(context):
 
 
 @pytest.mark.parametrize(
-    "context", [get_bottle_context(), get_flask_context(), get_pyramid_context()]
+    "context",
+    [get_bottle_context(), get_flask_context(), get_pyramid_context()],
 )
 def test_func__test_fake_api_doc_ok__all_framework(context):
     hapic = context["hapic"]
@@ -157,7 +159,9 @@ def test_func__test_fake_api_doc_ok__all_framework(context):
     assert doc["parameters"] == SWAGGER_DOC_API["parameters"]
     assert doc["paths"]["/about"] == SWAGGER_DOC_API["paths"]["/about"]
     assert doc["paths"]["/users"] == SWAGGER_DOC_API["paths"]["/users"]
-    assert doc["paths"]["/users/{id}"] == SWAGGER_DOC_API["paths"]["/users/{id}"]
+    assert (
+        doc["paths"]["/users/{id}"] == SWAGGER_DOC_API["paths"]["/users/{id}"]
+    )
     assert doc["paths"]["/users/"] == SWAGGER_DOC_API["paths"]["/users/"]
     assert doc["paths"]["/users2"] == SWAGGER_DOC_API["paths"]["/users2"]
 
@@ -178,10 +182,12 @@ def test_func__test_fake_api_doc_ok__all_framework(context):
         == SWAGGER_DOC_API["definitions"]["PaginationSchema"]
     )
     assert (
-        doc["definitions"]["UserSchema"] == SWAGGER_DOC_API["definitions"]["UserSchema"]
+        doc["definitions"]["UserSchema"]
+        == SWAGGER_DOC_API["definitions"]["UserSchema"]
     )
     assert (
-        doc["definitions"]["UserSchema"] == SWAGGER_DOC_API["definitions"]["UserSchema"]
+        doc["definitions"]["UserSchema"]
+        == SWAGGER_DOC_API["definitions"]["UserSchema"]
     )
 
     assert (
@@ -189,7 +195,9 @@ def test_func__test_fake_api_doc_ok__all_framework(context):
         == SWAGGER_DOC_API["definitions"]["UserSchema_without_id"]
     )
     assert (
-        doc["definitions"]["UserSchema_without_email_address_first_name_last_name"]
+        doc["definitions"][
+            "UserSchema_without_email_address_first_name_last_name"
+        ]
         == SWAGGER_DOC_API["definitions"][
             "UserSchema_without_email_address_first_name_last_name"
         ]

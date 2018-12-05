@@ -109,11 +109,15 @@ class MyControllerWrapper(InputOutputControllerWrapper):
 
 
 class MyInputQueryControllerWrapper(InputControllerWrapper):
-    def get_processed_data(self, request_parameters: RequestParameters) -> typing.Any:
+    def get_processed_data(
+        self, request_parameters: RequestParameters
+    ) -> typing.Any:
         return request_parameters.query_parameters
 
     def update_hapic_data(
-        self, hapic_data: HapicData, processed_data: typing.Dict[str, typing.Any]
+        self,
+        hapic_data: HapicData,
+        processed_data: typing.Dict[str, typing.Any],
     ) -> typing.Any:
         hapic_data.query = processed_data
 
@@ -187,7 +191,9 @@ class TestInputControllerWrapper(Base):
     def test_unit__multi_query_param_values__ok__use_as_list(self):
         context = MyContext(
             app=None,
-            fake_query_parameters=MultiDict((("user_id", "abc"), ("user_id", "def"))),
+            fake_query_parameters=MultiDict(
+                (("user_id", "abc"), ("user_id", "def"))
+            ),
         )
         processor = MySimpleProcessor()
         wrapper = InputQueryControllerWrapper(
@@ -208,7 +214,9 @@ class TestInputControllerWrapper(Base):
     def test_unit__multi_query_param_values__ok__without_as_list(self):
         context = MyContext(
             app=None,
-            fake_query_parameters=MultiDict((("user_id", "abc"), ("user_id", "def"))),
+            fake_query_parameters=MultiDict(
+                (("user_id", "abc"), ("user_id", "def"))
+            ),
         )
         processor = MySimpleProcessor()
         wrapper = InputQueryControllerWrapper(context, lambda: processor)

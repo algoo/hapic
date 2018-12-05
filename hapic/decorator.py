@@ -87,7 +87,9 @@ class ControllerWrapper(object):
 
         return functools.update_wrapper(wrapper, func)
 
-    def _execute_wrapped_function(self, func, func_args, func_kwargs) -> typing.Any:
+    def _execute_wrapped_function(
+        self, func, func_args, func_kwargs
+    ) -> typing.Any:
         return func(*func_args, **func_kwargs)
 
 
@@ -131,7 +133,9 @@ class InputControllerWrapper(InputOutputControllerWrapper):
         # hapic_data is given though decorators
         # Important note here: func_kwargs is update by reference !
         hapic_data = self.ensure_hapic_data(func_kwargs)
-        request_parameters = self.get_request_parameters(func_args, func_kwargs)
+        request_parameters = self.get_request_parameters(
+            func_args, func_kwargs
+        )
 
         try:
             processed_data = self.get_processed_data(request_parameters)
@@ -141,7 +145,9 @@ class InputControllerWrapper(InputOutputControllerWrapper):
             return error_response
 
     @classmethod
-    def ensure_hapic_data(cls, func_kwargs: typing.Dict[str, typing.Any]) -> HapicData:
+    def ensure_hapic_data(
+        cls, func_kwargs: typing.Dict[str, typing.Any]
+    ) -> HapicData:
         # TODO: Permit other name than "hapic_data" ? see #7
         try:
             return func_kwargs["hapic_data"]
@@ -157,20 +163,28 @@ class InputControllerWrapper(InputOutputControllerWrapper):
     ) -> RequestParameters:
         return self.context.get_request_parameters(*func_args, **func_kwargs)
 
-    def get_processed_data(self, request_parameters: RequestParameters) -> typing.Any:
+    def get_processed_data(
+        self, request_parameters: RequestParameters
+    ) -> typing.Any:
         parameters_data = self.get_parameters_data(request_parameters)
         processed_data = self.processor.load_input(parameters_data)
         return processed_data
 
-    def get_parameters_data(self, request_parameters: RequestParameters) -> dict:
+    def get_parameters_data(
+        self, request_parameters: RequestParameters
+    ) -> dict:
         raise NotImplementedError()
 
     def update_hapic_data(
-        self, hapic_data: HapicData, processed_data: typing.Dict[str, typing.Any]
+        self,
+        hapic_data: HapicData,
+        processed_data: typing.Dict[str, typing.Any],
     ) -> None:
         raise NotImplementedError()
 
-    def get_error_response(self, request_parameters: RequestParameters) -> typing.Any:
+    def get_error_response(
+        self, request_parameters: RequestParameters
+    ) -> typing.Any:
         parameters_data = self.get_parameters_data(request_parameters)
         error = self._get_processor_error(parameters_data)
         error_response = self.context.get_validation_error_response(
@@ -211,7 +225,9 @@ class AsyncInputControllerWrapper(InputControllerWrapper):
         # hapic_data is given though decorators
         # Important note here: func_kwargs is update by reference !
         hapic_data = self.ensure_hapic_data(func_kwargs)
-        request_parameters = self.get_request_parameters(func_args, func_kwargs)
+        request_parameters = self.get_request_parameters(
+            func_args, func_kwargs
+        )
 
         try:
             processed_data = await self.get_processed_data(request_parameters)
@@ -238,7 +254,9 @@ class OutputControllerWrapper(InputOutputControllerWrapper):
         error_http_code: HTTPStatus = HTTPStatus.INTERNAL_SERVER_ERROR,
         default_http_code: HTTPStatus = HTTPStatus.OK,
     ) -> None:
-        super().__init__(context, processor_factory, error_http_code, default_http_code)
+        super().__init__(
+            context, processor_factory, error_http_code, default_http_code
+        )
 
     def get_error_response(self, response: typing.Any) -> typing.Any:
         error = self.processor.get_output_validation_error(response)
@@ -329,7 +347,9 @@ class AsyncOutputStreamControllerWrapper(OutputControllerWrapper):
         default_http_code: HTTPStatus = HTTPStatus.OK,
         ignore_on_error: bool = True,
     ) -> None:
-        super().__init__(context, processor_factory, error_http_code, default_http_code)
+        super().__init__(
+            context, processor_factory, error_http_code, default_http_code
+        )
         self.ignore_on_error = ignore_on_error
 
     def get_wrapper(self, func: "typing.Callable") -> "typing.Callable":
@@ -345,7 +365,9 @@ class AsyncOutputStreamControllerWrapper(OutputControllerWrapper):
                 args, kwargs
             )
 
-            response_object = self._execute_wrapped_function(func, args, kwargs)
+            response_object = self._execute_wrapped_function(
+                func, args, kwargs
+            )
 
             # To be compatible with python3.5 and python3.7, we must inspect
             # the object. If it is an async_generator, nothing to do. Else,
@@ -396,7 +418,9 @@ class OutputFileControllerWrapper(OutputControllerWrapper):
         error_http_code: HTTPStatus = HTTPStatus.INTERNAL_SERVER_ERROR,
         default_http_code: HTTPStatus = HTTPStatus.OK,
     ) -> None:
-        super().__init__(context, processor_factory, error_http_code, default_http_code)
+        super().__init__(
+            context, processor_factory, error_http_code, default_http_code
+        )
         self.output_types = output_types
 
     def after_wrapped_function(self, response: typing.Any) -> typing.Any:
@@ -439,7 +463,9 @@ class InputQueryControllerWrapper(InputControllerWrapper):
         default_http_code: HTTPStatus = HTTPStatus.OK,
         as_list: typing.List[str] = None,
     ) -> None:
-        super().__init__(context, processor_factory, error_http_code, default_http_code)
+        super().__init__(
+            context, processor_factory, error_http_code, default_http_code
+        )
         self.as_list = as_list or []  # FDV
 
     def update_hapic_data(
@@ -460,7 +486,9 @@ class InputQueryControllerWrapper(InputControllerWrapper):
                 if parameter_name in self.as_list:
                     query_parameters[
                         parameter_name
-                    ] = request_parameters.query_parameters.getall(parameter_name)
+                    ] = request_parameters.query_parameters.getall(
+                        parameter_name
+                    )
                 else:
                     query_parameters[
                         parameter_name
@@ -537,7 +565,9 @@ class InputFilesControllerWrapper(InputControllerWrapper):
     ) -> None:
         hapic_data.files = processed_data
 
-    def get_processed_data(self, request_parameters: RequestParameters) -> typing.Any:
+    def get_processed_data(
+        self, request_parameters: RequestParameters
+    ) -> typing.Any:
         parameters_data = self.get_parameters_data(request_parameters)
         processed_data = self.processor.load_files_input(parameters_data)
         return processed_data
@@ -577,11 +607,15 @@ class ExceptionHandlerControllerWrapper(ControllerWrapper):
         self.http_code = http_code
         # TODO - G.M - 2018-11-30 - Deal better with int/HTTPStatus conversion
         if isinstance(http_code, HTTPStatus):
-            default_description = "{}: {}".format(http_code.name, http_code.description)
+            default_description = "{}: {}".format(
+                http_code.name, http_code.description
+            )
         else:
             default_description = str(int(http_code))
         self.description = (
-            description or self.handled_exception_class.__doc__ or default_description
+            description
+            or self.handled_exception_class.__doc__
+            or default_description
         )  # DFV
         self._error_builder = error_builder
 
@@ -597,9 +631,13 @@ class ExceptionHandlerControllerWrapper(ControllerWrapper):
             return self._error_builder()
         return self._error_builder
 
-    def _execute_wrapped_function(self, func, func_args, func_kwargs) -> typing.Any:
+    def _execute_wrapped_function(
+        self, func, func_args, func_kwargs
+    ) -> typing.Any:
         try:
-            return super()._execute_wrapped_function(func, func_args, func_kwargs)
+            return super()._execute_wrapped_function(
+                func, func_args, func_kwargs
+            )
         except self.handled_exception_class as exc:
             return self._build_error_response(exc)
 
@@ -618,7 +656,9 @@ class ExceptionHandlerControllerWrapper(ControllerWrapper):
                 )
             )
 
-        error_response = self.context.get_response(json.dumps(dumped), self.http_code)
+        error_response = self.context.get_response(
+            json.dumps(dumped), self.http_code
+        )
         self._logger = logging.getLogger(LOGGER_NAME)
         self._logger.info(
             "Exception {exc} occured, return {http_code} http_code : {msg}".format(  # nopep8
@@ -635,7 +675,9 @@ class ExceptionHandlerControllerWrapper(ControllerWrapper):
 # ExceptionHandlerControllerWrapper
 # to permit async compatibility. Please re-think about code refact
 # TAG: REFACT_ASYNC
-class AsyncExceptionHandlerControllerWrapper(ExceptionHandlerControllerWrapper):
+class AsyncExceptionHandlerControllerWrapper(
+    ExceptionHandlerControllerWrapper
+):
     def get_wrapper(self, func: "typing.Callable") -> "typing.Callable":
         # async def wrapper(*args, **kwargs) -> typing.Any:
         async def wrapper(*args, **kwargs) -> typing.Any:
