@@ -25,6 +25,10 @@ class ProcessException(HapicException):
     pass
 
 
+class ValidationException(ProcessException):
+    pass
+
+
 class InputWorkflowException(WorkflowException):
     pass
 
@@ -33,11 +37,11 @@ class OutputWorkflowException(WorkflowException):
     pass
 
 
-class InputValidationException(InputWorkflowException, ProcessException):
+class InputValidationException(InputWorkflowException, ValidationException):
     pass
 
 
-class OutputValidationException(OutputWorkflowException, ProcessException):
+class OutputValidationException(OutputWorkflowException, ValidationException):
     pass
 
 

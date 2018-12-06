@@ -10,12 +10,14 @@ from multidict import MultiDict
 from hapic.context import ContextInterface
 from hapic.data import HapicData
 from hapic.description import ControllerDescription
-from hapic.error import ErrorBuilderInterface
+from hapic.error.main import ErrorBuilderInterface
 from hapic.exception import OutputValidationException
 from hapic.exception import ProcessException
+from hapic.exception import ValidationException
 from hapic.processor.main import Processor
 from hapic.processor.main import ProcessValidationError
 from hapic.processor.main import RequestParameters
+from hapic.type import TYPE_SCHEMA
 from hapic.util import LOGGER_NAME
 
 try:  # Python 3.5+
@@ -62,6 +64,54 @@ class ControllerReference(object):
 
 
 class ControllerWrapper(object):
+    def __init__(
+        self,
+        context: typing.Union[
+            ContextInterface, typing.Callable[[], ContextInterface]
+        ],
+        processor_factory: typing.Callable[
+            [typing.Optional[TYPE_SCHEMA]], Processor
+        ],
+        error_http_code: HTTPStatus = HTTPStatus.BAD_REQUEST,
+        default_http_code: HTTPStatus = HTTPStatus.OK,
+    ) -> None:
+        """
+        ControllerWrapper are the view wrapper. It's job is to intercept
+        input and output to run hapic controls.
+        :param context: context to use with this wrapper
+        :param processor_factory: callable to build processor
+        :param error_http_code: http code to use in case of error
+        :param default_http_code: http code to use in case of success
+        """
+        self._context = context
+        self._processor_factory = processor_factory
+        self._processor = None  # type: Processor
+        self.error_http_code = error_http_code
+        self.default_http_code = default_http_code
+
+    @property
+    def context(self) -> ContextInterface:
+        """
+        Wrapper associated context. It return context given when
+        wrapper used or default hapic context.
+        :return: ContextInterface object
+        """
+        if callable(self._context):
+            return self._context()
+        return self._context
+
+    @property
+    def processor(self) -> Processor:
+        """
+        Wrapper associated processor. It return processor given when
+        wrapper used or default hapic processor.
+        :return: Processor object
+        """
+        if self._processor is None:
+            self._processor = self._processor_factory()
+
+        return self._processor
+
     def before_wrapped_func(
         self,
         func_args: typing.Tuple[typing.Any, ...],
@@ -94,33 +144,7 @@ class ControllerWrapper(object):
 
 
 class InputOutputControllerWrapper(ControllerWrapper):
-    def __init__(
-        self,
-        context: typing.Union[
-            ContextInterface, typing.Callable[[], ContextInterface]
-        ],  # nopep8
-        processor_factory: typing.Callable[[], Processor],
-        error_http_code: HTTPStatus = HTTPStatus.BAD_REQUEST,
-        default_http_code: HTTPStatus = HTTPStatus.OK,
-    ) -> None:
-        self._context = context
-        self._processor_factory = processor_factory
-        self._processor = None  # type: Processor
-        self.error_http_code = error_http_code
-        self.default_http_code = default_http_code
-
-    @property
-    def context(self) -> ContextInterface:
-        if callable(self._context):
-            return self._context()
-        return self._context
-
-    @property
-    def processor(self) -> Processor:
-        if self._processor is None:
-            self._processor = self._processor_factory()
-
-        return self._processor
+    pass
 
 
 class InputControllerWrapper(InputOutputControllerWrapper):
@@ -167,7 +191,7 @@ class InputControllerWrapper(InputOutputControllerWrapper):
         self, request_parameters: RequestParameters
     ) -> typing.Any:
         parameters_data = self.get_parameters_data(request_parameters)
-        processed_data = self.processor.load_input(parameters_data)
+        processed_data = self.processor.load(parameters_data)
         return processed_data
 
     def get_parameters_data(
@@ -240,7 +264,7 @@ class AsyncInputControllerWrapper(InputControllerWrapper):
         self, request_parameters: RequestParameters
     ) -> typing.Any:
         parameters_data = await self.get_parameters_data(request_parameters)
-        processed_data = self.processor.load_input(parameters_data)
+        processed_data = self.processor.load(parameters_data)
         return processed_data
 
 
@@ -250,7 +274,9 @@ class OutputControllerWrapper(InputOutputControllerWrapper):
         context: typing.Union[
             ContextInterface, typing.Callable[[], ContextInterface]
         ],  # nopep8
-        processor_factory: typing.Callable[[], Processor],
+        processor_factory: typing.Callable[
+            [typing.Optional[TYPE_SCHEMA]], Processor
+        ],
         error_http_code: HTTPStatus = HTTPStatus.INTERNAL_SERVER_ERROR,
         default_http_code: HTTPStatus = HTTPStatus.OK,
     ) -> None:
@@ -270,7 +296,7 @@ class OutputControllerWrapper(InputOutputControllerWrapper):
             if self.context.by_pass_output_wrapping(response):
                 return response
 
-            processed_response = self.processor.dump_output(response)
+            processed_response = self.processor.dump(response)
             prepared_response = self.context.get_response(
                 json.dumps(processed_response), self.default_http_code
             )
@@ -342,7 +368,9 @@ class AsyncOutputStreamControllerWrapper(OutputControllerWrapper):
         context: typing.Union[
             ContextInterface, typing.Callable[[], ContextInterface]
         ],  # nopep8
-        processor_factory: typing.Callable[[], Processor],
+        processor_factory: typing.Callable[
+            [typing.Optional[TYPE_SCHEMA]], Processor
+        ],
         error_http_code: HTTPStatus = HTTPStatus.INTERNAL_SERVER_ERROR,
         default_http_code: HTTPStatus = HTTPStatus.OK,
         ignore_on_error: bool = True,
@@ -389,7 +417,7 @@ class AsyncOutputStreamControllerWrapper(OutputControllerWrapper):
                     await self.context.feed_stream_response(
                         stream_response, serialized_item
                     )
-                except OutputValidationException as exc:
+                except ValidationException as exc:
                     if not self.ignore_on_error:
                         # TODO BS 2018-07-31: Something should inform about
                         # error, a log ?
@@ -400,7 +428,7 @@ class AsyncOutputStreamControllerWrapper(OutputControllerWrapper):
         return functools.update_wrapper(wrapper, func)
 
     def _get_serialized_item(self, item_object: typing.Any) -> dict:
-        return self.processor.dump_output(item_object)
+        return self.processor.dump(item_object)
 
 
 class OutputHeadersControllerWrapper(OutputControllerWrapper):
@@ -413,7 +441,9 @@ class OutputFileControllerWrapper(OutputControllerWrapper):
         context: typing.Union[
             ContextInterface, typing.Callable[[], ContextInterface]
         ],  # nopep8
-        processor_factory: typing.Callable[[], Processor],
+        processor_factory: typing.Callable[
+            [typing.Optional[TYPE_SCHEMA]], Processor
+        ],
         output_types: typing.List[str],
         error_http_code: HTTPStatus = HTTPStatus.INTERNAL_SERVER_ERROR,
         default_http_code: HTTPStatus = HTTPStatus.OK,
@@ -458,7 +488,9 @@ class InputQueryControllerWrapper(InputControllerWrapper):
         context: typing.Union[
             ContextInterface, typing.Callable[[], ContextInterface]
         ],  # nopep8
-        processor_factory: typing.Callable[[], Processor],
+        processor_factory: typing.Callable[
+            [typing.Optional[TYPE_SCHEMA]], Processor
+        ],
         error_http_code: HTTPStatus = HTTPStatus.BAD_REQUEST,
         default_http_code: HTTPStatus = HTTPStatus.OK,
         as_list: typing.List[str] = None,
@@ -595,16 +627,19 @@ class ExceptionHandlerControllerWrapper(ControllerWrapper):
         handled_exception_class: typing.Type[Exception],
         context: typing.Union[
             ContextInterface, typing.Callable[[], ContextInterface]
-        ],  # nopep8
+        ],
         error_builder: typing.Union[
             ErrorBuilderInterface, typing.Callable[[], ErrorBuilderInterface]
-        ],  # nopep8
+        ],
+        processor_factory: typing.Callable[
+            [typing.Optional[TYPE_SCHEMA]], Processor
+        ],
         http_code: HTTPStatus = HTTPStatus.INTERNAL_SERVER_ERROR,
         description: str = None,
     ) -> None:
+        super().__init__(context, processor_factory, error_http_code=http_code)
         self.handled_exception_class = handled_exception_class
         self._context = context
-        self.http_code = http_code
         # TODO - G.M - 2018-11-30 - Deal better with int/HTTPStatus conversion
         if isinstance(http_code, HTTPStatus):
             default_description = "{}: {}".format(
@@ -645,24 +680,26 @@ class ExceptionHandlerControllerWrapper(ControllerWrapper):
         response_content = self.error_builder.build_from_exception(
             exc, include_traceback=self.context.is_debug()
         )
-
+        processor = self._processor_factory(self.error_builder.get_schema())
         # Check error format
-        dumped = self.error_builder.dump(response_content).data
-        unmarshall = self.error_builder.load(dumped)
-        if unmarshall.errors:
+        try:
+            dumped = processor.dump(response_content)
+        except ValidationException as exc:
             raise OutputValidationException(
-                "Validation error during dump of error response: {}".format(
-                    str(unmarshall.errors)
-                )
-            )
+                "Validation error during dump "
+                "of error response: {}".format(str(exc))
+            ) from exc
 
         error_response = self.context.get_response(
-            json.dumps(dumped), self.http_code
+            json.dumps(dumped), self.error_http_code
         )
         self._logger = logging.getLogger(LOGGER_NAME)
         self._logger.info(
-            "Exception {exc} occured, return {http_code} http_code : {msg}".format(  # nopep8
-                exc=type(exc).__name__, http_code=self.http_code, msg=str(exc)
+            "Exception {exc} occured, return "
+            "{http_code} http_code : {msg}".format(
+                exc=type(exc).__name__,
+                http_code=self.error_http_code,
+                msg=str(exc),
             )
         )
         # NOTE BS 2018-09-28: log on debug because it is an http framework error,

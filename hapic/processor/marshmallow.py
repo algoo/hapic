@@ -5,11 +5,11 @@ from apispec_marshmallow_advanced.common import generate_schema_name
 from apispec_marshmallow_advanced.common import (
     schema_class_resolver as schema_class_resolver_
 )
-from marshmallow import Schema
 
 from apispec_marshmallow_advanced import MarshmallowAdvancedPlugin
 from hapic.doc.schema import SchemaUsage
 from hapic.exception import OutputValidationException
+from hapic.exception import ValidationException
 from hapic.processor.main import Processor
 from hapic.processor.main import ProcessValidationError
 
@@ -138,21 +138,41 @@ class MarshmallowProcessor(Processor):
             details={"output_file": validation_error_message},
         )
 
-    def load_input(self, input_data: typing.Any) -> typing.Any:
+    def load(self, data: typing.Any) -> typing.Any:
         """
-        Load given input data with schema. Raise OutputValidationException
-        if validation errors.
-        :param input_data: input data to validate with schema
-        :return: loaded data with possible changes (eg. default values)
+        Use schema to validate given data and return updated data (like
+        with default values).
+        If validation fail, raise InputValidationException
+        :param data: data to validate and process
+        :return: updated data (like with default values)
         """
-        clean_data = self.clean_data(input_data)
+        clean_data = self.clean_data(data)
         unmarshall = self.schema.load(clean_data)
         if unmarshall.errors:
-            raise OutputValidationException(
-                "Error when validate ouput: {}".format(str(unmarshall.errors))
+            raise ValidationException(
+                "Error when loading: {}".format(str(unmarshall.errors))
             )
 
         return unmarshall.data
+
+    def dump(self, data: typing.Any) -> typing.Any:
+        """
+        Use schema to validate given data and return dumped data.
+        If validation fail, raise InputValidationException
+        :param data: data to validate and dump
+        :return: dumped data
+        """
+        clean_data = self.clean_data(data)
+        dump_data = self.schema.dump(clean_data).data
+
+        # Re-validate with dumped data
+        errors = self.schema.load(dump_data).errors
+        if errors:
+            raise ValidationException(
+                "Error when dumping: {}".format(str(errors))
+            )
+
+        return dump_data
 
     def load_files_input(self, input_data: typing.Any) -> typing.Any:
         """

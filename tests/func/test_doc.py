@@ -203,7 +203,7 @@ class TestDocGeneration(Base):
         assert 500 in doc["paths"]["/upload"]["post"]["responses"]
         assert {
             "description": Exception.__doc__,
-            "schema": {"$ref": "#/definitions/DefaultErrorBuilder"},
+            "schema": {"$ref": "#/definitions/MarshmallowDefaultErrorBuilder"},
         } == doc["paths"]["/upload"]["post"]["responses"][500]
 
     def test_func__errors__explicit_description(self):
@@ -226,7 +226,7 @@ class TestDocGeneration(Base):
         assert 500 in doc["paths"]["/upload"]["post"]["responses"]
         assert {
             "description": "Any Exception",
-            "schema": {"$ref": "#/definitions/DefaultErrorBuilder"},
+            "schema": {"$ref": "#/definitions/MarshmallowDefaultErrorBuilder"},
         } == doc["paths"]["/upload"]["post"]["responses"][500]
 
     def test_func__errors__docstring_exception(self):
@@ -252,7 +252,7 @@ class TestDocGeneration(Base):
         assert 500 in doc["paths"]["/upload"]["post"]["responses"]
         assert {
             "description": "Just a docstring",
-            "schema": {"$ref": "#/definitions/DefaultErrorBuilder"},
+            "schema": {"$ref": "#/definitions/MarshmallowDefaultErrorBuilder"},
         } == doc["paths"]["/upload"]["post"]["responses"][500]
 
     def test_func__errors__http_status_description(self):
@@ -278,7 +278,7 @@ class TestDocGeneration(Base):
         assert 400 in doc["paths"]["/upload"]["post"]["responses"]
         assert {
             "description": "BAD_REQUEST: Bad request syntax or unsupported method",
-            "schema": {"$ref": "#/definitions/DefaultErrorBuilder"},
+            "schema": {"$ref": "#/definitions/MarshmallowDefaultErrorBuilder"},
         } == doc["paths"]["/upload"]["post"]["responses"][400]
 
     def test_func__errors__http_status_as_int_description(self):
@@ -304,7 +304,7 @@ class TestDocGeneration(Base):
         assert 400 in doc["paths"]["/upload"]["post"]["responses"]
         assert {
             "description": "400",
-            "schema": {"$ref": "#/definitions/DefaultErrorBuilder"},
+            "schema": {"$ref": "#/definitions/MarshmallowDefaultErrorBuilder"},
         } == doc["paths"]["/upload"]["post"]["responses"][400]
 
     def test_func__errors__multiple_same_http_status_description(self):
@@ -364,9 +364,9 @@ class TestDocGeneration(Base):
         assert "Just a docstring" in descriptions
         assert not "Docstring not used" in descriptions
         assert doc["paths"]["/upload"]["post"]["responses"][400]["schema"]
-        assert {"$ref": "#/definitions/DefaultErrorBuilder"} == doc["paths"][
-            "/upload"
-        ]["post"]["responses"][400]["schema"]
+        assert {"$ref": "#/definitions/MarshmallowDefaultErrorBuilder"} == doc[
+            "paths"
+        ]["/upload"]["post"]["responses"][400]["schema"]
 
     def test_func__enum__nominal_case(self):
         hapic = Hapic()

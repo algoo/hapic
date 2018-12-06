@@ -2,6 +2,7 @@
 from aiohttp import web
 
 from example.fake_api.aiohttp_serpyco import AiohttpSerpycoController
+from hapic.error.serpyco import SerpycoDefaultErrorBuilder
 from hapic.ext.aiohttp.context import AiohttpContext
 from tests.func.fake_api.common_serpyco import serpyco_SWAGGER_DOC_API
 
@@ -17,7 +18,9 @@ def get_aiohttp_serpyco_app_hapic(app):
     from example.fake_api.aiohttp_serpyco import hapic
 
     hapic.reset_context()
-    hapic.set_context(AiohttpContext(app))
+    hapic.set_context(
+        AiohttpContext(app, default_error_builder=SerpycoDefaultErrorBuilder())
+    )
     return hapic
 
 

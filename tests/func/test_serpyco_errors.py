@@ -5,6 +5,7 @@ import bottle
 from webtest import TestApp
 
 from hapic import Hapic
+from hapic.error.serpyco import SerpycoDefaultErrorBuilder
 from hapic.ext.bottle import BottleContext
 from hapic.processor.serpyco import SerpycoProcessor
 
@@ -14,7 +15,11 @@ class TestSerpycoHandleException(object):
         app = bottle.Bottle()
         hapic = Hapic()
         hapic.set_processor_class(SerpycoProcessor)
-        hapic.set_context(BottleContext(app))
+        hapic.set_context(
+            BottleContext(
+                app, default_error_builder=SerpycoDefaultErrorBuilder()
+            )
+        )
 
         @hapic.with_api_doc()
         @hapic.handle_exception(ZeroDivisionError, http_code=400)
@@ -34,7 +39,9 @@ class TestSerpycoHandleException(object):
         hapic = Hapic()
         hapic.set_processor_class(SerpycoProcessor)
 
-        context = BottleContext(app)
+        context = BottleContext(
+            app, default_error_builder=SerpycoDefaultErrorBuilder()
+        )
         context.handle_exception(ZeroDivisionError, http_code=400)
 
         hapic.set_context(context)
