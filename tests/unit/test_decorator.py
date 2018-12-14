@@ -13,7 +13,7 @@ from hapic.decorator import InputControllerWrapper
 from hapic.decorator import InputOutputControllerWrapper
 from hapic.decorator import InputQueryControllerWrapper
 from hapic.decorator import OutputControllerWrapper
-from hapic.error import DefaultErrorBuilder
+from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
 from hapic.exception import OutputValidationException
 from hapic.processor.main import Processor
 from hapic.processor.main import ProcessValidationError
@@ -33,17 +33,17 @@ if typing.TYPE_CHECKING:
 
 
 class MyProcessor(Processor):
+    def validate_error(self, data_to_validate: typing.Any) -> typing.Any:
+        pass
+
     @classmethod
     def generate_schema_ref(
-        cls,
-        main_plugin: BasePlugin,
-        schema: 'TYPE_SCHEMA',
+        cls, main_plugin: BasePlugin, schema: "TYPE_SCHEMA"
     ) -> dict:
         pass
 
     def get_input_files_validation_error(
-        self,
-        data_to_validate: typing.Any,
+        self, data_to_validate: typing.Any
     ) -> ProcessValidationError:
         pass
 
@@ -55,42 +55,36 @@ class MyProcessor(Processor):
 
     @classmethod
     def create_apispec_plugin(
-        cls,
-        schema_name_resolver: typing.Optional[typing.Callable] = None,
+        cls, schema_name_resolver: typing.Optional[typing.Callable] = None
     ):
         pass
 
     def get_input_validation_error(
         self, data_to_validate: typing.Any
     ) -> ProcessValidationError:
-        return ProcessValidationError(
-            details={},
-            message='ERROR',
-        )
+        return ProcessValidationError(details={}, message="ERROR")
 
     def get_output_validation_error(
         self, data_to_validate: typing.Any
     ) -> ProcessValidationError:
-        return ProcessValidationError(
-            details={},
-            message='ERROR',
-        )
+        return ProcessValidationError(details={}, message="ERROR")
 
     def get_output_file_validation_error(
         self, data_to_validate: typing.Any
     ) -> ProcessValidationError:
-        return ProcessValidationError(
-            details={},
-            message='ERROR',
-        )
+        return ProcessValidationError(details={}, message="ERROR")
 
-    def load_input(self, input_data: typing.Any) -> typing.Any:
-        return input_data + 1
+    def load(self, input_data: typing.Any) -> typing.Any:
+        if isinstance(input_data, int):
+            return input_data + 1
+        return input_data
 
-    def dump_output(
+    def dump(
         self, output_data: typing.Any
     ) -> typing.Union[typing.Dict, typing.List]:
-        return output_data + 1
+        if isinstance(output_data, int):
+            return output_data + 1
+        return output_data
 
     def dump_output_file(self, output_file: typing.Any) -> typing.Any:
         pass
@@ -113,11 +107,9 @@ class MyControllerWrapper(InputOutputControllerWrapper):
         func_kwargs: typing.Dict[str, typing.Any],
     ) -> typing.Union[None, typing.Any]:
         if func_args and func_args[0] == 666:
-            return {
-                'error_response': 'we are testing'
-            }
+            return {"error_response": "we are testing"}
 
-        func_kwargs['added_parameter'] = 'a value'
+        func_kwargs["added_parameter"] = "a value"
 
     def after_wrapped_function(self, response: typing.Any) -> typing.Any:
         return response * 2
@@ -125,8 +117,7 @@ class MyControllerWrapper(InputOutputControllerWrapper):
 
 class MyInputQueryControllerWrapper(InputControllerWrapper):
     def get_processed_data(
-        self,
-        request_parameters: RequestParameters,
+        self, request_parameters: RequestParameters
     ) -> typing.Any:
         return request_parameters.query_parameters
 
@@ -167,7 +158,7 @@ class TestControllerWrapper(Base):
         # see MyControllerWrapper#before_wrapped_func
         result = func(666)
         # result have been replaced by MyControllerWrapper#before_wrapped_func
-        assert {'error_response': 'we are testing'} == result
+        assert {"error_response": "we are testing"} == result
 
     def test_unit__controller_wrapper__ok__overload_input(self):
         context = MyContext(app=None)
@@ -177,7 +168,7 @@ class TestControllerWrapper(Base):
         @wrapper.get_wrapper
         def func(foo, added_parameter=None):
             # see MyControllerWrapper#before_wrapped_func
-            assert added_parameter == 'a value'
+            assert added_parameter == "a value"
             return foo
 
         result = func(42)
@@ -188,12 +179,7 @@ class TestControllerWrapper(Base):
 class TestInputControllerWrapper(Base):
     def test_unit__input_data_wrapping__ok__nominal_case(self):
         context = MyContext(
-            app=None,
-            fake_query_parameters=MultiDict(
-                (
-                    ('foo', 'bar',),
-                )
-            )
+            app=None, fake_query_parameters=MultiDict((("foo", "bar"),))
         )
         processor = MyProcessor()
         wrapper = MyInputQueryControllerWrapper(context, lambda: processor)
@@ -203,7 +189,7 @@ class TestInputControllerWrapper(Base):
             assert hapic_data
             assert isinstance(hapic_data, HapicData)
             # see MyControllerWrapper#before_wrapped_func
-            assert hapic_data.query == {'foo': 'bar'}
+            assert hapic_data.query == {"foo": "bar"}
             return foo
 
         result = func(42)
@@ -213,17 +199,12 @@ class TestInputControllerWrapper(Base):
         context = MyContext(
             app=None,
             fake_query_parameters=MultiDict(
-                (
-                    ('user_id', 'abc'),
-                    ('user_id', 'def'),
-                ),
-            )
+                (("user_id", "abc"), ("user_id", "def"))
+            ),
         )
         processor = MySimpleProcessor()
         wrapper = InputQueryControllerWrapper(
-            context,
-            lambda: processor,
-            as_list=['user_id'],
+            context, lambda: processor, as_list=["user_id"]
         )
 
         @wrapper.get_wrapper
@@ -231,38 +212,32 @@ class TestInputControllerWrapper(Base):
             assert hapic_data
             assert isinstance(hapic_data, HapicData)
             # see MyControllerWrapper#before_wrapped_func
-            assert ['abc', 'def'] == hapic_data.query.get('user_id')
-            return hapic_data.query.get('user_id')
+            assert ["abc", "def"] == hapic_data.query.get("user_id")
+            return hapic_data.query.get("user_id")
 
         result = func()
-        assert result == ['abc', 'def']
+        assert result == ["abc", "def"]
 
     def test_unit__multi_query_param_values__ok__without_as_list(self):
         context = MyContext(
             app=None,
             fake_query_parameters=MultiDict(
-                (
-                    ('user_id', 'abc'),
-                    ('user_id', 'def'),
-                ),
-            )
+                (("user_id", "abc"), ("user_id", "def"))
+            ),
         )
         processor = MySimpleProcessor()
-        wrapper = InputQueryControllerWrapper(
-            context,
-            lambda: processor,
-        )
+        wrapper = InputQueryControllerWrapper(context, lambda: processor)
 
         @wrapper.get_wrapper
         def func(hapic_data=None):
             assert hapic_data
             assert isinstance(hapic_data, HapicData)
             # see MyControllerWrapper#before_wrapped_func
-            assert 'abc' == hapic_data.query.get('user_id')
-            return hapic_data.query.get('user_id')
+            assert "abc" == hapic_data.query.get("user_id")
+            return hapic_data.query.get("user_id")
 
         result = func()
-        assert result == 'abc'
+        assert result == "abc"
 
 
 class TestOutputControllerWrapper(Base):
@@ -279,7 +254,7 @@ class TestOutputControllerWrapper(Base):
 
         result = func(42)
         assert HTTPStatus.OK == result.status_code
-        assert '43' == result.body
+        assert "43" == result.body
 
     def test_unit__output_data_wrapping__fail__error_response(self):
         context = MyContext(app=None)
@@ -289,42 +264,44 @@ class TestOutputControllerWrapper(Base):
 
         @wrapper.get_wrapper
         def func(foo):
-            return 'wrong result format'
+            return "wrong result format"
 
         result = func(42)
         assert HTTPStatus.INTERNAL_SERVER_ERROR == result.status_code
         assert {
-                   'original_error': {
-                       'details': {
-                           'name': ['Missing data for required field.']
-                       },
-                       'message': 'Validation error of output data'
-                   },
-                   'http_code': 500,
-               } == json.loads(result.body)
+            "original_error": {
+                "details": {"name": ["Missing data for required field."]},
+                "message": "Validation error of output data",
+            },
+            "http_code": 500,
+        } == json.loads(result.body)
 
 
 class TestExceptionHandlerControllerWrapper(Base):
     def test_unit__exception_handled__ok__nominal_case(self):
         context = MyContext(app=None)
+        error_builder = MarshmallowDefaultErrorBuilder()
         wrapper = ExceptionHandlerControllerWrapper(
             ZeroDivisionError,
             context,
-            error_builder=DefaultErrorBuilder(),
+            error_builder=error_builder,
             http_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+            processor_factory=lambda schema_: MarshmallowProcessor(
+                error_builder.get_schema()
+            ),
         )
 
         @wrapper.get_wrapper
         def func(foo):
-            raise ZeroDivisionError('We are testing')
+            raise ZeroDivisionError("We are testing")
 
         response = func(42)
         assert HTTPStatus.INTERNAL_SERVER_ERROR == response.status_code
         assert {
-                   'details': {'error_detail': {}},
-                   'message': 'We are testing',
-                   'code': None,
-               } == json.loads(response.body)
+            "details": {"error_detail": {}},
+            "message": "We are testing",
+            "code": None,
+        } == json.loads(response.body)
 
     def test_unit__exception_handled__ok__exception_error_dict(self):
         class MyException(Exception):
@@ -333,45 +310,51 @@ class TestExceptionHandlerControllerWrapper(Base):
                 self.error_dict = {}
 
         context = MyContext(app=None)
+        error_builder = MarshmallowDefaultErrorBuilder()
         wrapper = ExceptionHandlerControllerWrapper(
             MyException,
             context,
-            error_builder=DefaultErrorBuilder(),
+            error_builder=error_builder,
             http_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+            processor_factory=lambda schema_: MarshmallowProcessor(
+                error_builder.get_schema()
+            ),
         )
 
         @wrapper.get_wrapper
         def func(foo):
-            exc = MyException('We are testing')
-            exc.error_detail = {'foo': 'bar'}
+            exc = MyException("We are testing")
+            exc.error_detail = {"foo": "bar"}
             raise exc
 
         response = func(42)
         assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
         assert {
-            'message': 'We are testing',
-            'details': {'error_detail': {'foo': 'bar'}},
-            'code': None,
+            "message": "We are testing",
+            "details": {"error_detail": {"foo": "bar"}},
+            "code": None,
         } == json.loads(response.body)
 
     def test_unit__exception_handler__error__error_content_malformed(self):
         class MyException(Exception):
             pass
 
-        class MyErrorBuilder(DefaultErrorBuilder):
+        class MyErrorBuilder(MarshmallowDefaultErrorBuilder):
             def build_from_exception(
-                self,
-                exception: Exception,
-                include_traceback: bool = False,
+                self, exception: Exception, include_traceback: bool = False
             ) -> dict:
                 # this is not matching with DefaultErrorBuilder schema
                 return {}
 
         context = MyContext(app=None)
+        error_builder = MyErrorBuilder()
         wrapper = ExceptionHandlerControllerWrapper(
             MyException,
             context,
-            error_builder=MyErrorBuilder(),
+            error_builder=error_builder,
+            processor_factory=lambda schema_: MarshmallowProcessor(
+                error_builder.get_schema()
+            ),
         )
 
         def raise_it():

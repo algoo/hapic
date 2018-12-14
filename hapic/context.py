@@ -3,7 +3,10 @@ import json
 import typing
 
 from hapic.data import HapicFile
-from hapic.error import ErrorBuilderInterface
+from hapic.error.main import ErrorBuilderInterface
+from hapic.exception import OutputValidationException
+from hapic.exception import ValidationException
+from hapic.processor.main import Processor
 from hapic.processor.main import ProcessValidationError
 from hapic.processor.main import RequestParameters
 
@@ -19,10 +22,7 @@ if typing.TYPE_CHECKING:
 
 class RouteRepresentation(object):
     def __init__(
-        self,
-        rule: str,
-        method: str,
-        original_route_object: typing.Any=None,
+        self, rule: str, method: str, original_route_object: typing.Any = None
     ) -> None:
         self.rule = rule
         self.method = method
@@ -33,32 +33,41 @@ class ContextInterface(object):
     def get_request_parameters(self, *args, **kwargs) -> RequestParameters:
         raise NotImplementedError()
 
+    def set_processor_class(
+        self, processor_class: typing.Type[Processor]
+    ) -> None:
+        """
+        Set processor class to be used in the context. Processor class
+        will be used to validate and generate errors.
+        It will be used to validate error, eg.
+        in BaseContext.handle_exceptions_decorator_builder.
+        :param processor_class: Processor subclass
+        """
+        raise NotImplementedError()
+
     def get_response(
         self,
         # TODO BS 20171228: rename into response_content
         response: str,
         http_code: int,
-        mimetype: str='application/json',
+        mimetype: str = "application/json",
     ) -> typing.Any:
         raise NotImplementedError()
 
     def get_file_response(
-        self,
-        file_response: HapicFile,
-        http_code: int,
+        self, file_response: HapicFile, http_code: int
     ) -> typing.Any:
         raise NotImplementedError()
 
     def get_validation_error_response(
         self,
         error: ProcessValidationError,
-        http_code: HTTPStatus=HTTPStatus.BAD_REQUEST,
+        http_code: HTTPStatus = HTTPStatus.BAD_REQUEST,
     ) -> typing.Any:
         raise NotImplementedError()
 
     def find_route(
-        self,
-        decorated_controller: 'DecoratedController',
+        self, decorated_controller: "DecoratedController"
     ) -> RouteRepresentation:
         raise NotImplementedError()
 
@@ -103,11 +112,7 @@ class ContextInterface(object):
         """
         raise NotImplementedError()
 
-    def serve_directory(
-        self,
-        route_prefix: str,
-        directory_path: str,
-    ) -> None:
+    def serve_directory(self, route_prefix: str, directory_path: str) -> None:
         """
         Configure a path to serve a directory content
         :param route_prefix: The base url for serve the directory, eg /static
@@ -116,9 +121,7 @@ class ContextInterface(object):
         raise NotImplementedError()
 
     def handle_exception(
-        self,
-        exception_class: typing.Type[Exception],
-        http_code: int,
+        self, exception_class: typing.Type[Exception], http_code: int
     ) -> None:
         """
         Enable management of this exception during execution of views. If this
@@ -157,24 +160,44 @@ class HandledException(object):
     """
     Representation of an handled exception with it's http code
     """
+
     def __init__(
-        self,
-        exception_class: typing.Type[Exception],
-        http_code: int = 500,
+        self, exception_class: typing.Type[Exception], http_code: int = 500
     ):
         self.exception_class = exception_class
         self.http_code = http_code
 
 
 class BaseContext(ContextInterface):
+    def __init__(
+        self, processor_class: typing.Optional[typing.Type[Processor]] = None
+    ) -> None:
+        """
+        Set processor_class of the context. It will be used to validate
+        hapic generated errors. This parameter is not designed to be used by
+        end user. Hapic automatically set it thought
+        `hapic.context.BaseContext#set_processor_class` in
+        `hapic.hapic.Hapic#set_context`.
+        :param processor_class: Processor class
+        """
+        self._processor_class = processor_class
+
     def get_default_error_builder(self) -> ErrorBuilderInterface:
         """ see hapic.context.ContextInterface#get_default_error_builder"""
         return self.default_error_builder
 
+    def set_processor_class(
+        self, processor_class: typing.Type[Processor]
+    ) -> None:
+        """
+        Change processor class associated to this context. It will be used
+        to validate error, eg. in handle_exceptions_decorator_builder.
+        :param processor_class: Processor subclass
+        """
+        self._processor_class = processor_class
+
     def handle_exception(
-        self,
-        exception_class: typing.Type[Exception],
-        http_code: int,
+        self, exception_class: typing.Type[Exception], http_code: int
     ) -> None:
         self._add_exception_class_to_catch(exception_class, http_code)
 
@@ -186,9 +209,58 @@ class BaseContext(ContextInterface):
         for exception_class in exception_classes:
             self._add_exception_class_to_catch(exception_class, http_code)
 
-    def handle_exceptions_decorator_builder(
+    def _get_dumped_error_from_exception_error(
         self,
-        func: typing.Callable[..., typing.Any],
+        exception: Exception
+    ) -> typing.Any:
+        """
+        Build dumped error from given exception.
+        Raise OutputValidationException if error built from error_builder is
+        not valid.
+        :param exception: exception to use to build error
+        :return: dumped error object
+        """
+        error_builder = self.get_default_error_builder()
+        error_body = error_builder.build_from_exception(
+            exception, include_traceback=self.is_debug()
+        )
+        processor = self._processor_class(
+            error_builder.get_schema()
+        )
+
+        try:
+            return processor.dump(error_body)
+        except ValidationException as exc:
+            raise OutputValidationException(
+                "Validation error of error response: {}".format(str(exc))
+            ) from exc
+
+    def _get_dumped_error_from_validation_error(
+        self,
+        error: ProcessValidationError,
+    ) -> typing.Any:
+        """
+        Build dumped error from given validation error.
+        Raise OutputValidationException if error built from error_builder is
+        not valid.
+        :param error: ProcessValidationError instance
+        :return: dumped error object
+        """
+        error_builder = self.get_default_error_builder()
+        error_content = error_builder.build_from_validation_error(error)
+        processor = self._processor_class(
+            error_builder.get_schema()
+        )
+
+        try:
+            return processor.dump(error_content)
+        except ValidationException as exc:
+            raise OutputValidationException(
+                "Validation error of error response: {}".format(str(exc))
+            ) from exc
+
+    def handle_exceptions_decorator_builder(
+        self, func: typing.Callable[..., typing.Any]
     ) -> typing.Callable[..., typing.Any]:
         """
         Return a decorator who catch exceptions raised during given function
@@ -197,6 +269,7 @@ class BaseContext(ContextInterface):
         :param func: decorated function
         :return: the decorator
         """
+
         def decorator(*args, **kwargs):
             try:
                 return func(*args, **kwargs)
@@ -204,20 +277,15 @@ class BaseContext(ContextInterface):
                 # Reverse list to read first user given exception before
                 # the hapic default Exception catch
                 handled_exceptions = reversed(
-                    self._get_handled_exception_class_and_http_codes(),
+                    self._get_handled_exception_class_and_http_codes()
                 )
+                # TODO BS 2018-05-04: How to be attentive to hierarchy ?
                 for handled_exception in handled_exceptions:
-                    # TODO BS 2018-05-04: How to be attentive to hierarchy ?
                     if isinstance(exc, handled_exception.exception_class):
-                        error_builder = self.get_default_error_builder()
-                        error_body = error_builder.build_from_exception(
-                            exc,
-                            include_traceback=self.is_debug(),
-                        )
-                        dumped = error_builder.dump(error_body).data
+                        dumped_error = \
+                            self._get_dumped_error_from_exception_error(exc)
                         return self.get_response(
-                            json.dumps(dumped),
-                            handled_exception.http_code,
+                            json.dumps(dumped_error), handled_exception.http_code
                         )
                 raise exc
 
@@ -234,9 +302,7 @@ class BaseContext(ContextInterface):
         raise NotImplementedError()
 
     def _add_exception_class_to_catch(
-        self,
-        exception_class: typing.Type[Exception],
-        http_code: int,
+        self, exception_class: typing.Type[Exception], http_code: int
     ) -> None:
         """
         Add an exception class to catch and matching http code. Will be used by

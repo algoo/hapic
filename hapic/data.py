@@ -29,21 +29,19 @@ class HapicFile(object):
         self.as_attachment = as_attachment
 
     def get_content_disposition_header_value(self) -> str:
-        disposition = 'inline'
+        disposition = "inline"
         if self.as_attachment:
-            disposition = 'attachment'
+            disposition = "attachment"
         if self.filename:
             # INFO - G.M - 2018-10-26 - deal correctly with unicode filename
             # see rfc6266 for more info.
-            ascii_filename = self.filename.encode('ascii', 'replace').decode()
+            ascii_filename = self.filename.encode("ascii", "replace").decode()
             # INFO - G.M - 2018-10-30 - Format correctly unicode.
             # encoding is needed for correct unicode character support,
             # Percent-encoding is best pratices, see also rfc5987.
             urlencoded_unicode_filename = urllib.parse.quote(self.filename)
 
-            disposition = '{}; filename="{}"; filename*=UTF-8\'\'{};'.format(
-                disposition,
-                ascii_filename,
-                urlencoded_unicode_filename,
+            disposition = "{}; filename=\"{}\"; filename*=UTF-8''{};".format(
+                disposition, ascii_filename, urlencoded_unicode_filename
             )
         return disposition

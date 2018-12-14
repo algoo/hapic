@@ -18,9 +18,9 @@ class TestExceptionHandling(Base):
         hapic.set_context(context)
 
         def my_view():
-            raise ZeroDivisionError('An exception message')
+            raise ZeroDivisionError("An exception message")
 
-        app.route('/my-view', method='GET', callback=my_view)
+        app.route("/my-view", method="GET", callback=my_view)
         # FIXME - G.M - 17-05-2018 - Verify if:
         # - other view that work/raise an other exception do not go
         # into this code for handle this exceptions.
@@ -29,7 +29,7 @@ class TestExceptionHandling(Base):
         context.handle_exception(ZeroDivisionError, http_code=400)
 
         test_app = TestApp(app)
-        response = test_app.get('/my-view', status='*')
+        response = test_app.get("/my-view", status="*")
 
         assert 400 == response.status_code
 
@@ -44,10 +44,10 @@ class TestExceptionHandling(Base):
         hapic.set_context(context)
 
         def my_view(context, request):
-            raise ZeroDivisionError('An exception message')
+            raise ZeroDivisionError("An exception message")
 
-        configurator.add_route('my_view','/my-view', request_method='GET')
-        configurator.add_view(my_view, route_name='my_view', renderer='json')
+        configurator.add_route("my_view", "/my-view", request_method="GET")
+        configurator.add_view(my_view, route_name="my_view", renderer="json")
 
         # FIXME - G.M - 17-05-2018 - Verify if:
         # - other view that work/raise an other exception do not go
@@ -58,6 +58,6 @@ class TestExceptionHandling(Base):
 
         app = configurator.make_wsgi_app()
         test_app = TestApp(app)
-        response = test_app.get('/my-view', status='*')
+        response = test_app.get("/my-view", status="*")
 
         assert 400 == response.status_code

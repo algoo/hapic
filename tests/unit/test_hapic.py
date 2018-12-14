@@ -33,15 +33,11 @@ class TestHapic(Base):
 
         my_controllers = MyControllers()
         class_method_token = getattr(
-            MyControllers.controller_a,
-            DECORATION_ATTRIBUTE_NAME,
-            None,
+            MyControllers.controller_a, DECORATION_ATTRIBUTE_NAME, None
         )
         assert class_method_token
         instance_method_token = getattr(
-            my_controllers.controller_a,
-            DECORATION_ATTRIBUTE_NAME,
-            None,
+            my_controllers.controller_a, DECORATION_ATTRIBUTE_NAME, None
         )
         assert instance_method_token
 

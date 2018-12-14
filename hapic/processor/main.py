@@ -61,18 +61,14 @@ class RequestParameters(object):
 
 
 class ProcessValidationError(object):
-    def __init__(
-        self,
-        message: str,
-        details: dict,
-    ) -> None:
+    def __init__(self, message: str, details: dict) -> None:
         self.message = message
         self.details = details
 
 
 class Processor(metaclass=abc.ABCMeta):
-    def __init__(self) -> None:
-        self._schema = None  # type: typing.Any
+    def __init__(self, schema: typing.Optional["TYPE_SCHEMA"] = None) -> None:
+        self._schema = schema
 
     def set_schema(self, schema: typing.Any) -> None:
         """
@@ -84,8 +80,7 @@ class Processor(metaclass=abc.ABCMeta):
     @classmethod
     @abc.abstractmethod
     def create_apispec_plugin(
-        cls,
-        schema_name_resolver: typing.Optional[typing.Callable] = None,
+        cls, schema_name_resolver: typing.Optional[typing.Callable] = None
     ) -> BasePlugin:
         """
         Must return instance of matching apispec plugin to use for generate
@@ -93,19 +88,13 @@ class Processor(metaclass=abc.ABCMeta):
         """
 
     @abc.abstractmethod
-    def generate_schema_ref(
-        self,
-        main_plugin: BasePlugin,
-    ) -> dict:
+    def generate_schema_ref(self, main_plugin: BasePlugin) -> dict:
         """
         Must return OpenApi $ref in a dict,
         eg. {"$ref": "#/definitions/MySchema"}
         """
 
-    def schema_class_resolver(
-        self,
-        main_plugin: BasePlugin,
-    ) -> SchemaUsage:
+    def schema_class_resolver(self, main_plugin: BasePlugin) -> SchemaUsage:
         """
         Return schema class with adaptation if needed.
         :param main_plugin: associated Apispec plugin
@@ -119,7 +108,7 @@ class Processor(metaclass=abc.ABCMeta):
     def schema(self):
         if not self._schema:
             raise ConfigurationException(
-                'Schema not set for processor {}'.format(str(self))
+                "Schema not set for processor {}".format(str(self))
             )
         return self._schema
 
@@ -133,8 +122,7 @@ class Processor(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def get_input_validation_error(
-        self,
-        data_to_validate: typing.Any,
+        self, data_to_validate: typing.Any
     ) -> ProcessValidationError:
         """
         Must return an ProcessValidationError containing validation
@@ -143,8 +131,7 @@ class Processor(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def get_input_files_validation_error(
-        self,
-        data_to_validate: typing.Any,
+        self, data_to_validate: typing.Any
     ) -> ProcessValidationError:
         """
         Must return an ProcessValidationError containing validation
@@ -153,8 +140,7 @@ class Processor(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def get_output_validation_error(
-        self,
-        data_to_validate: typing.Any,
+        self, data_to_validate: typing.Any
     ) -> ProcessValidationError:
         """
         Must return an ProcessValidationError containing validation
@@ -163,8 +149,7 @@ class Processor(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def get_output_file_validation_error(
-        self,
-        data_to_validate: typing.Any,
+        self, data_to_validate: typing.Any
     ) -> ProcessValidationError:
         """
         Must return an ProcessValidationError containing validation
@@ -172,12 +157,22 @@ class Processor(metaclass=abc.ABCMeta):
         """
 
     @abc.abstractmethod
-    def load_input(self, input_data: typing.Any) -> typing.Any:
+    def load(self, data: typing.Any) -> typing.Any:
         """
-        Must use schema to validate an load input data.
-        Raise ProcessValidationError in case of validation error
-        :param input_data: input data to validate and update to give to view
+        Must use schema to validate given data and return updated data (like
+        with default values).
+        If validation fail, must raise InputValidationException
+        :param data: data to validate and process
         :return: updated data (like with default values)
+        """
+
+    @abc.abstractmethod
+    def dump(self, data: typing.Any) -> typing.Any:
+        """
+        Must use schema to validate given data and return dumped data.
+        If validation fail, must raise InputValidationException
+        :param data: data to validate and dump
+        :return: dumped data
         """
 
     @abc.abstractmethod
@@ -190,22 +185,7 @@ class Processor(metaclass=abc.ABCMeta):
         """
 
     @abc.abstractmethod
-    def dump_output(
-        self,
-        output_data: typing.Any,
-    ) -> typing.Union[typing.Dict, typing.List]:
-        """
-        Must use schema to validate an dump output data.
-        Raise ProcessValidationError in case of validation error
-        :param output_data: output data got from view
-        :return: dumped data
-        """
-
-    @abc.abstractmethod
-    def dump_output_file(
-        self,
-        output_file: typing.Any,
-    ) -> typing.Any:
+    def dump_output_file(self, output_file: typing.Any) -> typing.Any:
         """
         Must validate view output (expected) file.
         :param output_file: (expected) output file from view
@@ -213,7 +193,9 @@ class Processor(metaclass=abc.ABCMeta):
             used context.get_file_response method)
         """
 
-    def _get_ouput_file_validation_error_message(self, data: typing.Any) -> typing.Optional[str]:
+    def _get_ouput_file_validation_error_message(
+        self, data: typing.Any
+    ) -> typing.Optional[str]:
         """
         Return a specific error message for given object
         :param data: object to be processed as file
@@ -221,13 +203,13 @@ class Processor(metaclass=abc.ABCMeta):
         """
         error_message = None
         if not isinstance(data, HapicFile):
-            error_message = 'File should be HapicFile type'
+            error_message = "File should be HapicFile type"
         elif data.file_path and data.file_object:
-            error_message = 'File should be either path or object, not both'
+            error_message = "File should be either path or object, not both"
         elif not data.file_path and not data.file_object:
-            error_message = 'File should be either path or object'
+            error_message = "File should be either path or object"
         elif data.file_path and not os.path.isfile(data.file_path):
-            error_message = 'File path is not correct, file do not exist'
+            error_message = "File path is not correct, file do not exist"
         elif data.file_object and not data.mimetype:
-            error_message = 'File object should have explicit mimetype'
+            error_message = "File object should have explicit mimetype"
         return error_message

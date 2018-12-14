@@ -3,6 +3,7 @@ import json
 import time
 
 from hapic import Hapic, HapicData
+from hapic.error.serpyco import SerpycoDefaultErrorBuilder
 from hapic.ext.aiohttp.context import AiohttpContext
 from hapic.processor.serpyco import SerpycoProcessor
 
@@ -155,7 +156,12 @@ if __name__ == "__main__":
     app = web.Application()
     controllers = AiohttpSerpycoController()
     controllers.bind(app)
-    hapic.set_context(AiohttpContext(app))
+    hapic.set_context(
+        AiohttpContext(
+            app,
+            default_error_builder=SerpycoDefaultErrorBuilder(),
+        ),
+    )
     time.sleep(1)
     s = json.dumps(
         hapic.generate_doc(
