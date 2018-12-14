@@ -14,11 +14,12 @@ from hapic.context import HandledException
 from hapic.context import RouteRepresentation
 from hapic.decorator import DECORATION_ATTRIBUTE_NAME
 from hapic.decorator import DecoratedController
-from hapic.error import DefaultErrorBuilder
-from hapic.error import ErrorBuilderInterface
+from hapic.error.main import ErrorBuilderInterface
+from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
 from hapic.exception import NoRoutesException
 from hapic.exception import OutputValidationException
 from hapic.exception import RouteNotFound
+from hapic.exception import ValidationException
 from hapic.exception import WorkflowException
 from hapic.processor.main import ProcessValidationError
 from hapic.processor.main import RequestParameters
@@ -75,10 +76,11 @@ class AiohttpContext(BaseContext):
         default_error_builder: ErrorBuilderInterface = None,
         debug: bool = False,
     ) -> None:
+        super().__init__()
         self._app = app
         self._debug = debug
         self.default_error_builder = (
-            default_error_builder or DefaultErrorBuilder()
+            default_error_builder or MarshmallowDefaultErrorBuilder()
         )  # FDV
 
         # Managed exceptions
@@ -103,13 +105,10 @@ class AiohttpContext(BaseContext):
                 # Parse each managed exceptions to manage it if must be
                 for handled_exception in self._handled_exceptions:
                     if isinstance(exc, handled_exception.exception_class):
-                        error_builder = self.get_default_error_builder()
-                        error_body = error_builder.build_from_exception(
-                            exc, include_traceback=self.is_debug()
-                        )
-                        dumped = error_builder.dump(error_body).data
+                        dumped_error = \
+                            self._get_dumped_error_from_exception_error(exc)
                         return self.get_response(
-                            json.dumps(dumped), handled_exception.http_code
+                            json.dumps(dumped_error), handled_exception.http_code
                         )
                 raise exc
 
@@ -143,21 +142,9 @@ class AiohttpContext(BaseContext):
         error: ProcessValidationError,
         http_code: HTTPStatus = HTTPStatus.BAD_REQUEST,
     ) -> typing.Any:
-        error_builder = self.get_default_error_builder()
-        error_content = error_builder.build_from_validation_error(error)
-
-        # Check error
-        dumped = error_builder.dump(error_content).data
-        unmarshall = error_builder.load(dumped)
-        if unmarshall.errors:
-            raise OutputValidationException(
-                "Validation error during dump of error response: {}".format(
-                    str(unmarshall.errors)
-                )
-            )
-
+        dumped_error = self._get_dumped_error_from_validation_error(error)
         return web.Response(
-            text=json.dumps(dumped),
+            text=json.dumps(dumped_error),
             headers=[("Content-Type", "application/json")],
             status=int(http_code),
         )

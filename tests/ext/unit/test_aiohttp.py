@@ -164,6 +164,7 @@ class TestAiohttpExt(object):
         resp = await client.get("/")
         assert resp.status == 500
 
+        data = await resp.text()
         data = await resp.json()
         assert "Validation error of output data" == data.get("message")
         assert {"i": ["Missing data for required field."]} == data.get(

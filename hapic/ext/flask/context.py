@@ -10,9 +10,10 @@ from hapic.context import BaseContext
 from hapic.context import RouteRepresentation
 from hapic.decorator import DECORATION_ATTRIBUTE_NAME
 from hapic.decorator import DecoratedController
-from hapic.error import DefaultErrorBuilder
-from hapic.error import ErrorBuilderInterface
+from hapic.error.main import ErrorBuilderInterface
+from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
 from hapic.exception import OutputValidationException
+from hapic.exception import ValidationException
 from hapic.processor.main import ProcessValidationError
 from hapic.processor.main import RequestParameters
 
@@ -36,12 +37,13 @@ class FlaskContext(BaseContext):
         default_error_builder: ErrorBuilderInterface = None,
         debug: bool = False,
     ):
+        super().__init__()
         self._handled_exceptions = (
             []
         )  # type: typing.List[HandledException]  # nopep8
         self.app = app
         self.default_error_builder = (
-            default_error_builder or DefaultErrorBuilder()
+            default_error_builder or MarshmallowDefaultErrorBuilder()
         )  # FDV
         self.debug = debug
 
@@ -69,24 +71,11 @@ class FlaskContext(BaseContext):
         error: ProcessValidationError,
         http_code: HTTPStatus = HTTPStatus.BAD_REQUEST,
     ) -> typing.Any:
-        error_content = self.default_error_builder.build_from_validation_error(
-            error
-        )
-
-        # Check error
-        dumped = self.default_error_builder.dump(error_content).data
-        unmarshall = self.default_error_builder.load(dumped)
-
-        if unmarshall.errors:
-            raise OutputValidationException(
-                "Validation error during dump of error response: {}".format(
-                    str(unmarshall.errors)
-                )
-            )
         from flask import Response
 
+        dumped_error = self._get_dumped_error_from_validation_error(error)
         return Response(
-            response=json.dumps(dumped),
+            response=json.dumps(dumped_error),
             mimetype="application/json",
             status=int(http_code),
         )
@@ -150,12 +139,8 @@ class FlaskContext(BaseContext):
         self, exception_class: typing.Type[Exception], http_code: int
     ) -> None:
         def return_response_error(exc):
-            error_builder = self.get_default_error_builder()
-            error_body = error_builder.build_from_exception(
-                exc, include_traceback=self.is_debug()
-            )
-            dumped = error_builder.dump(error_body).data
-            return self.get_response(json.dumps(dumped), http_code)
+            dumped_error = self._get_dumped_error_from_exception_error(exc)
+            return self.get_response(json.dumps(dumped_error), http_code)
 
         self.app.register_error_handler(exception_class, return_response_error)
 

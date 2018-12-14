@@ -36,9 +36,10 @@ from hapic.description import OutputFileDescription
 from hapic.description import OutputHeadersDescription
 from hapic.description import OutputStreamDescription
 from hapic.doc.main import DocGenerator
-from hapic.error import ErrorBuilderInterface
+from hapic.error.main import ErrorBuilderInterface
 from hapic.processor.main import Processor
 from hapic.processor.marshmallow import MarshmallowProcessor
+from hapic.type import TYPE_SCHEMA
 from hapic.util import LOGGER_NAME
 
 try:  # Python 3.5+
@@ -98,6 +99,7 @@ class Hapic(object):
     def set_context(self, context: ContextInterface) -> None:
         assert not self._context
         self._context = context
+        self._context.set_processor_class(self.processor_class)
 
     def reset_context(self) -> None:
         self._context = None
@@ -479,6 +481,11 @@ class Hapic(object):
                 error_builder=error_builder,
                 http_code=http_code,
                 description=description,
+                # We must give a processor factory because wrapper will check
+                # it's own error format
+                processor_factory=lambda schema_: self.processor_class(
+                    schema_
+                ),
             )
 
         else:
@@ -488,6 +495,11 @@ class Hapic(object):
                 error_builder=error_builder,
                 http_code=http_code,
                 description=description,
+                # We must give a processor factory because wrapper will check
+                # it's own error format
+                processor_factory=lambda schema_: self.processor_class(
+                    schema_
+                ),
             )
 
         def decorator(func):

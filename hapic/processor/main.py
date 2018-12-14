@@ -67,8 +67,8 @@ class ProcessValidationError(object):
 
 
 class Processor(metaclass=abc.ABCMeta):
-    def __init__(self) -> None:
-        self._schema = None  # type: typing.Any
+    def __init__(self, schema: typing.Optional["TYPE_SCHEMA"] = None) -> None:
+        self._schema = schema
 
     def set_schema(self, schema: typing.Any) -> None:
         """
@@ -157,12 +157,22 @@ class Processor(metaclass=abc.ABCMeta):
         """
 
     @abc.abstractmethod
-    def load_input(self, input_data: typing.Any) -> typing.Any:
+    def load(self, data: typing.Any) -> typing.Any:
         """
-        Must use schema to validate an load input data.
-        Raise ProcessValidationError in case of validation error
-        :param input_data: input data to validate and update to give to view
+        Must use schema to validate given data and return updated data (like
+        with default values).
+        If validation fail, must raise InputValidationException
+        :param data: data to validate and process
         :return: updated data (like with default values)
+        """
+
+    @abc.abstractmethod
+    def dump(self, data: typing.Any) -> typing.Any:
+        """
+        Must use schema to validate given data and return dumped data.
+        If validation fail, must raise InputValidationException
+        :param data: data to validate and dump
+        :return: dumped data
         """
 
     @abc.abstractmethod
@@ -172,17 +182,6 @@ class Processor(metaclass=abc.ABCMeta):
         Raise ProcessValidationError in case of validation error
         :param input_data: input data to validate and update to give to view
         :return: original data if ok
-        """
-
-    @abc.abstractmethod
-    def dump_output(
-        self, output_data: typing.Any
-    ) -> typing.Union[typing.Dict, typing.List]:
-        """
-        Must use schema to validate an dump output data.
-        Raise ProcessValidationError in case of validation error
-        :param output_data: output data got from view
-        :return: dumped data
         """
 
     @abc.abstractmethod

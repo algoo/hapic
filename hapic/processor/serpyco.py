@@ -12,9 +12,11 @@ from serpyco.serializer import Serializer
 from hapic.doc.schema import SchemaUsage
 from hapic.exception import InputValidationException
 from hapic.exception import OutputValidationException
+from hapic.exception import ValidationException
 from hapic.exception import WorkflowException
 from hapic.processor.main import Processor
 from hapic.processor.main import ProcessValidationError
+from hapic.type import TYPE_SCHEMA
 from hapic.util import LOGGER_NAME
 
 
@@ -36,11 +38,12 @@ def exception_to_error_dict(exc: ValidationError) -> dict:
 class SerpycoProcessor(Processor):
     def __init__(
         self,
+        schema: typing.Optional[TYPE_SCHEMA] = None,
         only: typing.Optional[typing.List[str]] = None,
         exclude: typing.Optional[typing.List[str]] = None,
         many: bool = False,
     ) -> None:
-        super().__init__()
+        super().__init__(schema)
         self._logger = logging.getLogger(LOGGER_NAME)
         self._serializer = None  # type: Serializer
         self._only = only
@@ -109,6 +112,7 @@ class SerpycoProcessor(Processor):
                 only=self._only,
                 exclude=self._exclude,
                 many=self._many,
+                omit_none=False,
             )
 
         return self._serializer
@@ -130,7 +134,7 @@ class SerpycoProcessor(Processor):
         :param data_to_validate: data to use to generate validation error
         :return:
         """
-        # TODO BS 2018-11-26: This is correct to do this every times ?
+        # Prevent serpyco error when Rrequest context give us a MultiDictProxy
         if isinstance(data_to_validate, MultiDictProxy):
             data_to_validate = dict(data_to_validate)
 
@@ -207,26 +211,48 @@ class SerpycoProcessor(Processor):
             details={"output_file": validation_error_message},
         )
 
-    def load_input(self, input_data: typing.Any) -> typing.Any:
+    def load(self, data: typing.Any) -> typing.Any:
         """
-        Use schema to validate an load input data.
-        Raise ProcessValidationError in case of validation error
-        :param input_data: input data to validate and update to give to view
-        :return: updated data (like with default values)
+        Use schema to validate given data and return dataclass instance.
+        If validation fail, raise InputValidationException
+        :param data: data to validate and process
+        :return: schema dataclass instance
         """
-        # TODO BS 2018-11-26: This is correct to do this every times ?
-        if isinstance(input_data, MultiDictProxy):
-            input_data = dict(input_data)
+        # Prevent serpyco error when Rrequest context give us a MultiDictProxy
+        if isinstance(data, MultiDictProxy):
+            data = dict(data)
 
         try:
-            return self.serializer.load(input_data)
+            return self.serializer.load(data)
         except ValidationError as exc:
-            raise InputValidationException(
-                "Error when validate serpyco load: {}".format(exc.args[0])
+            raise ValidationException(
+                "Error when loading: {}".format(exc.args[0])
             )
         except Exception as exc:
-            raise InputValidationException(
+            raise ValidationException(
                 "Unknown error when serpyco load: {}".format(str(exc))
+            )
+
+    def dump(self, data: typing.Any) -> typing.Any:
+        """
+        Use schema to validate given data (like dataclass instance) and
+        return dumped data.
+        If validation fail, must raise InputValidationException
+        :param data: data to validate and dump
+        :return: dumped data
+        """
+        try:
+            return self.serializer.dump(data, validate=True)
+        except ValidationError as exc:
+            raise ValidationException(
+                "Error when dumping: {}".format(exc.args[0])
+            )
+        except Exception as exc:
+            self._logger.exception(
+                'Unknown error during serpyco dump: "{}"'.format(str(exc))
+            )
+            raise ValidationException(
+                "Unknown error when serpyco dump: {}".format(str(exc))
             )
 
     def load_files_input(self, input_data: typing.Any) -> typing.Any:
@@ -238,29 +264,6 @@ class SerpycoProcessor(Processor):
         """
         # FIXME BS 2018-11-22: code it
         raise NotImplementedError("TODO")
-
-    def dump_output(
-        self, output_data: typing.Any
-    ) -> typing.Union[typing.Dict, typing.List]:
-        """
-        Use schema to validate an dump output data.
-        Raise ProcessValidationError in case of validation error
-        :param output_data: output data got from view
-        :return: dumped data
-        """
-        try:
-            return self.serializer.dump(output_data, validate=True)
-        except ValidationError as exc:
-            raise OutputValidationException(
-                "ValidationError when serpyco dump: {}".format(exc.args[0])
-            )
-        except Exception as exc:
-            self._logger.exception(
-                'Unknown error during serpyco dump: "{}"'.format(str(exc))
-            )
-            raise OutputValidationException(
-                "Unknown error when serpyco dump: {}".format(str(exc))
-            )
 
     def dump_output_file(self, output_file: typing.Any) -> typing.Any:
         """

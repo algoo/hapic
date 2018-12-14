@@ -11,8 +11,8 @@ from hapic.context import HandledException
 from hapic.context import RouteRepresentation
 from hapic.decorator import DECORATION_ATTRIBUTE_NAME
 from hapic.decorator import DecoratedController
-from hapic.error import DefaultErrorBuilder
-from hapic.error import ErrorBuilderInterface
+from hapic.error.main import ErrorBuilderInterface
+from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
 from hapic.exception import NoRoutesException
 from hapic.exception import OutputValidationException
 from hapic.exception import RouteNotFound
@@ -36,13 +36,14 @@ class BottleContext(BaseContext):
         default_error_builder: ErrorBuilderInterface = None,
         debug: bool = False,
     ):
+        super().__init__()
         self._handled_exceptions = (
             []
         )  # type: typing.List[HandledException]  # nopep8
         self._exceptions_handler_installed = False
         self.app = app
         self.default_error_builder = (
-            default_error_builder or DefaultErrorBuilder()
+            default_error_builder or MarshmallowDefaultErrorBuilder()
         )  # FDV
         self.debug = debug
 
@@ -77,22 +78,9 @@ class BottleContext(BaseContext):
         error: ProcessValidationError,
         http_code: HTTPStatus = HTTPStatus.BAD_REQUEST,
     ) -> typing.Any:
-        error_content = self.default_error_builder.build_from_validation_error(
-            error
-        )
-
-        # Check error
-        dumped = self.default_error_builder.dump(error).data
-        unmarshall = self.default_error_builder.load(dumped)
-        if unmarshall.errors:
-            raise OutputValidationException(
-                "Validation error during dump of error response: {}".format(
-                    str(unmarshall.errors)
-                )
-            )
-
+        dumped_error = self._get_dumped_error_from_validation_error(error)
         return bottle.HTTPResponse(
-            body=json.dumps(error_content),
+            body=json.dumps(dumped_error),
             headers=[("Content-Type", "application/json")],
             status=int(http_code),
         )

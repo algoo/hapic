@@ -1,43 +1,50 @@
 # -*- coding: utf-8 -*-
+import abc
 import traceback
-
-import marshmallow
+import typing
 
 from hapic.processor.main import ProcessValidationError
+from hapic.type import TYPE_SCHEMA
 
 
-class ErrorBuilderInterface(marshmallow.Schema):
+class ErrorBuilderInterface(metaclass=abc.ABCMeta):
     """
     ErrorBuilder is a class who represent a Schema (marshmallow.Schema) and
     can generate a response content from exception (build_from_exception)
     """
 
+    @abc.abstractmethod
     def build_from_exception(
         self, exception: Exception, include_traceback: bool = False
-    ) -> dict:
+    ) -> typing.Any:
         """
         Build the error response content from given exception
+        :param include_traceback: if True, error response must include
+            exception traceback
         :param exception: Original exception who invoke this method
-        :return: a dict representing the error response content
+        :return: object representing the error response content: this object
+            must be useable by processor
         """
-        raise NotImplementedError()
 
+    @abc.abstractmethod
     def build_from_validation_error(
         self, error: ProcessValidationError
-    ) -> dict:
+    ) -> typing.Any:
         """
         Build the error response content from given process validation error
         :param error: Original ProcessValidationError who invoke this method
-        :return: a dict representing the error response content
+        :return: object representing the error response content: this object
+            must be useable by processor
         """
-        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def get_schema(self) -> TYPE_SCHEMA:
+        """
+        Must return schema of produced errors
+        """
 
 
 class DefaultErrorBuilder(ErrorBuilderInterface):
-    message = marshmallow.fields.String(required=True)
-    details = marshmallow.fields.Dict(required=False, missing={})
-    code = marshmallow.fields.Raw(missing=None)
-
     def build_from_exception(
         self, exception: Exception, include_traceback: bool = False
     ) -> dict:
@@ -67,3 +74,9 @@ class DefaultErrorBuilder(ErrorBuilderInterface):
             "details": error.details,
             "code": None,
         }
+
+    @abc.abstractmethod
+    def get_schema(self) -> TYPE_SCHEMA:
+        """
+        Must return schema of produced errors
+        """

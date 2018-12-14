@@ -3,6 +3,7 @@ import bottle
 
 import dataclasses
 from hapic import Hapic
+from hapic.error.serpyco import SerpycoDefaultErrorBuilder
 from hapic.ext.bottle import BottleContext
 from hapic.processor.serpyco import SerpycoProcessor
 
@@ -131,3 +132,33 @@ class TestDocSerpyco(object):
             ]
         )
         assert "UserSchema_exclude_password" in doc["definitions"]
+
+    def test_func__ok__doc__with_handle_exception(self):
+        app = bottle.Bottle()
+        hapic = Hapic()
+        hapic.set_processor_class(SerpycoProcessor)
+        hapic.set_context(
+            BottleContext(
+                app, default_error_builder=SerpycoDefaultErrorBuilder()
+            )
+        )
+
+        @dataclasses.dataclass
+        class UserSchema(object):
+            id: int
+            name: str
+            password: str
+
+        @hapic.with_api_doc()
+        @hapic.handle_exception(ZeroDivisionError, http_code=400)
+        def my_view(hapic_data):
+            1 / 0
+
+        app.route("/hello", "GET", callback=my_view)
+        doc = hapic.generate_doc()
+
+        assert "DefaultErrorSchema" in doc["definitions"]
+        properties = doc["definitions"]["DefaultErrorSchema"]["properties"]
+        assert "message" in properties
+        assert "details" in properties
+        assert "code" in properties

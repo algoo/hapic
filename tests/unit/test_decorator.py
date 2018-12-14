@@ -13,7 +13,7 @@ from hapic.decorator import InputControllerWrapper
 from hapic.decorator import InputOutputControllerWrapper
 from hapic.decorator import InputQueryControllerWrapper
 from hapic.decorator import OutputControllerWrapper
-from hapic.error import DefaultErrorBuilder
+from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
 from hapic.exception import OutputValidationException
 from hapic.processor.main import Processor
 from hapic.processor.main import ProcessValidationError
@@ -33,6 +33,9 @@ if typing.TYPE_CHECKING:
 
 
 class MyProcessor(Processor):
+    def validate_error(self, data_to_validate: typing.Any) -> typing.Any:
+        pass
+
     @classmethod
     def generate_schema_ref(
         cls, main_plugin: BasePlugin, schema: "TYPE_SCHEMA"
@@ -71,13 +74,17 @@ class MyProcessor(Processor):
     ) -> ProcessValidationError:
         return ProcessValidationError(details={}, message="ERROR")
 
-    def load_input(self, input_data: typing.Any) -> typing.Any:
-        return input_data + 1
+    def load(self, input_data: typing.Any) -> typing.Any:
+        if isinstance(input_data, int):
+            return input_data + 1
+        return input_data
 
-    def dump_output(
+    def dump(
         self, output_data: typing.Any
     ) -> typing.Union[typing.Dict, typing.List]:
-        return output_data + 1
+        if isinstance(output_data, int):
+            return output_data + 1
+        return output_data
 
     def dump_output_file(self, output_file: typing.Any) -> typing.Any:
         pass
@@ -273,11 +280,15 @@ class TestOutputControllerWrapper(Base):
 class TestExceptionHandlerControllerWrapper(Base):
     def test_unit__exception_handled__ok__nominal_case(self):
         context = MyContext(app=None)
+        error_builder = MarshmallowDefaultErrorBuilder()
         wrapper = ExceptionHandlerControllerWrapper(
             ZeroDivisionError,
             context,
-            error_builder=DefaultErrorBuilder(),
+            error_builder=error_builder,
             http_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+            processor_factory=lambda schema_: MarshmallowProcessor(
+                error_builder.get_schema()
+            ),
         )
 
         @wrapper.get_wrapper
@@ -299,11 +310,15 @@ class TestExceptionHandlerControllerWrapper(Base):
                 self.error_dict = {}
 
         context = MyContext(app=None)
+        error_builder = MarshmallowDefaultErrorBuilder()
         wrapper = ExceptionHandlerControllerWrapper(
             MyException,
             context,
-            error_builder=DefaultErrorBuilder(),
+            error_builder=error_builder,
             http_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+            processor_factory=lambda schema_: MarshmallowProcessor(
+                error_builder.get_schema()
+            ),
         )
 
         @wrapper.get_wrapper
@@ -324,7 +339,7 @@ class TestExceptionHandlerControllerWrapper(Base):
         class MyException(Exception):
             pass
 
-        class MyErrorBuilder(DefaultErrorBuilder):
+        class MyErrorBuilder(MarshmallowDefaultErrorBuilder):
             def build_from_exception(
                 self, exception: Exception, include_traceback: bool = False
             ) -> dict:
@@ -332,8 +347,14 @@ class TestExceptionHandlerControllerWrapper(Base):
                 return {}
 
         context = MyContext(app=None)
+        error_builder = MyErrorBuilder()
         wrapper = ExceptionHandlerControllerWrapper(
-            MyException, context, error_builder=MyErrorBuilder()
+            MyException,
+            context,
+            error_builder=error_builder,
+            processor_factory=lambda schema_: MarshmallowProcessor(
+                error_builder.get_schema()
+            ),
         )
 
         def raise_it():

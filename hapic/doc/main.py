@@ -155,9 +155,9 @@ def generate_operations(
     if description.errors:
         http_status_errors = {}
         for error in description.errors:
-            http_status_errors.setdefault(error.wrapper.http_code, []).append(
-                error
-            )
+            http_status_errors.setdefault(
+                error.wrapper.error_http_code, []
+            ).append(error)
 
         for http_status in http_status_errors:
             # FIXME - G.M - 2018-11-30 - We use schema class from first error
@@ -315,10 +315,8 @@ class DocGenerator(object):
 
             if description.errors:
                 for error in description.errors:
-                    # FIXME BS 2018-12-03: Serpyco error support (#118)
-                    schema_usages.append(
-                        SchemaUsage(type(error.wrapper.error_builder))
-                    )
+                    error_schema = error.wrapper.error_builder.get_schema()
+                    schema_usages.append(SchemaUsage(error_schema))
 
         for schema_usage in set(schema_usages):
             spec.components.schema(
