@@ -69,6 +69,7 @@ class ControllerDescription(object):
         output_headers: OutputHeadersDescription = None,
         errors: typing.List[ErrorDescription] = None,
         tags: typing.List[str] = None,
+        disable_doc: bool = False,
     ):
         self.input_path = input_path
         self.input_query = input_query
@@ -82,3 +83,4 @@ class ControllerDescription(object):
         self.output_headers = output_headers
         self.errors = errors or []
         self.tags = tags or []
+        self.disable_doc = disable_doc

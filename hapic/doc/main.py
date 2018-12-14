@@ -330,6 +330,9 @@ class DocGenerator(object):
 
         # add views
         for controller in controllers:
+            if controller.description.disable_doc:
+                continue
+
             route = context.find_route(controller)
             swagger_path = context.get_swagger_path(route.rule)
 
