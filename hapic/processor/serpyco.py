@@ -10,8 +10,8 @@ from serpyco import ValidationError
 from serpyco.serializer import Serializer
 
 from hapic.doc.schema import SchemaUsage
-from hapic.exception import InputValidationException
-from hapic.exception import OutputValidationException
+from hapic.error.main import ErrorBuilderInterface
+from hapic.error.serpyco import SerpycoDefaultErrorBuilder
 from hapic.exception import ValidationException
 from hapic.exception import WorkflowException
 from hapic.processor.main import Processor
@@ -274,3 +274,10 @@ class SerpycoProcessor(Processor):
         """
         # FIXME BS 2018-11-22: code it
         raise NotImplementedError("TODO")
+
+    @classmethod
+    def get_default_error_builder(cls) -> ErrorBuilderInterface:
+        """
+        :return: Default error builder to use for this processor
+        """
+        return SerpycoDefaultErrorBuilder()

@@ -3,7 +3,7 @@ import json
 import time
 
 from hapic import Hapic, HapicData
-from hapic.error.serpyco import SerpycoDefaultErrorBuilder
+from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
 from hapic.ext.aiohttp.context import AiohttpContext
 from hapic.processor.serpyco import SerpycoProcessor
 
@@ -159,7 +159,7 @@ if __name__ == "__main__":
     hapic.set_context(
         AiohttpContext(
             app,
-            default_error_builder=SerpycoDefaultErrorBuilder(),
+            default_error_builder=MarshmallowDefaultErrorBuilder(),
         ),
     )
     time.sleep(1)

@@ -11,9 +11,7 @@ from hapic.context import RouteRepresentation
 from hapic.decorator import DECORATION_ATTRIBUTE_NAME
 from hapic.decorator import DecoratedController
 from hapic.error.main import ErrorBuilderInterface
-from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
-from hapic.exception import OutputValidationException
-from hapic.exception import ValidationException
+from hapic.processor.main import Processor
 from hapic.processor.main import ProcessValidationError
 from hapic.processor.main import RequestParameters
 
@@ -34,17 +32,15 @@ class FlaskContext(BaseContext):
     def __init__(
         self,
         app: Flask,
+        processor_class: typing.Optional[typing.Type[Processor]] = None,
         default_error_builder: ErrorBuilderInterface = None,
         debug: bool = False,
     ):
-        super().__init__()
+        super().__init__(processor_class, default_error_builder)
         self._handled_exceptions = (
             []
         )  # type: typing.List[HandledException]  # nopep8
         self.app = app
-        self.default_error_builder = (
-            default_error_builder or MarshmallowDefaultErrorBuilder()
-        )  # FDV
         self.debug = debug
 
     def get_request_parameters(self, *args, **kwargs) -> RequestParameters:

@@ -3,7 +3,20 @@ from hapic.hapic import Hapic
 from hapic.data import HapicData
 from hapic.infos import __version__
 
-_hapic_default = Hapic()
+# To make a default hapic instance, must determine processor
+try:
+    from hapic.processor.marshmallow import MarshmallowProcessor
+
+    processor_class = MarshmallowProcessor
+except ImportError:
+    try:
+        from hapic.processor.serpyco import SerpycoProcessor
+
+        processor_class = SerpycoProcessor
+    except ImportError:
+        processor_class = None
+
+_hapic_default = Hapic(processor_class=processor_class)
 
 with_api_doc = _hapic_default.with_api_doc
 input_headers = _hapic_default.input_headers

@@ -4,6 +4,7 @@ import typing
 
 from hapic.data import HapicFile
 from hapic.error.main import ErrorBuilderInterface
+from hapic.exception import ConfigurationException
 from hapic.exception import OutputValidationException
 from hapic.exception import ValidationException
 from hapic.processor.main import Processor
@@ -91,10 +92,23 @@ class ContextInterface(object):
         """
         raise NotImplementedError()
 
-    def get_default_error_builder(self) -> ErrorBuilderInterface:
+    @property
+    def default_error_builder(self) -> ErrorBuilderInterface:
         """
         Return a ErrorBuilder who will be used to build default errors
+        Raise ConfigurationException if no default_error_builder
         :return: ErrorBuilderInterface instance
+        """
+        raise NotImplementedError()
+
+    @default_error_builder.setter
+    def default_error_builder(
+        self, error_builder: ErrorBuilderInterface
+    ) -> None:
+        """
+        Set the default error builder for this context
+        :param error_builder: ErrorBuilderInterface instance to use as
+            default error builder
         """
         raise NotImplementedError()
 
@@ -170,7 +184,9 @@ class HandledException(object):
 
 class BaseContext(ContextInterface):
     def __init__(
-        self, processor_class: typing.Optional[typing.Type[Processor]] = None
+        self,
+        processor_class: typing.Optional[typing.Type[Processor]] = None,
+        default_error_builder: ErrorBuilderInterface = None,
     ) -> None:
         """
         Set processor_class of the context. It will be used to validate
@@ -181,10 +197,23 @@ class BaseContext(ContextInterface):
         :param processor_class: Processor class
         """
         self._processor_class = processor_class
+        self._default_error_builder = default_error_builder
 
-    def get_default_error_builder(self) -> ErrorBuilderInterface:
+    @property
+    def default_error_builder(self) -> ErrorBuilderInterface:
         """ see hapic.context.ContextInterface#get_default_error_builder"""
-        return self.default_error_builder
+        if self._default_error_builder is None:
+            raise ConfigurationException("No default_error_builder given")
+
+        return self._default_error_builder
+
+    def set_default_error_builder(
+        self, error_builder: ErrorBuilderInterface
+    ) -> None:
+        """
+        see hapic.context.ContextInterface#set_default_error_builder
+        """
+        return self._default_error_builder
 
     def set_processor_class(
         self, processor_class: typing.Type[Processor]
@@ -210,8 +239,7 @@ class BaseContext(ContextInterface):
             self._add_exception_class_to_catch(exception_class, http_code)
 
     def _get_dumped_error_from_exception_error(
-        self,
-        exception: Exception
+        self, exception: Exception
     ) -> typing.Any:
         """
         Build dumped error from given exception.
@@ -220,13 +248,11 @@ class BaseContext(ContextInterface):
         :param exception: exception to use to build error
         :return: dumped error object
         """
-        error_builder = self.get_default_error_builder()
+        error_builder = self.default_error_builder
         error_body = error_builder.build_from_exception(
             exception, include_traceback=self.is_debug()
         )
-        processor = self._processor_class(
-            error_builder.get_schema()
-        )
+        processor = self._processor_class(error_builder.get_schema())
 
         try:
             return processor.dump(error_body)
@@ -236,8 +262,7 @@ class BaseContext(ContextInterface):
             ) from exc
 
     def _get_dumped_error_from_validation_error(
-        self,
-        error: ProcessValidationError,
+        self, error: ProcessValidationError
     ) -> typing.Any:
         """
         Build dumped error from given validation error.
@@ -246,11 +271,9 @@ class BaseContext(ContextInterface):
         :param error: ProcessValidationError instance
         :return: dumped error object
         """
-        error_builder = self.get_default_error_builder()
+        error_builder = self.default_error_builder
         error_content = error_builder.build_from_validation_error(error)
-        processor = self._processor_class(
-            error_builder.get_schema()
-        )
+        processor = self._processor_class(error_builder.get_schema())
 
         try:
             return processor.dump(error_content)
@@ -282,10 +305,12 @@ class BaseContext(ContextInterface):
                 # TODO BS 2018-05-04: How to be attentive to hierarchy ?
                 for handled_exception in handled_exceptions:
                     if isinstance(exc, handled_exception.exception_class):
-                        dumped_error = \
-                            self._get_dumped_error_from_exception_error(exc)
+                        dumped_error = self._get_dumped_error_from_exception_error(
+                            exc
+                        )
                         return self.get_response(
-                            json.dumps(dumped_error), handled_exception.http_code
+                            json.dumps(dumped_error),
+                            handled_exception.http_code,
                         )
                 raise exc
 

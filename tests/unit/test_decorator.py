@@ -33,6 +33,10 @@ if typing.TYPE_CHECKING:
 
 
 class MyProcessor(Processor):
+    @classmethod
+    def get_default_error_builder(cls) -> "ErrorBuilderInterface":
+        return MarshmallowDefaultErrorBuilder()
+
     def validate_error(self, data_to_validate: typing.Any) -> typing.Any:
         pass
 

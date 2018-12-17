@@ -11,6 +11,7 @@ from hapic.exception import ConfigurationException
 
 if typing.TYPE_CHECKING:
     from hapic.type import TYPE_SCHEMA
+    from hapic.error.main import ErrorBuilderInterface
 
 
 class RequestParameters(object):
@@ -213,3 +214,10 @@ class Processor(metaclass=abc.ABCMeta):
         elif data.file_object and not data.mimetype:
             error_message = "File object should have explicit mimetype"
         return error_message
+
+    @classmethod
+    @abc.abstractmethod
+    def get_default_error_builder(cls) -> "ErrorBuilderInterface":
+        """
+        :return: Default error builder to use for this processor
+        """

@@ -8,6 +8,8 @@ from apispec_marshmallow_advanced.common import (
 
 from apispec_marshmallow_advanced import MarshmallowAdvancedPlugin
 from hapic.doc.schema import SchemaUsage
+from hapic.error.main import ErrorBuilderInterface
+from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
 from hapic.exception import OutputValidationException
 from hapic.exception import ValidationException
 from hapic.processor.main import Processor
@@ -261,3 +263,10 @@ class MarshmallowProcessor(Processor):
                     validation_error_message
                 )
             )
+
+    @classmethod
+    def get_default_error_builder(cls) -> ErrorBuilderInterface:
+        """
+        :return: Default error builder to use for this processor
+        """
+        return MarshmallowDefaultErrorBuilder()

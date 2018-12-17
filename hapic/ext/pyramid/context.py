@@ -12,8 +12,7 @@ from hapic.data import HapicFile
 from hapic.decorator import DECORATION_ATTRIBUTE_NAME
 from hapic.decorator import DecoratedController
 from hapic.error.main import ErrorBuilderInterface
-from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
-from hapic.exception import OutputValidationException
+from hapic.processor.main import Processor
 from hapic.processor.main import ProcessValidationError
 from hapic.processor.main import RequestParameters
 from hapic.util import LOGGER_NAME
@@ -36,17 +35,15 @@ class PyramidContext(BaseContext):
     def __init__(
         self,
         configurator: "Configurator",
+        processor_class: typing.Optional[typing.Type[Processor]] = None,
         default_error_builder: ErrorBuilderInterface = None,
         debug: bool = False,
     ):
-        super().__init__()
+        super().__init__(processor_class, default_error_builder)
         self._handled_exceptions = (
             []
         )  # type: typing.List[HandledException]  # nopep8
         self.configurator = configurator
-        self.default_error_builder = (
-            default_error_builder or MarshmallowDefaultErrorBuilder()
-        )  # FDV
         self.debug = debug
 
     def get_request_parameters(self, *args, **kwargs) -> RequestParameters:
@@ -214,7 +211,7 @@ class PyramidContext(BaseContext):
                 )
                 logger.debug(traceback.format_exc())
                 # TODO BS 2018-05-04: How to be attentive to hierarchy ?
-                error_builder = self.get_default_error_builder()
+                error_builder = self.default_error_builder
                 error_body = error_builder.build_from_exception(
                     exc, include_traceback=self.is_debug()
                 )

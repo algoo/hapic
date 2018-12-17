@@ -4,6 +4,7 @@ import json
 import marshmallow
 
 from hapic import Hapic
+from hapic import MarshmallowProcessor
 from tests.base import Base
 from tests.base import MyContext
 
@@ -15,7 +16,7 @@ except ImportError:
 
 class TestMarshmallowDecoration(Base):
     def test_unit__input_files__ok__file_is_present(self):
-        hapic = Hapic()
+        hapic = Hapic(processor_class=MarshmallowProcessor)
         hapic.set_context(
             MyContext(
                 app=None, fake_files_parameters={"file_abc": "10101010101"}
@@ -35,7 +36,7 @@ class TestMarshmallowDecoration(Base):
         assert "OK" == result
 
     def test_unit__input_files__ok__file_is_not_present(self):
-        hapic = Hapic()
+        hapic = Hapic(processor_class=MarshmallowProcessor)
         hapic.set_context(
             MyContext(
                 app=None,
@@ -65,7 +66,7 @@ class TestMarshmallowDecoration(Base):
         } == json.loads(result.body)
 
     def test_unit__input_files__ok__file_is_empty_string(self):
-        hapic = Hapic()
+        hapic = Hapic(processor_class=MarshmallowProcessor)
         hapic.set_context(
             MyContext(app=None, fake_files_parameters={"file_abc": ""})
         )

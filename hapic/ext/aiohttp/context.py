@@ -15,12 +15,10 @@ from hapic.context import RouteRepresentation
 from hapic.decorator import DECORATION_ATTRIBUTE_NAME
 from hapic.decorator import DecoratedController
 from hapic.error.main import ErrorBuilderInterface
-from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
 from hapic.exception import NoRoutesException
-from hapic.exception import OutputValidationException
 from hapic.exception import RouteNotFound
-from hapic.exception import ValidationException
 from hapic.exception import WorkflowException
+from hapic.processor.main import Processor
 from hapic.processor.main import ProcessValidationError
 from hapic.processor.main import RequestParameters
 
@@ -73,15 +71,13 @@ class AiohttpContext(BaseContext):
     def __init__(
         self,
         app: web.Application,
+        processor_class: typing.Optional[typing.Type[Processor]] = None,
         default_error_builder: ErrorBuilderInterface = None,
         debug: bool = False,
     ) -> None:
-        super().__init__()
+        super().__init__(processor_class, default_error_builder)
         self._app = app
         self._debug = debug
-        self.default_error_builder = (
-            default_error_builder or MarshmallowDefaultErrorBuilder()
-        )  # FDV
 
         # Managed exceptions
         @web.middleware
@@ -105,10 +101,12 @@ class AiohttpContext(BaseContext):
                 # Parse each managed exceptions to manage it if must be
                 for handled_exception in self._handled_exceptions:
                     if isinstance(exc, handled_exception.exception_class):
-                        dumped_error = \
-                            self._get_dumped_error_from_exception_error(exc)
+                        dumped_error = self._get_dumped_error_from_exception_error(
+                            exc
+                        )
                         return self.get_response(
-                            json.dumps(dumped_error), handled_exception.http_code
+                            json.dumps(dumped_error),
+                            handled_exception.http_code,
                         )
                 raise exc
 

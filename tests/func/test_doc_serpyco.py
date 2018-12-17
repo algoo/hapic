@@ -13,7 +13,11 @@ class TestDocSerpyco(object):
         app = bottle.Bottle()
         hapic = Hapic()
         hapic.set_processor_class(SerpycoProcessor)
-        hapic.set_context(BottleContext(app))
+        hapic.set_context(
+            BottleContext(
+                app, default_error_builder=SerpycoDefaultErrorBuilder()
+            )
+        )
 
         @dataclasses.dataclass
         class UserSchema(object):
@@ -43,7 +47,11 @@ class TestDocSerpyco(object):
         app = bottle.Bottle()
         hapic = Hapic()
         hapic.set_processor_class(SerpycoProcessor)
-        hapic.set_context(BottleContext(app))
+        hapic.set_context(
+            BottleContext(
+                app, default_error_builder=SerpycoDefaultErrorBuilder()
+            )
+        )
 
         @dataclasses.dataclass
         class UserSchema(object):
@@ -71,7 +79,11 @@ class TestDocSerpyco(object):
         app = bottle.Bottle()
         hapic = Hapic()
         hapic.set_processor_class(SerpycoProcessor)
-        hapic.set_context(BottleContext(app))
+        hapic.set_context(
+            BottleContext(
+                app, default_error_builder=SerpycoDefaultErrorBuilder()
+            )
+        )
 
         @dataclasses.dataclass
         class UserSchema(object):
@@ -98,7 +110,11 @@ class TestDocSerpyco(object):
         app = bottle.Bottle()
         hapic = Hapic()
         hapic.set_processor_class(SerpycoProcessor)
-        hapic.set_context(BottleContext(app))
+        hapic.set_context(
+            BottleContext(
+                app, default_error_builder=SerpycoDefaultErrorBuilder()
+            )
+        )
 
         @dataclasses.dataclass
         class UserSchema(object):
