@@ -11,8 +11,6 @@ from serpyco import ValidationError
 from serpyco.serializer import Serializer
 
 from hapic.doc.schema import SchemaUsage
-from hapic.exception import InputValidationException
-from hapic.exception import OutputValidationException
 from hapic.exception import ValidationException
 from hapic.exception import WorkflowException
 from hapic.processor.main import Processor
@@ -220,7 +218,7 @@ class SerpycoProcessor(Processor):
         :return: schema dataclass instance
         """
         # Prevent serpyco error when Rrequest context give us a MultiDictProxy
-        if isinstance(data, MultiDictProxy):
+        if isinstance(data, (MultiDictProxy, MultiDict)):
             data = dict(data)
 
         try:
