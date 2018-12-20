@@ -88,7 +88,7 @@ class Hapic(object):
         """
         :return: True if hapic have a processor_class, else False
         """
-        return bool(self._processor_class)
+        return self._processor_class is not None
 
     @property
     def processor_class(self) -> typing.Type[Processor]:
