@@ -7,16 +7,16 @@ from hapic.infos import __version__
 try:
     from hapic.processor.marshmallow import MarshmallowProcessor
 
-    processor_class = MarshmallowProcessor
+    default_processor_class = MarshmallowProcessor
 except ImportError:
     try:
         from hapic.processor.serpyco import SerpycoProcessor
 
-        processor_class = SerpycoProcessor
+        default_processor_class = SerpycoProcessor
     except ImportError:
-        processor_class = None
+        default_processor_class = None
 
-_hapic_default = Hapic(processor_class=processor_class)
+_hapic_default = Hapic(processor_class=default_processor_class)
 
 with_api_doc = _hapic_default.with_api_doc
 input_headers = _hapic_default.input_headers
