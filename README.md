@@ -57,6 +57,12 @@ TODOs in the code can include some `#xxx` - these are github issues references.
 
 ## Installation
 
+For better performances with yaml module, you can install following (debian instruction):
+
+    sudo apt-get install libyaml-dev
+
+`libyaml-dev` package can be removed after hapic install.
+
 ## From source code
 
 ``` bash
@@ -72,6 +78,20 @@ To work with Marshmallow schemas, install necessary dependencies:
 To work with Serpyco dataclasses, install necessary dependencies:
 
     pip install -e ".[serpyco]"
+
+To have full environment (for developpers):
+
+    pip install -e ".[dev"]
+
+## From pypi
+
+To work with Marshmallow schemas, install necessary dependencies:
+
+    pip install hapic[marshmallow]
+
+To work with Serpyco dataclasses, install necessary dependencies:
+
+    pip install hapic[serpyco]
  
 ## Give it a try
 
