@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime
+
+from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
+
 try:  # Python 3.5+
     from http import HTTPStatus
 except ImportError:
@@ -91,7 +94,7 @@ if __name__ == "__main__":
     app = flask.Flask(__name__)
     controllers = FlaskController()
     controllers.bind(app)
-    hapic.set_context(FlaskContext(app))
+    hapic.set_context(FlaskContext(app, default_error_builder=MarshmallowDefaultErrorBuilder()))
 
     print('')
     print('')

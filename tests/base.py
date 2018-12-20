@@ -5,6 +5,7 @@ import typing
 from multidict import MultiDict
 
 from hapic.context import HandledException
+from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
 from hapic.ext.bottle import BottleContext
 from hapic.processor.main import ProcessValidationError
 from hapic.processor.main import RequestParameters
@@ -31,7 +32,9 @@ class MyContext(BottleContext):
         fake_header_parameters=None,
         fake_files_parameters=None,
     ) -> None:
-        super().__init__(app=app)
+        super().__init__(
+            app=app, default_error_builder=MarshmallowDefaultErrorBuilder()
+        )
         self._handled_exceptions = (
             []
         )  # type: typing.List[HandledException]  # nopep8

@@ -6,13 +6,14 @@ import marshmallow
 from marshmallow.validate import OneOf
 
 from hapic import Hapic
+from hapic import MarshmallowProcessor
 from tests.base import Base
 from tests.base import MyContext
 
 
 class TestDocGeneration(Base):
     def test_func__input_files_doc__ok__one_file(self):
-        hapic = Hapic()
+        hapic = Hapic(processor_class=MarshmallowProcessor)
         # TODO BS 20171113: Make this test non-bottle
         app = bottle.Bottle()
         hapic.set_context(MyContext(app=app))
@@ -45,7 +46,7 @@ class TestDocGeneration(Base):
         } in doc["paths"]["/upload"]["post"]["parameters"]
 
     def test_func__input_files_doc__ok__two_file(self):
-        hapic = Hapic()
+        hapic = Hapic(processor_class=MarshmallowProcessor)
         # TODO BS 20171113: Make this test non-bottle
         app = bottle.Bottle()
         hapic.set_context(MyContext(app=app))
@@ -85,7 +86,7 @@ class TestDocGeneration(Base):
         } in doc["paths"]["/upload"]["post"]["parameters"]
 
     def test_func__output_file_doc__ok__nominal_case(self):
-        hapic = Hapic()
+        hapic = Hapic(processor_class=MarshmallowProcessor)
         # TODO BS 20171113: Make this test non-bottle
         app = bottle.Bottle()
         hapic.set_context(MyContext(app=app))
@@ -105,7 +106,7 @@ class TestDocGeneration(Base):
         assert 200 in doc["paths"]["/avatar"]["get"]["responses"]
 
     def test_func__input_files_doc__ok__one_file_and_text(self):
-        hapic = Hapic()
+        hapic = Hapic(processor_class=MarshmallowProcessor)
         # TODO BS 20171113: Make this test non-bottle
         app = bottle.Bottle()
         hapic.set_context(MyContext(app=app))
@@ -142,7 +143,7 @@ class TestDocGeneration(Base):
         } in doc["paths"]["/upload"]["post"]["parameters"]
 
     def test_func__docstring__ok__simple_case(self):
-        hapic = Hapic()
+        hapic = Hapic(processor_class=MarshmallowProcessor)
         app = bottle.Bottle()
         hapic.set_context(MyContext(app=app))
 
@@ -165,7 +166,7 @@ class TestDocGeneration(Base):
         assert "Hello doc" == doc["paths"]["/upload"]["post"]["description"]
 
     def test_func__tags__ok__nominal_case(self):
-        hapic = Hapic()
+        hapic = Hapic(processor_class=MarshmallowProcessor)
         app = bottle.Bottle()
         hapic.set_context(MyContext(app=app))
 
@@ -184,7 +185,7 @@ class TestDocGeneration(Base):
         assert ["foo", "bar"] == doc["paths"]["/upload"]["post"]["tags"]
 
     def test_func__errors__nominal_case(self):
-        hapic = Hapic()
+        hapic = Hapic(processor_class=MarshmallowProcessor)
         app = bottle.Bottle()
         hapic.set_context(MyContext(app=app))
 
@@ -203,11 +204,11 @@ class TestDocGeneration(Base):
         assert 500 in doc["paths"]["/upload"]["post"]["responses"]
         assert {
             "description": Exception.__doc__,
-            "schema": {"$ref": "#/definitions/MarshmallowDefaultErrorBuilder"},
+            "schema": {"$ref": "#/definitions/DefaultErrorSchema"},
         } == doc["paths"]["/upload"]["post"]["responses"][500]
 
     def test_func__errors__explicit_description(self):
-        hapic = Hapic()
+        hapic = Hapic(processor_class=MarshmallowProcessor)
         app = bottle.Bottle()
         hapic.set_context(MyContext(app=app))
 
@@ -226,11 +227,11 @@ class TestDocGeneration(Base):
         assert 500 in doc["paths"]["/upload"]["post"]["responses"]
         assert {
             "description": "Any Exception",
-            "schema": {"$ref": "#/definitions/MarshmallowDefaultErrorBuilder"},
+            "schema": {"$ref": "#/definitions/DefaultErrorSchema"},
         } == doc["paths"]["/upload"]["post"]["responses"][500]
 
     def test_func__errors__docstring_exception(self):
-        hapic = Hapic()
+        hapic = Hapic(processor_class=MarshmallowProcessor)
         app = bottle.Bottle()
         hapic.set_context(MyContext(app=app))
 
@@ -252,11 +253,11 @@ class TestDocGeneration(Base):
         assert 500 in doc["paths"]["/upload"]["post"]["responses"]
         assert {
             "description": "Just a docstring",
-            "schema": {"$ref": "#/definitions/MarshmallowDefaultErrorBuilder"},
+            "schema": {"$ref": "#/definitions/DefaultErrorSchema"},
         } == doc["paths"]["/upload"]["post"]["responses"][500]
 
     def test_func__errors__http_status_description(self):
-        hapic = Hapic()
+        hapic = Hapic(processor_class=MarshmallowProcessor)
         app = bottle.Bottle()
         hapic.set_context(MyContext(app=app))
 
@@ -278,11 +279,11 @@ class TestDocGeneration(Base):
         assert 400 in doc["paths"]["/upload"]["post"]["responses"]
         assert {
             "description": "BAD_REQUEST: Bad request syntax or unsupported method",
-            "schema": {"$ref": "#/definitions/MarshmallowDefaultErrorBuilder"},
+            "schema": {"$ref": "#/definitions/DefaultErrorSchema"},
         } == doc["paths"]["/upload"]["post"]["responses"][400]
 
     def test_func__errors__http_status_as_int_description(self):
-        hapic = Hapic()
+        hapic = Hapic(processor_class=MarshmallowProcessor)
         app = bottle.Bottle()
         hapic.set_context(MyContext(app=app))
 
@@ -304,11 +305,11 @@ class TestDocGeneration(Base):
         assert 400 in doc["paths"]["/upload"]["post"]["responses"]
         assert {
             "description": "400",
-            "schema": {"$ref": "#/definitions/MarshmallowDefaultErrorBuilder"},
+            "schema": {"$ref": "#/definitions/DefaultErrorSchema"},
         } == doc["paths"]["/upload"]["post"]["responses"][400]
 
     def test_func__errors__multiple_same_http_status_description(self):
-        hapic = Hapic()
+        hapic = Hapic(processor_class=MarshmallowProcessor)
         app = bottle.Bottle()
         hapic.set_context(MyContext(app=app))
 
@@ -364,12 +365,12 @@ class TestDocGeneration(Base):
         assert "Just a docstring" in descriptions
         assert not "Docstring not used" in descriptions
         assert doc["paths"]["/upload"]["post"]["responses"][400]["schema"]
-        assert {"$ref": "#/definitions/MarshmallowDefaultErrorBuilder"} == doc[
-            "paths"
-        ]["/upload"]["post"]["responses"][400]["schema"]
+        assert {"$ref": "#/definitions/DefaultErrorSchema"} == doc["paths"][
+            "/upload"
+        ]["post"]["responses"][400]["schema"]
 
     def test_func__enum__nominal_case(self):
-        hapic = Hapic()
+        hapic = Hapic(processor_class=MarshmallowProcessor)
         # TODO BS 20171113: Make this test non-bottle
         app = bottle.Bottle()
         hapic.set_context(MyContext(app=app))
@@ -392,7 +393,7 @@ class TestDocGeneration(Base):
         ).get("properties", {}).get("category", {}).get("enum")
 
     def test_func__schema_in_doc__ok__nominal_case(self):
-        hapic = Hapic()
+        hapic = Hapic(processor_class=MarshmallowProcessor)
         app = bottle.Bottle()
         hapic.set_context(MyContext(app=app))
 
@@ -420,7 +421,7 @@ class TestDocGeneration(Base):
         assert schema_ref["schema"]["$ref"] == "#/definitions/MySchema"
 
     def test_func__schema_in_doc__ok__many_case(self):
-        hapic = Hapic()
+        hapic = Hapic(processor_class=MarshmallowProcessor)
         app = bottle.Bottle()
         hapic.set_context(MyContext(app=app))
 
@@ -451,7 +452,7 @@ class TestDocGeneration(Base):
         }
 
     def test_func__schema_in_doc__ok__exclude_case(self):
-        hapic = Hapic()
+        hapic = Hapic(processor_class=MarshmallowProcessor)
         app = bottle.Bottle()
         hapic.set_context(MyContext(app=app))
 
@@ -524,7 +525,7 @@ class TestDocGeneration(Base):
         )
 
     def test_func__schema_in_doc__ok__many_and_exclude_case(self):
-        hapic = Hapic()
+        hapic = Hapic(processor_class=MarshmallowProcessor)
         app = bottle.Bottle()
         hapic.set_context(MyContext(app=app))
 
@@ -566,7 +567,7 @@ class TestDocGeneration(Base):
         }
 
     def test_func_schema_in_doc__ok__additionals_fields__file(self):
-        hapic = Hapic()
+        hapic = Hapic(processor_class=MarshmallowProcessor)
         # TODO BS 20171113: Make this test non-bottle
         app = bottle.Bottle()
         hapic.set_context(MyContext(app=app))
@@ -605,7 +606,7 @@ class TestDocGeneration(Base):
         assert field["required"] is True
 
     def test_func_schema_in_doc__ok__additionals_fields__forms__string(self):
-        hapic = Hapic()
+        hapic = Hapic(processor_class=MarshmallowProcessor)
         # TODO BS 20171113: Make this test non-bottle
         app = bottle.Bottle()
         hapic.set_context(MyContext(app=app))
@@ -656,7 +657,7 @@ class TestDocGeneration(Base):
         assert "maximum" not in field
 
     def test_func_schema_in_doc__ok__additionals_fields__query__string(self):
-        hapic = Hapic()
+        hapic = Hapic(processor_class=MarshmallowProcessor)
         # TODO BS 20171113: Make this test non-bottle
         app = bottle.Bottle()
         hapic.set_context(MyContext(app=app))
@@ -704,7 +705,7 @@ class TestDocGeneration(Base):
         assert "maximum" not in field
 
     def test_func_schema_in_doc__ok__additionals_fields__path__string(self):
-        hapic = Hapic()
+        hapic = Hapic(processor_class=MarshmallowProcessor)
         # TODO BS 20171113: Make this test non-bottle
         app = bottle.Bottle()
         hapic.set_context(MyContext(app=app))
@@ -752,7 +753,7 @@ class TestDocGeneration(Base):
         assert "maximum" not in field
 
     def test_func_schema_in_doc__ok__additionals_fields__path__number(self):
-        hapic = Hapic()
+        hapic = Hapic(processor_class=MarshmallowProcessor)
         # TODO BS 20171113: Make this test non-bottle
         app = bottle.Bottle()
         hapic.set_context(MyContext(app=app))
@@ -797,7 +798,7 @@ class TestDocGeneration(Base):
         assert field["multipleOf"] == 2
 
     def test_func_schema_in_doc__ok__additionals_fields__body__number(self):
-        hapic = Hapic()
+        hapic = Hapic(processor_class=MarshmallowProcessor)
         # TODO BS 20171113: Make this test non-bottle
         app = bottle.Bottle()
         hapic.set_context(MyContext(app=app))
@@ -844,7 +845,7 @@ class TestDocGeneration(Base):
         assert schema_field["multipleOf"] == 2
 
     def test_func_schema_in_doc__ok__additionals_fields__body__string(self):
-        hapic = Hapic()
+        hapic = Hapic(processor_class=MarshmallowProcessor)
         # TODO BS 20171113: Make this test non-bottle
         app = bottle.Bottle()
         hapic.set_context(MyContext(app=app))

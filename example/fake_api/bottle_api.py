@@ -6,12 +6,13 @@ import time
 from datetime import datetime
 
 from example.fake_api.model import User
-from hapic import Hapic
+from hapic import Hapic, MarshmallowProcessor
 from example.fake_api.schema import *
 from hapic.data import HapicData
+from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
 from hapic.ext.bottle import BottleContext
 
-hapic = Hapic()
+hapic = Hapic(processor_class=MarshmallowProcessor)
 
 
 class BottleController(object):
@@ -126,7 +127,7 @@ if __name__ == "__main__":
     app = bottle.Bottle()
     controllers = BottleController()
     controllers.bind(app)
-    hapic.set_context(BottleContext(app))
+    hapic.set_context(BottleContext(app, default_error_builder=MarshmallowDefaultErrorBuilder()))
     time.sleep(1)
     s = json.dumps(
         hapic.generate_doc(

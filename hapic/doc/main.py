@@ -164,7 +164,7 @@ def generate_operations(
             # for each status as openapi 2.0 doesn't support different schema
             # result. This may cause incoherent result.
             default_error = http_status_errors[http_status][0]
-            schema_class = type(default_error.wrapper.error_builder)
+            schema_class = default_error.wrapper.error_builder.get_schema()
             errors_description = set()
             for error in http_status_errors[http_status]:
                 errors_description.add(error.wrapper.description)

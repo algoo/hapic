@@ -7,6 +7,8 @@ import pytest
 
 from hapic import Hapic
 from hapic import HapicData
+from hapic import MarshmallowProcessor
+from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
 from hapic.ext.aiohttp.context import AiohttpContext
 
 
@@ -26,7 +28,7 @@ class TestAiohttpExt(object):
     async def test_aiohttp_input_path__ok__nominal_case(
         self, aiohttp_client, loop
     ):
-        hapic = Hapic(async_=True)
+        hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
         class InputPathSchema(marshmallow.Schema):
             name = marshmallow.fields.String()
@@ -38,7 +40,11 @@ class TestAiohttpExt(object):
 
         app = web.Application(debug=True)
         app.router.add_get("/{name}", hello)
-        hapic.set_context(AiohttpContext(app))
+        hapic.set_context(
+            AiohttpContext(
+                app, default_error_builder=MarshmallowDefaultErrorBuilder()
+            )
+        )
         client = await aiohttp_client(app)
 
         resp = await client.get("/bob")
@@ -50,7 +56,7 @@ class TestAiohttpExt(object):
     async def test_aiohttp_input_path__error_wrong_input_parameter(
         self, aiohttp_client, loop
     ):
-        hapic = Hapic(async_=True)
+        hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
         class InputPathSchema(marshmallow.Schema):
             i = marshmallow.fields.Integer()
@@ -62,7 +68,11 @@ class TestAiohttpExt(object):
 
         app = web.Application(debug=True)
         app.router.add_get("/{i}", hello)
-        hapic.set_context(AiohttpContext(app))
+        hapic.set_context(
+            AiohttpContext(
+                app, default_error_builder=MarshmallowDefaultErrorBuilder()
+            )
+        )
         client = await aiohttp_client(app)
 
         resp = await client.get("/bob")  # NOTE: should be integer here
@@ -75,7 +85,7 @@ class TestAiohttpExt(object):
     async def test_aiohttp_input_body__ok_nominal_case(
         self, aiohttp_client, loop
     ):
-        hapic = Hapic(async_=True)
+        hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
         class InputBodySchema(marshmallow.Schema):
             name = marshmallow.fields.String()
@@ -87,7 +97,11 @@ class TestAiohttpExt(object):
 
         app = web.Application(debug=True)
         app.router.add_post("/", hello)
-        hapic.set_context(AiohttpContext(app))
+        hapic.set_context(
+            AiohttpContext(
+                app, default_error_builder=MarshmallowDefaultErrorBuilder()
+            )
+        )
         client = await aiohttp_client(app)
 
         resp = await client.post("/", data={"name": "bob"})
@@ -99,7 +113,7 @@ class TestAiohttpExt(object):
     async def test_aiohttp_input_body__error__incorrect_input_body(
         self, aiohttp_client, loop
     ):
-        hapic = Hapic(async_=True)
+        hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
         class InputBodySchema(marshmallow.Schema):
             i = marshmallow.fields.Integer()
@@ -111,7 +125,11 @@ class TestAiohttpExt(object):
 
         app = web.Application(debug=True)
         app.router.add_post("/", hello)
-        hapic.set_context(AiohttpContext(app))
+        hapic.set_context(
+            AiohttpContext(
+                app, default_error_builder=MarshmallowDefaultErrorBuilder()
+            )
+        )
         client = await aiohttp_client(app)
 
         resp = await client.post("/", data={"i": "bob"})  # NOTE: should be int
@@ -124,7 +142,7 @@ class TestAiohttpExt(object):
     async def test_aiohttp_output_body__ok__nominal_case(
         self, aiohttp_client, loop
     ):
-        hapic = Hapic(async_=True)
+        hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
         class OuputBodySchema(marshmallow.Schema):
             name = marshmallow.fields.String()
@@ -135,7 +153,11 @@ class TestAiohttpExt(object):
 
         app = web.Application(debug=True)
         app.router.add_get("/", hello)
-        hapic.set_context(AiohttpContext(app))
+        hapic.set_context(
+            AiohttpContext(
+                app, default_error_builder=MarshmallowDefaultErrorBuilder()
+            )
+        )
         client = await aiohttp_client(app)
 
         resp = await client.get("/")
@@ -147,7 +169,7 @@ class TestAiohttpExt(object):
     async def test_aiohttp_output_body__error__incorrect_output_body(
         self, aiohttp_client, loop
     ):
-        hapic = Hapic(async_=True)
+        hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
         class OuputBodySchema(marshmallow.Schema):
             i = marshmallow.fields.Integer(required=True)
@@ -158,7 +180,11 @@ class TestAiohttpExt(object):
 
         app = web.Application(debug=True)
         app.router.add_get("/", hello)
-        hapic.set_context(AiohttpContext(app))
+        hapic.set_context(
+            AiohttpContext(
+                app, default_error_builder=MarshmallowDefaultErrorBuilder()
+            )
+        )
         client = await aiohttp_client(app)
 
         resp = await client.get("/")
@@ -174,7 +200,7 @@ class TestAiohttpExt(object):
     async def test_aiohttp_handle_excpetion__ok__nominal_case(
         self, aiohttp_client, loop
     ):
-        hapic = Hapic(async_=True)
+        hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
         @hapic.handle_exception(ZeroDivisionError, http_code=400)
         async def hello(request):
@@ -182,7 +208,11 @@ class TestAiohttpExt(object):
 
         app = web.Application(debug=True)
         app.router.add_get("/", hello)
-        hapic.set_context(AiohttpContext(app))
+        hapic.set_context(
+            AiohttpContext(
+                app, default_error_builder=MarshmallowDefaultErrorBuilder()
+            )
+        )
         client = await aiohttp_client(app)
 
         resp = await client.get("/")
@@ -197,7 +227,7 @@ class TestAiohttpExt(object):
     async def test_aiohttp_output_stream__ok__nominal_case(
         self, aiohttp_client, loop
     ):
-        hapic = Hapic(async_=True)
+        hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
         class AsyncGenerator:
             def __init__(self):
@@ -220,7 +250,11 @@ class TestAiohttpExt(object):
 
         app = web.Application(debug=True)
         app.router.add_get("/", hello)
-        hapic.set_context(AiohttpContext(app))
+        hapic.set_context(
+            AiohttpContext(
+                app, default_error_builder=MarshmallowDefaultErrorBuilder()
+            )
+        )
         client = await aiohttp_client(app)
 
         resp = await client.get("/")
@@ -236,7 +270,7 @@ class TestAiohttpExt(object):
         sys.version_info < (3, 7), reason="requires python3.7 or higher"
     )
     async def test_aiohttp_output_stream__ok__py37(self, aiohttp_client, loop):
-        hapic = Hapic(async_=True)
+        hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
         class OuputStreamItemSchema(marshmallow.Schema):
             name = marshmallow.fields.String()
@@ -247,7 +281,11 @@ class TestAiohttpExt(object):
 
         app = web.Application(debug=True)
         app.router.add_get("/", hello)
-        hapic.set_context(AiohttpContext(app))
+        hapic.set_context(
+            AiohttpContext(
+                app, default_error_builder=MarshmallowDefaultErrorBuilder()
+            )
+        )
         client = await aiohttp_client(app)
 
         resp = await client.get("/")
@@ -265,7 +303,7 @@ class TestAiohttpExt(object):
     async def test_aiohttp_output_stream__error__ignore(
         self, aiohttp_client, loop
     ):
-        hapic = Hapic(async_=True)
+        hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
         class AsyncGenerator:
             def __init__(self):
@@ -292,7 +330,11 @@ class TestAiohttpExt(object):
 
         app = web.Application(debug=True)
         app.router.add_get("/", hello)
-        hapic.set_context(AiohttpContext(app))
+        hapic.set_context(
+            AiohttpContext(
+                app, default_error_builder=MarshmallowDefaultErrorBuilder()
+            )
+        )
         client = await aiohttp_client(app)
 
         resp = await client.get("/")
@@ -310,7 +352,7 @@ class TestAiohttpExt(object):
     async def test_aiohttp_output_stream__error__ignore_py37(
         self, aiohttp_client, loop
     ):
-        hapic = Hapic(async_=True)
+        hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
         class OuputStreamItemSchema(marshmallow.Schema):
             name = marshmallow.fields.String(required=True)
@@ -323,7 +365,11 @@ class TestAiohttpExt(object):
 
         app = web.Application(debug=True)
         app.router.add_get("/", hello)
-        hapic.set_context(AiohttpContext(app))
+        hapic.set_context(
+            AiohttpContext(
+                app, default_error_builder=MarshmallowDefaultErrorBuilder()
+            )
+        )
         client = await aiohttp_client(app)
 
         resp = await client.get("/")
@@ -341,7 +387,7 @@ class TestAiohttpExt(object):
     async def test_aiohttp_output_stream__error__interrupt(
         self, aiohttp_client, loop
     ):
-        hapic = Hapic(async_=True)
+        hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
         class AsyncGenerator:
             def __init__(self):
@@ -370,7 +416,11 @@ class TestAiohttpExt(object):
 
         app = web.Application(debug=True)
         app.router.add_get("/", hello)
-        hapic.set_context(AiohttpContext(app))
+        hapic.set_context(
+            AiohttpContext(
+                app, default_error_builder=MarshmallowDefaultErrorBuilder()
+            )
+        )
         client = await aiohttp_client(app)
 
         resp = await client.get("/")
@@ -388,7 +438,7 @@ class TestAiohttpExt(object):
     async def test_aiohttp_output_stream__error__interrupt_py37(
         self, aiohttp_client, loop
     ):
-        hapic = Hapic(async_=True)
+        hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
         class OuputStreamItemSchema(marshmallow.Schema):
             name = marshmallow.fields.String(required=True)
@@ -401,7 +451,11 @@ class TestAiohttpExt(object):
 
         app = web.Application(debug=True)
         app.router.add_get("/", hello)
-        hapic.set_context(AiohttpContext(app))
+        hapic.set_context(
+            AiohttpContext(
+                app, default_error_builder=MarshmallowDefaultErrorBuilder()
+            )
+        )
         client = await aiohttp_client(app)
 
         resp = await client.get("/")
@@ -414,7 +468,7 @@ class TestAiohttpExt(object):
         assert b"" == line
 
     def test_unit__generate_doc__ok__nominal_case(self, aiohttp_client, loop):
-        hapic = Hapic(async_=True)
+        hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
         class InputPathSchema(marshmallow.Schema):
             username = marshmallow.fields.String(required=True)
@@ -441,7 +495,11 @@ class TestAiohttpExt(object):
         app = web.Application(debug=True)
         app.router.add_get("/{username}", get_user)
         app.router.add_post("/{username}", post_user)
-        hapic.set_context(AiohttpContext(app))
+        hapic.set_context(
+            AiohttpContext(
+                app, default_error_builder=MarshmallowDefaultErrorBuilder()
+            )
+        )
 
         doc = hapic.generate_doc("aiohttp", "testing")
         assert "UserSchema" in doc.get("definitions")
@@ -491,7 +549,7 @@ class TestAiohttpExt(object):
     def test_unit__generate_output_stream_doc__ok__nominal_case(
         self, aiohttp_client, loop
     ):
-        hapic = Hapic(async_=True)
+        hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
         class OuputStreamItemSchema(marshmallow.Schema):
             name = marshmallow.fields.String(required=True)
@@ -503,7 +561,11 @@ class TestAiohttpExt(object):
 
         app = web.Application(debug=True)
         app.router.add_get("/", get_users)
-        hapic.set_context(AiohttpContext(app))
+        hapic.set_context(
+            AiohttpContext(
+                app, default_error_builder=MarshmallowDefaultErrorBuilder()
+            )
+        )
 
         doc = hapic.generate_doc("aiohttp", "testing")
         assert "/" in doc.get("paths")
@@ -517,7 +579,7 @@ class TestAiohttpExt(object):
     async def test_unit__general_exception_handling__ok__nominal_case(
         self, aiohttp_client, loop
     ):
-        hapic = Hapic(async_=True)
+        hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
         @hapic.with_api_doc()
         async def hello(request):
@@ -525,7 +587,9 @@ class TestAiohttpExt(object):
 
         app = web.Application(debug=True)
         app.router.add_get("/", hello)
-        context = AiohttpContext(app)
+        context = AiohttpContext(
+            app, default_error_builder=MarshmallowDefaultErrorBuilder()
+        )
         context.handle_exception(ZeroDivisionError, 400)
         hapic.set_context(context)
 
@@ -543,7 +607,7 @@ class TestAiohttpExt(object):
     async def test_unit__general_exception_handling__ok__exception_list(
         self, aiohttp_client, loop
     ):
-        hapic = Hapic(async_=True)
+        hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
         @hapic.with_api_doc()
         async def zero(request):
@@ -556,7 +620,9 @@ class TestAiohttpExt(object):
         app = web.Application(debug=True)
         app.router.add_get("/a", zero)
         app.router.add_get("/b", key)
-        context = AiohttpContext(app)
+        context = AiohttpContext(
+            app, default_error_builder=MarshmallowDefaultErrorBuilder()
+        )
         context.handle_exceptions([ZeroDivisionError, KeyError], 400)
         hapic.set_context(context)
 

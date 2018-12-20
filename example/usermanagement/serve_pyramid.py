@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime
+
+from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
+
 try:  # Python 3.5+
     from http import HTTPStatus
 except ImportError:
@@ -100,7 +103,7 @@ if __name__ == "__main__":
     configurator = Configurator(autocommit=True)
     controllers = PyramidController()
     controllers.bind(configurator)
-    hapic.set_context(PyramidContext(configurator))
+    hapic.set_context(PyramidContext(configurator, default_error_builder=MarshmallowDefaultErrorBuilder()))
 
     print('')
     print('')

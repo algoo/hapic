@@ -6,6 +6,7 @@ from aiohttp import web
 
 from hapic import Hapic
 from hapic import HapicData
+from hapic.error.serpyco import SerpycoDefaultErrorBuilder
 from hapic.ext.aiohttp.context import AiohttpContext
 from hapic.processor.serpyco import SerpycoProcessor
 
@@ -46,6 +47,11 @@ app.add_routes([
     web.get(r'/user/{id}', get_user),
 ])
 
-hapic.set_context(AiohttpContext(app))
+hapic.set_context(
+    AiohttpContext(
+        app,
+        default_error_builder=SerpycoDefaultErrorBuilder()
+    )
+)
 print(json.dumps(hapic.generate_doc()))
 web.run_app(app)

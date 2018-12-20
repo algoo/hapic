@@ -4,6 +4,8 @@ from pyramid.config import Configurator
 from webtest import TestApp
 
 from hapic import Hapic
+from hapic import MarshmallowProcessor
+from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
 from hapic.ext.pyramid import PyramidContext
 from tests.base import Base
 from tests.base import MyContext
@@ -11,7 +13,7 @@ from tests.base import MyContext
 
 class TestExceptionHandling(Base):
     def test_func__catch_one_exception__ok__nominal_case(self):
-        hapic = Hapic()
+        hapic = Hapic(processor_class=MarshmallowProcessor)
         # TODO BS 2018-05-04: Make this test non-bottle
         app = bottle.Bottle()
         context = MyContext(app=app)
@@ -38,9 +40,12 @@ class TestExceptionHandling(Base):
         # in order to have here only framework agnostic test
         # and framework_specific
         # test somewhere else.
-        hapic = Hapic()
+        hapic = Hapic(processor_class=MarshmallowProcessor)
         configurator = Configurator(autocommit=True)
-        context = PyramidContext(configurator)
+        context = PyramidContext(
+            configurator,
+            default_error_builder=MarshmallowDefaultErrorBuilder(),
+        )
         hapic.set_context(context)
 
         def my_view(context, request):

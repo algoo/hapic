@@ -8,6 +8,7 @@ from webtest import TestApp
 from example.fake_api.bottle_api import BottleController
 from example.fake_api.flask_api import FlaskController
 from example.fake_api.pyramid_api import PyramidController
+from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
 from hapic.ext.bottle import BottleContext
 from hapic.ext.flask import FlaskContext
 from hapic.ext.pyramid import PyramidContext
@@ -19,7 +20,11 @@ def get_bottle_context():
 
     bottle_app = Bottle()
     h.reset_context()
-    h.set_context(BottleContext(bottle_app))
+    h.set_context(
+        BottleContext(
+            bottle_app, default_error_builder=MarshmallowDefaultErrorBuilder()
+        )
+    )
     controllers = BottleController()
     controllers.bind(bottle_app)
     return {"hapic": h, "app": bottle_app}
@@ -32,7 +37,11 @@ def get_flask_context():
     controllers = FlaskController()
     controllers.bind(flask_app)
     h.reset_context()
-    h.set_context(FlaskContext(flask_app))
+    h.set_context(
+        FlaskContext(
+            flask_app, default_error_builder=MarshmallowDefaultErrorBuilder()
+        )
+    )
     return {"hapic": h, "app": flask_app}
 
 
@@ -43,7 +52,12 @@ def get_pyramid_context():
     controllers = PyramidController()
     controllers.bind(configurator)
     h.reset_context()
-    h.set_context(PyramidContext(configurator))
+    h.set_context(
+        PyramidContext(
+            configurator,
+            default_error_builder=MarshmallowDefaultErrorBuilder(),
+        )
+    )
     pyramid_app = configurator.make_wsgi_app()
     return {"hapic": h, "app": pyramid_app}
 

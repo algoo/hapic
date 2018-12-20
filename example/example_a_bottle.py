@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 import json
+
+from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
+
 try:  # Python 3.5+
     from http import HTTPStatus
 except ImportError:
@@ -97,7 +100,7 @@ app = bottle.Bottle()
 controllers = Controllers()
 controllers.bind(app)
 
-hapic.set_context(BottleContext(app))
+hapic.set_context(BottleContext(app, default_error_builder=MarshmallowDefaultErrorBuilder()))
 
 print(yaml.dump(
     json.loads(json.dumps(hapic.generate_doc())),

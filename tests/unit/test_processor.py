@@ -7,8 +7,8 @@ import marshmallow as marshmallow
 import pytest
 
 from hapic.data import HapicFile
-from hapic.exception import ValidationException
 from hapic.exception import ProcessException
+from hapic.exception import ValidationException
 from hapic.processor.marshmallow import MarshmallowProcessor
 from tests.base import Base
 

@@ -3,15 +3,19 @@ import bottle
 from webtest import TestApp
 
 import hapic
+from hapic import MarshmallowProcessor
+from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
 from hapic.ext.bottle import BottleContext
 from tests.base import Base
 
 
 class TestBottleExt(Base):
     def test_unit__map_binding__ok__decorated_function(self):
-        hapic_ = hapic.Hapic()
+        hapic_ = hapic.Hapic(processor_class=MarshmallowProcessor)
         app = bottle.Bottle()
-        context = hapic.ext.bottle.BottleContext(app=app)
+        context = hapic.ext.bottle.BottleContext(
+            app=app, default_error_builder=MarshmallowDefaultErrorBuilder()
+        )
         hapic_.set_context(context)
 
         @hapic_.with_api_doc()
@@ -35,9 +39,11 @@ class TestBottleExt(Base):
         )  # nopep8
 
     def test_unit__map_binding__ok__mapped_function(self):
-        hapic_ = hapic.Hapic()
+        hapic_ = hapic.Hapic(processor_class=MarshmallowProcessor)
         app = bottle.Bottle()
-        context = hapic.ext.bottle.BottleContext(app=app)
+        context = hapic.ext.bottle.BottleContext(
+            app=app, default_error_builder=MarshmallowDefaultErrorBuilder()
+        )
         hapic_.set_context(context)
 
         @hapic_.with_api_doc()
@@ -62,9 +68,11 @@ class TestBottleExt(Base):
         )  # nopep8
 
     def test_unit__map_binding__ok__mapped_method(self):
-        hapic_ = hapic.Hapic()
+        hapic_ = hapic.Hapic(processor_class=MarshmallowProcessor)
         app = bottle.Bottle()
-        context = hapic.ext.bottle.BottleContext(app=app)
+        context = hapic.ext.bottle.BottleContext(
+            app=app, default_error_builder=MarshmallowDefaultErrorBuilder()
+        )
         hapic_.set_context(context)
 
         class MyControllers(object):
@@ -98,9 +106,11 @@ class TestBottleExt(Base):
         )  # nopep8
 
     def test_unit__general_exception_handling__ok__nominal_case(self):
-        hapic_ = hapic.Hapic()
+        hapic_ = hapic.Hapic(processor_class=MarshmallowProcessor)
         app = bottle.Bottle()
-        context = BottleContext(app=app)
+        context = BottleContext(
+            app=app, default_error_builder=MarshmallowDefaultErrorBuilder()
+        )
         hapic_.set_context(context)
 
         def my_view():

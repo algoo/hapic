@@ -28,9 +28,9 @@ class SerpycoDefaultErrorBuilder(DefaultErrorBuilder):
         """
         error_dict = super().build_from_exception(exception, include_traceback)
         return DefaultErrorSchema(
-            message=error_dict['message'],
-            details=error_dict['details'],
-            code=error_dict['code'],
+            message=error_dict["message"],
+            details=error_dict["details"],
+            code=error_dict["code"],
         )
 
     def build_from_validation_error(
@@ -42,7 +42,7 @@ class SerpycoDefaultErrorBuilder(DefaultErrorBuilder):
         """
         error_dict = super().build_from_validation_error(error)
         return DefaultErrorSchema(
-            message=error_dict['message'],
-            details=error_dict['details'],
-            code=error_dict['code'],
+            message=error_dict["message"],
+            details=error_dict["details"],
+            code=error_dict["code"],
         )
