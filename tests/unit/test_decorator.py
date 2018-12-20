@@ -37,9 +37,6 @@ class MyProcessor(Processor):
     def get_default_error_builder(cls) -> "ErrorBuilderInterface":
         return MarshmallowDefaultErrorBuilder()
 
-    def validate_error(self, data_to_validate: typing.Any) -> typing.Any:
-        pass
-
     @classmethod
     def generate_schema_ref(
         cls, main_plugin: BasePlugin, schema: "TYPE_SCHEMA"
