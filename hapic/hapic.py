@@ -94,7 +94,7 @@ class Hapic(object):
     def processor_class(self) -> typing.Type[Processor]:
         if self._processor_class is None:
             raise ConfigurationException(
-                "Hapic must be built with a processor_class"
+                "You must define Hapic processor_class before to use it."
             )
 
         return self._processor_class

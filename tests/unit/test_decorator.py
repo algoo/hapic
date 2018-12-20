@@ -13,6 +13,7 @@ from hapic.decorator import InputControllerWrapper
 from hapic.decorator import InputOutputControllerWrapper
 from hapic.decorator import InputQueryControllerWrapper
 from hapic.decorator import OutputControllerWrapper
+from hapic.error.main import ErrorBuilderInterface
 from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
 from hapic.exception import OutputValidationException
 from hapic.processor.main import Processor
@@ -34,7 +35,7 @@ if typing.TYPE_CHECKING:
 
 class MyProcessor(Processor):
     @classmethod
-    def get_default_error_builder(cls) -> "ErrorBuilderInterface":
+    def get_default_error_builder(cls) -> ErrorBuilderInterface:
         return MarshmallowDefaultErrorBuilder()
 
     @classmethod
