@@ -215,6 +215,9 @@ class Processor(metaclass=abc.ABCMeta):
             error_message = "File object should have explicit mimetype"
         return error_message
 
+    # NOTE BS 2018-12-20: the decorators order is not semantically right,
+    # but in right order pycharm generates a warning: "This decorator will not receive a callable
+    # it may expect; the built-in decorator returns a special object"
     @classmethod
     @abc.abstractmethod
     def get_default_error_builder(cls) -> "ErrorBuilderInterface":
