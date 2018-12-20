@@ -4,13 +4,14 @@ from pyramid.config import Configurator
 from wsgiref.simple_server import make_server
 import time
 from datetime import datetime
-from hapic import Hapic
+from hapic import Hapic, MarshmallowProcessor
 from example.fake_api.schema import *
 
 from hapic.data import HapicData
+from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
 from hapic.ext.pyramid import PyramidContext
 
-hapic = Hapic()
+hapic = Hapic(processor_class=MarshmallowProcessor)
 
 
 class PyramidController(object):
@@ -135,7 +136,7 @@ if __name__ == "__main__":
     configurator = Configurator(autocommit=True)
     controllers = PyramidController()
     controllers.bind(configurator)
-    hapic.set_context(PyramidContext(configurator))
+    hapic.set_context(PyramidContext(configurator, default_error_builder=MarshmallowDefaultErrorBuilder()))
     time.sleep(1)
     s = json.dumps(
         hapic.generate_doc(

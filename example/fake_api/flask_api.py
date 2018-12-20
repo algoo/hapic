@@ -4,13 +4,14 @@ import json
 import flask
 import time
 from datetime import datetime
-from hapic import Hapic
+from hapic import Hapic, MarshmallowProcessor
 
 from example.fake_api.schema import *
+from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
 from hapic.ext.flask import FlaskContext
 from hapic.data import HapicData
 
-hapic = Hapic()
+hapic = Hapic(processor_class=MarshmallowProcessor)
 
 
 class FlaskController(object):
@@ -138,7 +139,7 @@ if __name__ == "__main__":
     app = flask.Flask(__name__)
     controllers = FlaskController()
     controllers.bind(app)
-    hapic.set_context(FlaskContext(app))
+    hapic.set_context(FlaskContext(app, default_error_builder=MarshmallowDefaultErrorBuilder()))
     time.sleep(1)
     s = json.dumps(
         hapic.generate_doc(

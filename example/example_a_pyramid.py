@@ -6,6 +6,7 @@ from wsgiref.simple_server import make_server
 import hapic
 from hapic.data import HapicData
 from hapic.data import HapicFile
+from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
 from hapic.ext.pyramid import PyramidContext
 from PIL import Image
 from pyramid.config import Configurator
@@ -152,7 +153,7 @@ controllers = Controllers()
 
 controllers.bind(configurator)
 
-hapic.set_context(PyramidContext(configurator))
+hapic.set_context(PyramidContext(configurator, default_error_builder=MarshmallowDefaultErrorBuilder()))
 print(json.dumps(hapic.generate_doc()))
 
 server = make_server('0.0.0.0', 8080, configurator.make_wsgi_app())

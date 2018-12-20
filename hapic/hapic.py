@@ -37,9 +37,8 @@ from hapic.description import OutputHeadersDescription
 from hapic.description import OutputStreamDescription
 from hapic.doc.main import DocGenerator
 from hapic.error.main import ErrorBuilderInterface
+from hapic.exception import ConfigurationException
 from hapic.processor.main import Processor
-from hapic.processor.marshmallow import MarshmallowProcessor
-from hapic.type import TYPE_SCHEMA
 from hapic.util import LOGGER_NAME
 
 try:  # Python 3.5+
@@ -53,7 +52,11 @@ except ImportError:
 
 
 class Hapic(object):
-    def __init__(self, async_: bool = False):
+    def __init__(
+        self,
+        processor_class: typing.Optional[typing.Type[Processor]] = None,
+        async_: bool = False,
+    ) -> None:
         self._buffer = DecorationBuffer()
         self._controllers = []  # type: typing.List[DecoratedController]
         self._context = None  # type: ContextInterface
@@ -74,18 +77,26 @@ class Hapic(object):
         # who will need error_builder but declared (like with decorator)
         # before error_builder declaration
         def error_builder_getter():
-            return self._context.get_default_error_builder()
+            return self._context.default_error_builder
 
+        self._processor_class = processor_class
         self._context_getter = context_getter
-        self._processor_class = (
-            MarshmallowProcessor
-        )  # type: typing.Type[Processor]  # nopep8
         self._error_builder_getter = error_builder_getter
 
-        # TODO: Permettre la surcharge des classes utilisés ci-dessous, see #14
+    @property
+    def ready(self) -> bool:
+        """
+        :return: True if hapic have a processor_class, else False
+        """
+        return self._processor_class is not None
 
     @property
     def processor_class(self) -> typing.Type[Processor]:
+        if self._processor_class is None:
+            raise ConfigurationException(
+                "You must define Hapic processor_class before to use it."
+            )
+
         return self._processor_class
 
     @property
@@ -100,6 +111,13 @@ class Hapic(object):
         assert not self._context
         self._context = context
         self._context.set_processor_class(self.processor_class)
+
+        try:
+            self._context.default_error_builder
+        except ConfigurationException:
+            self._context.default_error_builder = (
+                self.processor_class.get_default_error_builder()
+            )
 
     def reset_context(self) -> None:
         self._context = None
@@ -134,7 +152,7 @@ class Hapic(object):
         return get_default_processor
 
     def with_api_doc(
-        self, tags: typing.List["str"] = None, disable_doc: bool=False,
+        self, tags: typing.List["str"] = None, disable_doc: bool = False
     ):
         """
         Permit to generate doc about a controller. Use as a decorator:

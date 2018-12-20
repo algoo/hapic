@@ -4,6 +4,7 @@ from hapic import async as hapic
 from hapic import async as HapicData
 import marshmallow
 
+from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
 from hapic.ext.aiohttp.context import AiohttpContext
 
 
@@ -65,7 +66,7 @@ app.add_routes([
 ])
 
 
-hapic.set_context(AiohttpContext(app))
+hapic.set_context(AiohttpContext(app, default_error_builder=MarshmallowDefaultErrorBuilder()))
 
 
 # import json
