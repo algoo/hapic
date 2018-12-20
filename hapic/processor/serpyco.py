@@ -4,6 +4,7 @@ import typing
 from apispec import BasePlugin
 from apispec_serpyco import SerpycoPlugin
 from apispec_serpyco.utils import schema_name_resolver as schema_name_resolver_
+from multidict import MultiDict
 from multidict import MultiDictProxy
 import serpyco
 from serpyco import ValidationError
@@ -135,7 +136,7 @@ class SerpycoProcessor(Processor):
         :return:
         """
         # Prevent serpyco error when Rrequest context give us a MultiDictProxy
-        if isinstance(data_to_validate, MultiDictProxy):
+        if isinstance(data_to_validate, (MultiDictProxy, MultiDict)):
             data_to_validate = dict(data_to_validate)
 
         try:
@@ -219,7 +220,7 @@ class SerpycoProcessor(Processor):
         :return: schema dataclass instance
         """
         # Prevent serpyco error when Rrequest context give us a MultiDictProxy
-        if isinstance(data, MultiDictProxy):
+        if isinstance(data, (MultiDictProxy, MultiDict)):
             data = dict(data)
 
         try:

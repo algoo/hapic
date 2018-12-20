@@ -207,13 +207,14 @@ class BaseContext(ContextInterface):
 
         return self._default_error_builder
 
-    def set_default_error_builder(
+    @default_error_builder.setter
+    def default_error_builder(
         self, error_builder: ErrorBuilderInterface
     ) -> None:
         """
         see hapic.context.ContextInterface#set_default_error_builder
         """
-        return self._default_error_builder
+        self._default_error_builder = error_builder
 
     def set_processor_class(
         self, processor_class: typing.Type[Processor]
