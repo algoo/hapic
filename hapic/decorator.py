@@ -482,6 +482,32 @@ class InputPathControllerWrapper(InputControllerWrapper):
         return request_parameters.path_parameters
 
 
+# TODO BS 2018-07-23: This class is an async version of
+#  InputPathControllerWrapper to permit async compatibility. Please re-think
+#  about code refact
+#  TAG: REFACT_ASYNC
+class AsyncInputPathControllerWrapper(InputPathControllerWrapper):
+    def get_wrapper(self, func: "typing.Callable") -> "typing.Callable":
+        # async def wrapper(*args, **kwargs) -> typing.Any:
+        async def wrapper(*args, **kwargs) -> typing.Any:
+            # Note: Design of before_wrapped_func can be to update kwargs
+            # by reference here
+            replacement_response = self.before_wrapped_func(args, kwargs)
+            if replacement_response is not None:
+                return replacement_response
+
+            response = await self._execute_wrapped_function(func, args, kwargs)
+            new_response = self.after_wrapped_function(response)
+            return new_response
+
+        return functools.update_wrapper(wrapper, func)
+
+    async def _execute_wrapped_function(
+        self, func, func_args, func_kwargs
+    ) -> typing.Any:
+        return await func(*func_args, **func_kwargs)
+
+
 class InputQueryControllerWrapper(InputControllerWrapper):
     def __init__(
         self,
@@ -528,6 +554,32 @@ class InputQueryControllerWrapper(InputControllerWrapper):
             return query_parameters
 
         return request_parameters.query_parameters
+
+
+# TODO BS 2018-07-23: This class is an async version of
+#  InputQueryControllerWrapper to permit async compatibility. Please re-think
+#  about code refact
+# TAG: REFACT_ASYNC
+class AsyncInputQueryControllerWrapper(InputQueryControllerWrapper):
+    def get_wrapper(self, func: "typing.Callable") -> "typing.Callable":
+        # async def wrapper(*args, **kwargs) -> typing.Any:
+        async def wrapper(*args, **kwargs) -> typing.Any:
+            # Note: Design of before_wrapped_func can be to update kwargs
+            # by reference here
+            replacement_response = self.before_wrapped_func(args, kwargs)
+            if replacement_response is not None:
+                return replacement_response
+
+            response = await self._execute_wrapped_function(func, args, kwargs)
+            new_response = self.after_wrapped_function(response)
+            return new_response
+
+        return functools.update_wrapper(wrapper, func)
+
+    async def _execute_wrapped_function(
+        self, func, func_args, func_kwargs
+    ) -> typing.Any:
+        return await func(*func_args, **func_kwargs)
 
 
 class InputBodyControllerWrapper(InputControllerWrapper):

@@ -76,6 +76,14 @@ async def test_func__test_fake_api_endpoints_ok__aiohttp(test_client,):
         "company": "Algoo",
     }
 
+    resp = await app.get("/users/abc")  # int expected
+    assert resp.status == 400
+    json_ = await resp.json()
+    assert (
+        'Validation error of input data: "Could not cast field id: invalid '
+        "literal for int() with base 10: 'abc'\"" == json_.get("message")
+    )
+
     resp = await app.post("/users/")
     assert resp.status == 400
     json_ = await resp.json()

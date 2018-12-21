@@ -115,6 +115,10 @@ def test_func__test_fake_api_endpoints_ok__all_framework(context):
         "company": "Algoo",
     }
 
+    resp = app.get("/users/abc", status="*")  # int expected
+    assert resp.status_int == 400
+    assert resp.json.get("details", {}) == {"id": ["Not a valid integer."]}
+
     resp = app.post("/users/", status="*")
     assert resp.status_int == 400
     assert resp.json == {

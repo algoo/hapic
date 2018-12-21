@@ -23,15 +23,16 @@ from hapic.util import LOGGER_NAME
 
 def exception_to_error_dict(exc: ValidationError) -> dict:
     """
-    FIXME BS 2018-11-16: Is there a correct way to structure the
-    json_schema errors ?
+    FIXME BS 2018-11-16: Error dict is not structured. See with serpyco
+    author for structured error.
     :param exc: ValidationError exception to process
     :return: dict with detail of error
     """
     errors = {}
 
     for err_tuple in exc.args[1:]:
-        errors[err_tuple[0]] = (err_tuple[1], err_tuple[2])
+        if err_tuple and len(err_tuple) == 3:
+            errors[err_tuple[0]] = (err_tuple[1], err_tuple[2])
 
     return errors
 

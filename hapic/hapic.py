@@ -10,6 +10,8 @@ from hapic.context import ContextInterface
 from hapic.decorator import DECORATION_ATTRIBUTE_NAME
 from hapic.decorator import AsyncExceptionHandlerControllerWrapper
 from hapic.decorator import AsyncInputBodyControllerWrapper
+from hapic.decorator import AsyncInputPathControllerWrapper
+from hapic.decorator import AsyncInputQueryControllerWrapper
 from hapic.decorator import AsyncOutputBodyControllerWrapper
 from hapic.decorator import AsyncOutputStreamControllerWrapper
 from hapic.decorator import ControllerReference
@@ -365,12 +367,20 @@ class Hapic(object):
         processor_factory = self._get_processor_factory(schema, processor)
         context = context or self._context_getter
 
-        decoration = InputPathControllerWrapper(
-            context=context,
-            processor_factory=processor_factory,
-            error_http_code=error_http_code,
-            default_http_code=default_http_code,
-        )
+        if self._async:
+            decoration = AsyncInputPathControllerWrapper(
+                context=context,
+                processor_factory=processor_factory,
+                error_http_code=error_http_code,
+                default_http_code=default_http_code,
+            )
+        else:
+            decoration = InputPathControllerWrapper(
+                context=context,
+                processor_factory=processor_factory,
+                error_http_code=error_http_code,
+                default_http_code=default_http_code,
+            )
 
         def decorator(func):
             self._buffer.input_path = InputPathDescription(decoration)
@@ -390,13 +400,22 @@ class Hapic(object):
         processor_factory = self._get_processor_factory(schema, processor)
         context = context or self._context_getter
 
-        decoration = InputQueryControllerWrapper(
-            context=context,
-            processor_factory=processor_factory,
-            error_http_code=error_http_code,
-            default_http_code=default_http_code,
-            as_list=as_list,
-        )
+        if self._async:
+            decoration = AsyncInputQueryControllerWrapper(
+                context=context,
+                processor_factory=processor_factory,
+                error_http_code=error_http_code,
+                default_http_code=default_http_code,
+                as_list=as_list,
+            )
+        else:
+            decoration = InputQueryControllerWrapper(
+                context=context,
+                processor_factory=processor_factory,
+                error_http_code=error_http_code,
+                default_http_code=default_http_code,
+                as_list=as_list,
+            )
 
         def decorator(func):
             self._buffer.input_query = InputQueryDescription(decoration)
