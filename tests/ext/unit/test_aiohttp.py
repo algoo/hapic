@@ -1,7 +1,11 @@
 # coding: utf-8
+import io
 import sys
 
 from aiohttp import web
+from aiohttp.web_request import FileField
+from aiohttp.web_request import Request
+from aiohttp.web_response import Response
 import marshmallow
 import pytest
 
@@ -646,3 +650,64 @@ class TestAiohttpExt(object):
             "message": "division by zero",
             "code": None,
         } == json
+
+    async def test_unit__post_file__ok__put_success(
+        self, aiohttp_client, loop
+    ):
+        hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
+
+        class InputFilesSchema(marshmallow.Schema):
+            avatar = marshmallow.fields.Raw()
+
+        @hapic.with_api_doc()
+        @hapic.input_files(InputFilesSchema())
+        async def update_avatar(request: Request, hapic_data: HapicData):
+            avatar = hapic_data.files["avatar"]
+            assert isinstance(avatar, FileField)
+            assert b"text content of file" == avatar.file.read()
+            return Response(body="ok")
+
+        app = web.Application(debug=True)
+        app.router.add_put("/avatar", update_avatar)
+        hapic.set_context(
+            AiohttpContext(
+                app, default_error_builder=MarshmallowDefaultErrorBuilder()
+            )
+        )
+        client = await aiohttp_client(app)
+
+        resp = await client.put(
+            "/avatar", data={"avatar": io.StringIO("text content of file")}
+        )
+        assert resp.status == 200
+
+    async def test_unit__post_file__ok__missing_file(
+        self, aiohttp_client, loop
+    ):
+        hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
+
+        class InputFilesSchema(marshmallow.Schema):
+            avatar = marshmallow.fields.Raw(required=True)
+
+        @hapic.with_api_doc()
+        @hapic.input_files(InputFilesSchema())
+        async def update_avatar(request: Request, hapic_data: HapicData):
+            raise AssertionError("Test should no pass here")
+
+        app = web.Application(debug=True)
+        app.router.add_put("/avatar", update_avatar)
+        hapic.set_context(
+            AiohttpContext(
+                app, default_error_builder=MarshmallowDefaultErrorBuilder()
+            )
+        )
+        client = await aiohttp_client(app)
+
+        resp = await client.put("/avatar")
+        assert resp.status == 400
+        json_ = await resp.json()
+        assert {
+            "details": {"avatar": ["Missing data for required field"]},
+            "message": "Validation error of input data",
+            "code": None,
+        } == json_
