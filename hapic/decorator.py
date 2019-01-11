@@ -667,6 +667,44 @@ class InputFilesControllerWrapper(InputControllerWrapper):
         return self.processor.get_input_files_validation_error(parameters_data)
 
 
+# TODO BS 2019-01-11: This class is an async version of
+# InputFilesControllerWrapper to permit async compatibility.
+# Please re-think about code refact
+# TAG: REFACT_ASYNC
+class AsyncInputFilesControllerWrapper(AsyncInputControllerWrapper):
+    def update_hapic_data(
+        self, hapic_data: HapicData, processed_data: typing.Any
+    ) -> None:
+        hapic_data.files = processed_data
+
+    async def get_processed_data(
+        self, request_parameters: RequestParameters
+    ) -> typing.Any:
+        parameters_data = await self.get_parameters_data(request_parameters)
+        processed_data = self.processor.load_files_input(parameters_data)
+        return processed_data
+
+    async def get_parameters_data(
+        self, request_parameters: RequestParameters
+    ) -> dict:  # nopep8
+        return await request_parameters.files_parameters
+
+    def _get_processor_error(
+        self, parameters_data: typing.Any
+    ) -> ProcessValidationError:
+        return self.processor.get_input_files_validation_error(parameters_data)
+
+    async def get_error_response(
+        self, request_parameters: RequestParameters
+    ) -> typing.Any:
+        parameters_data = await self.get_parameters_data(request_parameters)
+        error = self._get_processor_error(parameters_data)
+        error_response = self.context.get_validation_error_response(
+            error, http_code=self.error_http_code
+        )
+        return error_response
+
+
 class ExceptionHandlerControllerWrapper(ControllerWrapper):
     """
     This wrapper is used to wrap a controller and catch given exception if
