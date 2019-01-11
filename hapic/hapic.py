@@ -10,6 +10,7 @@ from hapic.context import ContextInterface
 from hapic.decorator import DECORATION_ATTRIBUTE_NAME
 from hapic.decorator import AsyncExceptionHandlerControllerWrapper
 from hapic.decorator import AsyncInputBodyControllerWrapper
+from hapic.decorator import AsyncInputFilesControllerWrapper
 from hapic.decorator import AsyncInputPathControllerWrapper
 from hapic.decorator import AsyncInputQueryControllerWrapper
 from hapic.decorator import AsyncOutputBodyControllerWrapper
@@ -490,12 +491,20 @@ class Hapic(object):
         processor_factory = self._get_processor_factory(schema, processor)
         context = context or self._context_getter
 
-        decoration = InputFilesControllerWrapper(
-            context=context,
-            processor_factory=processor_factory,
-            error_http_code=error_http_code,
-            default_http_code=default_http_code,
-        )
+        if self._async:
+            decoration = AsyncInputFilesControllerWrapper(
+                context=context,
+                processor_factory=processor_factory,
+                error_http_code=error_http_code,
+                default_http_code=default_http_code,
+            )
+        else:
+            decoration = InputFilesControllerWrapper(
+                context=context,
+                processor_factory=processor_factory,
+                error_http_code=error_http_code,
+                default_http_code=default_http_code,
+            )
 
         def decorator(func):
             self._buffer.input_files = InputFilesDescription(decoration)

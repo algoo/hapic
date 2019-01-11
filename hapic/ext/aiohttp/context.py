@@ -5,6 +5,7 @@ import re
 import typing
 
 from aiohttp import web
+from aiohttp.web_request import FileField
 from aiohttp.web_request import Request
 from aiohttp.web_response import Response
 from multidict import MultiDict
@@ -62,9 +63,15 @@ class AiohttpRequestParameters(RequestParameters):
         return dict(self._request.headers.items())
 
     @property
-    def files_parameters(self):
-        # TODO BS 2018-07-24: To do
-        raise NotImplementedError("todo")
+    async def files_parameters(self):
+        files_parameters = {}  # type: typing.Dict[str, FileField]
+
+        body_parameters = await self.body_parameters
+        for parameter_key, parameter_value in body_parameters.items():
+            if isinstance(parameter_value, FileField):
+                files_parameters[parameter_key] = parameter_value
+
+        return files_parameters
 
 
 class AiohttpContext(BaseContext):
