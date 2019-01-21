@@ -17,7 +17,7 @@ from hapic.exception import RouteNotFound
 from hapic.processor.main import Processor
 from hapic.processor.main import ProcessValidationError
 from hapic.processor.main import RequestParameters
-from hapic.util import LowercaseDictKeys
+from hapic.util import LowercaseKeysDict
 
 try:  # Python 3.5+
     from http import HTTPStatus
@@ -50,8 +50,8 @@ class BottleContext(BaseContext):
         query_parameters = MultiDict(bottle.request.query.allitems())
         body_parameters = dict(bottle.request.json or {})
         form_parameters = MultiDict(bottle.request.forms.allitems())
-        header_parameters = LowercaseDictKeys(
-            (k.lower(), v) for k, v in bottle.request.headers.items()
+        header_parameters = LowercaseKeysDict(
+            [(k.lower(), v) for k, v in bottle.request.headers.items()]
         )
         files_parameters = dict(bottle.request.files)
 
