@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import typing
 
-from hapic.exception import HapicException
+from hapic.exception import NotLowercaseCaseException
 
 LOGGER_NAME = "hapic"
 
@@ -16,11 +16,11 @@ class LowercaseKeysDict(dict):
     def check_key(key: str) -> None:
         try:
             if key.lower() != key:
-                raise HapicException(
+                raise NotLowercaseCaseException(
                     'Invalid key "{}": must be lowercase str'.format(key)
                 )
         except (TypeError, AttributeError):
-            raise HapicException(
+            raise NotLowercaseCaseException(
                 'Invalid key "{}": must be lowercase str'.format(key)
             )
 

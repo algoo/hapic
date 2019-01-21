@@ -55,3 +55,7 @@ class NoRoutesException(DocumentationException):
 
 class RouteNotFound(DocumentationException):
     pass
+
+
+class NotLowercaseCaseException(HapicException):
+    """Raised when a given dict key must be in lowercase but it is not"""

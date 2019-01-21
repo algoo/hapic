@@ -1,7 +1,7 @@
 # coding: utf-8
 import pytest
 
-from hapic.exception import HapicException
+from hapic.exception import NotLowercaseCaseException
 from hapic.util import LowercaseKeysDict
 
 
@@ -30,17 +30,17 @@ class TestUtils(object):
         assert {"foo": "bar"} == lowercase_dict
 
     def test_unit__create__error__refuse_key(self):
-        with pytest.raises(HapicException):
+        with pytest.raises(NotLowercaseCaseException):
             LowercaseKeysDict([("FOO", "bar")])
 
     def test_unit__set__error__refuse_key(self):
         lowercase_dict = LowercaseKeysDict()
 
-        with pytest.raises(HapicException):
+        with pytest.raises(NotLowercaseCaseException):
             lowercase_dict.setdefault("FOO", "bar")
 
     def test_unit__update__error__refuse_key(self):
         lowercase_dict = LowercaseKeysDict()
 
-        with pytest.raises(HapicException):
+        with pytest.raises(NotLowercaseCaseException):
             lowercase_dict.update({"FOO": "bar"})

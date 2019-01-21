@@ -60,7 +60,7 @@ class AiohttpRequestParameters(RequestParameters):
         return self.body_parameters
 
     @property
-    def header_parameters(self):
+    def header_parameters(self) -> LowercaseKeysDict:
         # NOTE BS 2019-01-21: headers can be read as lowercase
         return LowercaseKeysDict(
             [(k.lower(), v) for k, v in self._request.headers.items()]
