@@ -22,6 +22,7 @@ from hapic.exception import WorkflowException
 from hapic.processor.main import Processor
 from hapic.processor.main import ProcessValidationError
 from hapic.processor.main import RequestParameters
+from hapic.util import LowercaseDictKeys
 
 # Aiohttp regular expression to locate url parameters
 AIOHTTP_RE_PATH_URL = re.compile(r"{([^:<>]+)(?::[^<>]+)?}")
@@ -35,8 +36,8 @@ class AiohttpRequestParameters(RequestParameters):
     @property
     async def body_parameters(self) -> dict:
         if self._parsed_body is None:
-            content_type = self.header_parameters.get("Content-Type")
-            is_json = content_type == "application/json"
+            content_type = self.header_parameters.get("Content-Type", "")
+            is_json = content_type.lower() == "application/json"
 
             if is_json:
                 self._parsed_body = await self._request.json()
@@ -60,7 +61,10 @@ class AiohttpRequestParameters(RequestParameters):
 
     @property
     def header_parameters(self):
-        return dict(self._request.headers.items())
+        # NOTE BS 2019-01-21: headers can be read as lowercase
+        return LowercaseDictKeys(
+            (k.lower(), v) for k, v in self._request.headers.items()
+        )
 
     @property
     async def files_parameters(self):

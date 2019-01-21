@@ -711,3 +711,23 @@ class TestAiohttpExt(object):
             "message": "Validation error of input data",
             "code": None,
         } == json_
+
+    async def test_request_header__ok__lowercase_key(self, aiohttp_client):
+        hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
+
+        class HeadersSchema(marshmallow.Schema):
+            foo = marshmallow.fields.String(required=True)
+
+        @hapic.with_api_doc()
+        @hapic.input_headers(HeadersSchema())
+        async def hello(request, hapic_data: HapicData):
+            return web.json_response(hapic_data.headers)
+
+        app = web.Application(debug=True)
+        hapic.set_context(AiohttpContext(app))
+        app.router.add_get("/", hello)
+        client = await aiohttp_client(app)
+        response = await client.get("/", headers={"FOO": "bar"})
+        assert 200 == response.status
+        json_ = await response.json()
+        assert {"foo": "bar"} == json_
