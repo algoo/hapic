@@ -47,11 +47,13 @@ app.add_routes([
     web.get(r'/user/{id}', get_user),
 ])
 
-hapic.set_context(
-    AiohttpContext(
-        app,
-        default_error_builder=SerpycoDefaultErrorBuilder()
-    )
+context = AiohttpContext(
+    app,
+    default_error_builder=SerpycoDefaultErrorBuilder()
 )
+hapic.set_context(
+    context
+)
+hapic.add_documentation_view("/api/doc")
 print(json.dumps(hapic.generate_doc()))
 web.run_app(app)

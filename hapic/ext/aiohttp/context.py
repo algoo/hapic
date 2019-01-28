@@ -207,12 +207,10 @@ class AiohttpContext(BaseContext):
         http_method: str,
         view_func: typing.Callable[..., typing.Any],
     ) -> None:
-        # TODO BS 2018-07-15: to do
-        raise NotImplementedError("todo")
+        self.app.router.add_routes([web.route(http_method, path=route, handler=view_func)])
 
     def serve_directory(self, route_prefix: str, directory_path: str) -> None:
-        # TODO BS 2018-07-15: to do
-        raise NotImplementedError("todo")
+        self.app.router.add_static(route_prefix, path=directory_path)
 
     def is_debug(self,) -> bool:
         return self._debug
