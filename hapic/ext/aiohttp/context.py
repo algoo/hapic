@@ -207,7 +207,9 @@ class AiohttpContext(BaseContext):
         http_method: str,
         view_func: typing.Callable[..., typing.Any],
     ) -> None:
-        self.app.router.add_routes([web.route(http_method, path=route, handler=view_func)])
+        self.app.router.add_routes(
+            [web.route(http_method, path=route, handler=view_func)]
+        )
 
     def serve_directory(self, route_prefix: str, directory_path: str) -> None:
         self.app.router.add_static(route_prefix, path=directory_path)

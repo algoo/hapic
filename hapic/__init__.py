@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-from hapic.hapic import Hapic
 from hapic.data import HapicData
+from hapic.hapic import Hapic
 from hapic.infos import __version__
 
 # To make a default hapic instance, must determine processor
