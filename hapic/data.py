@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import typing
 import urllib.parse
+from datetime import datetime
 
 
 class HapicData(object):
@@ -20,6 +21,8 @@ class HapicFile(object):
         file_object: typing.Any = None,
         mimetype: typing.Any = None,
         filename: str = None,
+        content_length: int = None,
+        last_modified: datetime = None,
         as_attachment: bool = False,
     ):
         self.file_path = file_path
@@ -27,6 +30,8 @@ class HapicFile(object):
         self.filename = filename
         self.mimetype = mimetype
         self.as_attachment = as_attachment
+        self.content_length = content_length
+        self.last_modified = last_modified
 
     def get_content_disposition_header_value(self) -> str:
         disposition = "inline"

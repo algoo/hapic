@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from datetime import datetime
 from io import BytesIO
 import os
 
@@ -26,7 +27,7 @@ class TestProcessor(Base):
         data = processor.dump_output_file(tested_data)
         assert data == tested_data
 
-    def test_unit_file_output_processor_ok__process_success_fileobject(self):
+    def test_unit_file_output_processor_ok__process_success_fileobject_as_stream(self):
         processor = MarshmallowProcessor()
         file = BytesIO()
         image = Image.new("RGBA", size=(1000, 1000), color=(0, 0, 0))
@@ -36,6 +37,50 @@ class TestProcessor(Base):
         tested_data = HapicFile(file_object=file, mimetype="image/png")
         data = processor.dump_output_file(tested_data)
         assert data == tested_data
+
+    def test_unit_file_output_processor_ok__process_success_fileobject_as_sized_file(self):
+        processor = MarshmallowProcessor()
+        file = BytesIO()
+        image = Image.new("RGBA", size=(1000, 1000), color=(0, 0, 0))
+        image.save(file, "png")
+        file.name = "test_image.png"
+        file.seek(0)
+        tested_data = HapicFile(file_object=file, mimetype="image/png", content_length=file.getbuffer().nbytes, last_modified=datetime.utcnow())
+        data = processor.dump_output_file(tested_data)
+        assert data == tested_data
+
+    def test_unit_file_output_processor__err__bad_last_modified_type(self):
+        processor = MarshmallowProcessor()
+        file = BytesIO()
+        image = Image.new("RGBA", size=(1000, 1000), color=(0, 0, 0))
+        image.save(file, "png")
+        file.name = "test_image.png"
+        file.seek(0)
+        tested_data = HapicFile(file_object=file, mimetype="image/png", last_modified='uncorrect_type')
+        with pytest.raises(ValidationException):
+            data = processor.dump_output_file(tested_data)
+
+    def test_unit_file_output_processor__err__bad_content_length_type(self):
+        processor = MarshmallowProcessor()
+        file = BytesIO()
+        image = Image.new("RGBA", size=(1000, 1000), color=(0, 0, 0))
+        image.save(file, "png")
+        file.name = "test_image.png"
+        file.seek(0)
+        tested_data = HapicFile(file_object=file, mimetype="image/png", content_length='uncorrect_type')
+        with pytest.raises(ValidationException):
+            data = processor.dump_output_file(tested_data)
+
+    def test_unit_file_output_processor__err__negative_content_length(self):
+        processor = MarshmallowProcessor()
+        file = BytesIO()
+        image = Image.new("RGBA", size=(1000, 1000), color=(0, 0, 0))
+        image.save(file, "png")
+        file.name = "test_image.png"
+        file.seek(0)
+        tested_data = HapicFile(file_object=file, mimetype="image/png", content_length=-1)
+        with pytest.raises(ValidationException):
+            data = processor.dump_output_file(tested_data)
 
     def test_unit_file_output_processor_err__wrong_type(self):
         processor = MarshmallowProcessor()
