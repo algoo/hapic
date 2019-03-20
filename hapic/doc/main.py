@@ -187,6 +187,9 @@ def generate_operations(
             main_plugin.schema_name_resolver(
                 schema_usage.schema, **schema_usage.plugin_name_resolver_kwargs
             ),
+            # INFO - G.M - 2019-03-19 - _ is required but
+            # not found what it means in apispec code.
+            _ = None,
             schema=schema_usage.schema,
             **schema_usage.plugin_helper_kwargs,
         )
@@ -209,6 +212,9 @@ def generate_operations(
             main_plugin.schema_name_resolver(
                 schema_usage.schema, **schema_usage.plugin_name_resolver_kwargs
             ),
+            # INFO - G.M - 2019-03-19 - _ is required but
+            # not found what it means in apispec code.
+            _ = None,
             schema=schema_usage.schema,
             **schema_usage.plugin_helper_kwargs,
         )
