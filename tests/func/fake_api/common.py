@@ -46,7 +46,7 @@ SWAGGER_DOC_API = {
                 "first_name": {"type": "string"},
                 "id": {"format": "int32", "type": "integer"},
                 "last_name": {"type": "string"},
-                "username": {"type": "string"},
+                "username": {"type": "string", 'pattern': '[\\w-]+'},
             },
             "required": [
                 "company",
@@ -61,7 +61,7 @@ SWAGGER_DOC_API = {
         },
         "UserSchema_without_id": {
             "properties": {
-                "username": {"type": "string"},
+                "username": {"type": "string", 'pattern': '[\\w-]+'},
                 "display_name": {"type": "string"},
                 "company": {"type": "string"},
                 "last_name": {"type": "string"},
@@ -80,7 +80,7 @@ SWAGGER_DOC_API = {
         },
         "UserSchema_without_email_address_first_name_last_name": {
             "properties": {
-                "username": {"type": "string"},
+                "username": {"type": "string", 'pattern': '[\\w-]+'},
                 "id": {"format": "int32", "type": "integer"},
                 "company": {"type": "string"},
                 "display_name": {"type": "string"},
