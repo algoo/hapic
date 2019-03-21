@@ -126,7 +126,10 @@ async def test_func__test_fake_api_endpoints_ok__aiohttp(test_client,):
     resp = await app.delete("/users/1")
     assert resp.status == 204
 
-@pytest.mark.xfail(reason='unconsistent test')
+@pytest.mark.xfail(
+    reason="unconsistent test. "
+    "see issue #147(https://github.com/algoo/hapic/issues/147)"
+)
 async def test_func__test_fake_api_doc_ok__aiohttp_serpyco(test_client):
     app = web.Application()
     controllers = AiohttpSerpycoController()
