@@ -1,7 +1,7 @@
 # coding: utf-8
+import dataclasses
 import typing
 
-import dataclasses
 from hapic.error.main import DefaultErrorBuilder
 from hapic.processor.main import ProcessValidationError
 from hapic.type import TYPE_SCHEMA
