@@ -154,11 +154,11 @@ class SerpycoProcessor(Processor):
             )
         except Exception as exc:
             self._logger.exception(
-                'Unknown error during serpyco load: "{}"'.format(str(exc))
+                'Unknown error during serpyco load: "{}": "{}"'.format(type(exc).__name__, str(exc))
             )
             return ProcessValidationError(
                 message="Unknown error during validation "
-                'of input data: "{}"'.format(str(exc)),
+                'of input data: "{}": "{}"'.format(type(exc).__name__, str(exc)),
                 details={},
             )
 
@@ -189,11 +189,11 @@ class SerpycoProcessor(Processor):
             )
         except Exception as exc:
             self._logger.exception(
-                'Unknown error during serpyco dump: "{}"'.format(str(exc))
+                'Unknown error during serpyco dump: "{}": "{}"'.format(type(exc).__name__, str(exc))
             )
             return ProcessValidationError(
                 message="Unknown error during validation error "
-                'of output data: "{}"'.format(str(exc)),
+                'of output data: "{}": "{}"'.format(type(exc).__name__, str(exc)),
                 details={},
             )
 
@@ -232,7 +232,7 @@ class SerpycoProcessor(Processor):
             )
         except Exception as exc:
             raise ValidationException(
-                "Unknown error when serpyco load: {}".format(str(exc))
+                "Unknown error when serpyco load: \"{}\": \"{}\"".format(type(exc).__name__, str(exc))
             )
 
     def dump(self, data: typing.Any) -> typing.Any:
@@ -251,10 +251,10 @@ class SerpycoProcessor(Processor):
             )
         except Exception as exc:
             self._logger.exception(
-                'Unknown error during serpyco dump: "{}"'.format(str(exc))
+                'Unknown error during serpyco dump: "{}": "{}"'.format(type(exc).__name__, str(exc))
             )
             raise ValidationException(
-                "Unknown error when serpyco dump: {}".format(str(exc))
+                'Unknown error when serpyco dump: "{}": "{}"'.format(type(exc).__name__, str(exc))
             )
 
     def load_files_input(self, input_data: typing.Any) -> typing.Any:
