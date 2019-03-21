@@ -34,7 +34,7 @@ class UserSchema(object):
     company: str
     username: str = string_field(pattern='[\w-]+')
     email_address: str = string_field(format_=StringFormat.EMAIL)
-    id: int = None  # Note: must be optional to be unused in POST user
+    id: typing.Optional[int] = None  # Note: must be optional to be unused in POST user
 
 
 @dataclasses.dataclass
