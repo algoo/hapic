@@ -16,7 +16,7 @@ from hapic.processor.main import Processor
 from hapic.processor.main import ProcessValidationError
 from hapic.processor.main import RequestParameters
 from hapic.util import LOGGER_NAME
-from hapic.util import LowercaseDictKeys
+from hapic.util import LowercaseKeysDict
 
 try:  # Python 3.5+
     from http import HTTPStatus
@@ -73,8 +73,8 @@ class PyramidContext(BaseContext):
             query_parameters=req.GET,
             body_parameters=json_body,
             form_parameters=req.POST,
-            header_parameters=LowercaseDictKeys(
-                (k.lower(), v) for k, v in req.headers.items()
+            header_parameters=LowercaseKeysDict(
+                [(k.lower(), v) for k, v in req.headers.items()]
             ),
             files_parameters=files_parameters,
         )

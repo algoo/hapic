@@ -14,7 +14,7 @@ from hapic.error.main import ErrorBuilderInterface
 from hapic.processor.main import Processor
 from hapic.processor.main import ProcessValidationError
 from hapic.processor.main import RequestParameters
-from hapic.util import LowercaseDictKeys
+from hapic.util import LowercaseKeysDict
 
 try:  # Python 3.5+
     from http import HTTPStatus
@@ -52,8 +52,8 @@ class FlaskContext(BaseContext):
             query_parameters=request.args,  # TODO: Check
             body_parameters=request.get_json(),  # TODO: Check
             form_parameters=request.form,
-            header_parameters=LowercaseDictKeys(
-                (k.lower(), v) for k, v in request.headers.items()
+            header_parameters=LowercaseKeysDict(
+                [(k.lower(), v) for k, v in request.headers.items()]
             ),
             files_parameters=request.files,
         )

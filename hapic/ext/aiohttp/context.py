@@ -22,7 +22,7 @@ from hapic.exception import WorkflowException
 from hapic.processor.main import Processor
 from hapic.processor.main import ProcessValidationError
 from hapic.processor.main import RequestParameters
-from hapic.util import LowercaseDictKeys
+from hapic.util import LowercaseKeysDict
 
 # Aiohttp regular expression to locate url parameters
 AIOHTTP_RE_PATH_URL = re.compile(r"{([^:<>]+)(?::[^<>]+)?}")
@@ -60,10 +60,10 @@ class AiohttpRequestParameters(RequestParameters):
         return self.body_parameters
 
     @property
-    def header_parameters(self):
+    def header_parameters(self) -> LowercaseKeysDict:
         # NOTE BS 2019-01-21: headers can be read as lowercase
-        return LowercaseDictKeys(
-            (k.lower(), v) for k, v in self._request.headers.items()
+        return LowercaseKeysDict(
+            [(k.lower(), v) for k, v in self._request.headers.items()]
         )
 
     @property
@@ -207,7 +207,9 @@ class AiohttpContext(BaseContext):
         http_method: str,
         view_func: typing.Callable[..., typing.Any],
     ) -> None:
-        self.app.router.add_routes([web.route(http_method, path=route, handler=view_func)])
+        self.app.router.add_routes(
+            [web.route(http_method, path=route, handler=view_func)]
+        )
 
     def serve_directory(self, route_prefix: str, directory_path: str) -> None:
         self.app.router.add_static(route_prefix, path=directory_path)

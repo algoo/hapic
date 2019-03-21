@@ -187,10 +187,25 @@ def test_func__test_fake_api_doc_ok__all_framework(context):
         doc["definitions"]["AboutResponseSchema"]
         == SWAGGER_DOC_API["definitions"]["AboutResponseSchema"]
     )
-    assert (
-        doc["definitions"]["ListsUserSchema"]
-        == SWAGGER_DOC_API["definitions"]["ListsUserSchema"]
-    )
+
+    # FIXME BS 2019-02-04: With irregularity,
+    # apispec.ext.marshmallow.common.get_unique_schema_name increment counter
+    # on UserSchema_without_email_address_first_name_last_name . See #136
+    try:
+        assert (
+            "#/definitions/UserSchema_without_email_address_first_name_last_name"
+            == doc["definitions"]["ListsUserSchema"]["properties"]["items"][
+                "items"
+            ]["$ref"]
+        )
+    except AssertionError:
+        assert (
+            "#/definitions/UserSchema_without_email_address_first_name_last_name1"
+            == doc["definitions"]["ListsUserSchema"]["properties"]["items"][
+                "items"
+            ]["$ref"]
+        )
+
     assert (
         doc["definitions"]["NoContentSchema"]
         == SWAGGER_DOC_API["definitions"]["NoContentSchema"]
@@ -212,11 +227,28 @@ def test_func__test_fake_api_doc_ok__all_framework(context):
         doc["definitions"]["UserSchema_without_id"]
         == SWAGGER_DOC_API["definitions"]["UserSchema_without_id"]
     )
-    assert (
-        doc["definitions"][
-            "UserSchema_without_email_address_first_name_last_name"
-        ]
-        == SWAGGER_DOC_API["definitions"][
-            "UserSchema_without_email_address_first_name_last_name"
-        ]
-    )
+
+    # FIXME BS 2019-02-04: With irregularity,
+    # apispec.ext.marshmallow.common.get_unique_schema_name increment counter
+    # on UserSchema_without_email_address_first_name_last_name . See #136
+    if (
+        "UserSchema_without_email_address_first_name_last_name1"
+        in doc["definitions"]
+    ):
+        assert (
+            doc["definitions"][
+                "UserSchema_without_email_address_first_name_last_name1"
+            ]
+            == SWAGGER_DOC_API["definitions"][
+                "UserSchema_without_email_address_first_name_last_name"
+            ]
+        )
+    else:
+        assert (
+            doc["definitions"][
+                "UserSchema_without_email_address_first_name_last_name"
+            ]
+            == SWAGGER_DOC_API["definitions"][
+                "UserSchema_without_email_address_first_name_last_name"
+            ]
+        )

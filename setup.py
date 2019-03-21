@@ -18,7 +18,7 @@ version = infos_dict['__version__']
 here = path.abspath(path.dirname(__file__))
 
 install_requires = [
-    'apispec>=1.0.0b5',
+    'apispec>=1.1.0',
     'multidict',
     'pyyaml',
 ]
@@ -27,7 +27,7 @@ marshmallow_require = [
     'apispec_marshmallow_advanced>=0.3',
 ]
 serpyco_require = [
-    'apispec_serpyco>=0.9',
+    'apispec_serpyco>=0.15',
     'serpyco',
 ]
 tests_base_require = [

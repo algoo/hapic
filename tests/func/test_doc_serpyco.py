@@ -1,7 +1,8 @@
 # coding: utf-8
+import dataclasses
+
 import bottle
 
-import dataclasses
 from hapic import Hapic
 from hapic.error.serpyco import SerpycoDefaultErrorBuilder
 from hapic.ext.bottle import BottleContext

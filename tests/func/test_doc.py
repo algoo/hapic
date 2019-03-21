@@ -883,3 +883,29 @@ class TestDocGeneration(Base):
         assert schema_field["maxLength"] == 5
         assert schema_field["minLength"] == 5
         assert schema_field["enum"] == ["01000", "11111"]
+
+    def test_func__schema_with_many__ok__with_exclude(self):
+        hapic = Hapic(processor_class=MarshmallowProcessor)
+        # TODO BS 20171113: Make this test non-bottle
+        app = bottle.Bottle()
+        hapic.set_context(MyContext(app=app))
+
+        class MySchema(marshmallow.Schema):
+            first_name = marshmallow.fields.String(required=True)
+            last_name = marshmallow.fields.String(required=False)
+
+        @hapic.with_api_doc()
+        @hapic.output_body(MySchema(many=True, exclude=("last_name",)))
+        def my_controller(hapic_data=None):
+            pass
+
+        app.route("/", method="GET", callback=my_controller)
+        doc = hapic.generate_doc()
+
+        assert {
+            "MySchema_without_last_name": {
+                "type": "object",
+                "properties": {"first_name": {"type": "string"}},
+                "required": ["first_name"],
+            }
+        } == doc["definitions"]

@@ -4,6 +4,7 @@ import typing
 
 from apispec import APISpec
 from apispec import BasePlugin
+from apispec.exceptions import DuplicateComponentNameError
 import yaml
 
 from hapic.context import ContextInterface
@@ -187,6 +188,9 @@ def generate_operations(
             main_plugin.schema_name_resolver(
                 schema_usage.schema, **schema_usage.plugin_name_resolver_kwargs
             ),
+            # INFO - G.M - 2019-03-19 - _ is required but
+            # not found what it means in apispec code.
+            _ = None,
             schema=schema_usage.schema,
             **schema_usage.plugin_helper_kwargs,
         )
@@ -209,6 +213,9 @@ def generate_operations(
             main_plugin.schema_name_resolver(
                 schema_usage.schema, **schema_usage.plugin_name_resolver_kwargs
             ),
+            # INFO - G.M - 2019-03-19 - _ is required but
+            # not found what it means in apispec code.
+            _ = None,
             schema=schema_usage.schema,
             **schema_usage.plugin_helper_kwargs,
         )
@@ -319,14 +326,17 @@ class DocGenerator(object):
                     schema_usages.append(SchemaUsage(error_schema))
 
         for schema_usage in set(schema_usages):
-            spec.components.schema(
-                main_plugin.schema_name_resolver(
-                    schema_usage.schema,
-                    **schema_usage.plugin_name_resolver_kwargs,
-                ),
-                schema=schema_usage.schema,
-                **schema_usage.plugin_helper_kwargs,
-            )
+            try:
+                spec.components.schema(
+                    main_plugin.schema_name_resolver(
+                        schema_usage.schema,
+                        **schema_usage.plugin_name_resolver_kwargs,
+                    ),
+                    schema=schema_usage.schema,
+                    **schema_usage.plugin_helper_kwargs,
+                )
+            except DuplicateComponentNameError:
+                pass  # Already registered schema
 
         # add views
         for controller in controllers:
