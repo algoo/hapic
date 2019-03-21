@@ -1,3 +1,4 @@
+import dataclasses
 import logging
 import typing
 
@@ -14,6 +15,7 @@ from hapic.doc.schema import SchemaUsage
 from hapic.error.main import ErrorBuilderInterface
 from hapic.error.serpyco import SerpycoDefaultErrorBuilder
 from hapic.exception import ValidationException
+from hapic.exception import OutputValidationException
 from hapic.exception import WorkflowException
 from hapic.processor.main import Processor
 from hapic.processor.main import ProcessValidationError
@@ -165,8 +167,15 @@ class SerpycoProcessor(Processor):
     def get_input_files_validation_error(
         self, data_to_validate: typing.Any
     ) -> ProcessValidationError:
-        # FIXME BS 2018-11-22: code it
-        raise NotImplementedError("TODO")
+        errors = {}
+
+        for field in dataclasses.fields(self.schema):
+            if not data_to_validate.get(field.name, None):
+                errors[field.name] = "data is missing"
+
+        return ProcessValidationError(
+            message="Validation error of input data", details=errors
+        )
 
     def get_output_validation_error(
         self, data_to_validate: typing.Any
@@ -257,15 +266,25 @@ class SerpycoProcessor(Processor):
                 'Unknown error when serpyco dump: "{}": "{}"'.format(type(exc).__name__, str(exc))
             )
 
-    def load_files_input(self, input_data: typing.Any) -> typing.Any:
+    def load_files_input(self, input_data: typing.Dict[str, typing.Any]) -> object:
         """
         Validate input files and raise OutputValidationException
         if validation errors.
         :param input_data: input data containing files
         :return: original data
         """
-        # FIXME BS 2018-11-22: code it
-        raise NotImplementedError("TODO")
+        missing_names = []
+
+        for field in dataclasses.fields(self.schema):
+            if not input_data.get(field.name, None):
+                missing_names.append(field.name)
+
+        if missing_names:
+            raise OutputValidationException(
+                "\"{}\" files are missing".format('", "'.join(missing_names))
+            )
+
+        return self.schema(**input_data)
 
     def dump_output_file(self, output_file: typing.Any) -> typing.Any:
         """
