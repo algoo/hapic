@@ -1,22 +1,25 @@
 # coding: utf-8
 from http import HTTPStatus
 
-import bottle
 import marshmallow
 from marshmallow.validate import OneOf
 
 from hapic import Hapic
 from hapic import MarshmallowProcessor
 from tests.base import Base
-from tests.base import MyContext
+from hapic.ext.agnostic.context import AgnosticContext
+from hapic.ext.agnostic.context import AgnosticApp
 
 
 class TestDocGeneration(Base):
+    """
+    Test doc generation for marshmallow with AgnosticContext
+    """
+
     def test_func__input_files_doc__ok__one_file(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
-        # TODO BS 20171113: Make this test non-bottle
-        app = bottle.Bottle()
-        hapic.set_context(MyContext(app=app))
+        app = AgnosticApp()
+        hapic.set_context(AgnosticContext(app=app))
 
         class MySchema(marshmallow.Schema):
             file_abc = marshmallow.fields.Raw(required=True)
@@ -47,9 +50,8 @@ class TestDocGeneration(Base):
 
     def test_func__input_files_doc__ok__two_file(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
-        # TODO BS 20171113: Make this test non-bottle
-        app = bottle.Bottle()
-        hapic.set_context(MyContext(app=app))
+        app = AgnosticApp()
+        hapic.set_context(AgnosticContext(app=app))
 
         class MySchema(marshmallow.Schema):
             file_abc = marshmallow.fields.Raw(required=True)
@@ -87,9 +89,8 @@ class TestDocGeneration(Base):
 
     def test_func__output_file_doc__ok__nominal_case(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
-        # TODO BS 20171113: Make this test non-bottle
-        app = bottle.Bottle()
-        hapic.set_context(MyContext(app=app))
+        app = AgnosticApp()
+        hapic.set_context(AgnosticContext(app=app))
 
         @hapic.with_api_doc()
         @hapic.output_file(["image/jpeg"])
@@ -107,9 +108,8 @@ class TestDocGeneration(Base):
 
     def test_func__input_files_doc__ok__one_file_and_text(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
-        # TODO BS 20171113: Make this test non-bottle
-        app = bottle.Bottle()
-        hapic.set_context(MyContext(app=app))
+        app = AgnosticApp()
+        hapic.set_context(AgnosticContext(app=app))
 
         class MySchema(marshmallow.Schema):
             name = marshmallow.fields.String(required=True)
@@ -144,10 +144,9 @@ class TestDocGeneration(Base):
 
     def test_func__docstring__ok__simple_case(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
-        app = bottle.Bottle()
-        hapic.set_context(MyContext(app=app))
+        app = AgnosticApp()
+        hapic.set_context(AgnosticContext(app=app))
 
-        # TODO BS 20171113: Make this test non-bottle
         @hapic.with_api_doc()
         def my_controller(hapic_data=None):
             """
@@ -167,8 +166,8 @@ class TestDocGeneration(Base):
 
     def test_func__tags__ok__nominal_case(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
-        app = bottle.Bottle()
-        hapic.set_context(MyContext(app=app))
+        app = AgnosticApp()
+        hapic.set_context(AgnosticContext(app=app))
 
         @hapic.with_api_doc(tags=["foo", "bar"])
         def my_controller(hapic_data=None):
@@ -186,8 +185,8 @@ class TestDocGeneration(Base):
 
     def test_func__errors__nominal_case(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
-        app = bottle.Bottle()
-        hapic.set_context(MyContext(app=app))
+        app = AgnosticApp()
+        hapic.set_context(AgnosticContext(app=app))
 
         @hapic.with_api_doc()
         @hapic.handle_exception()
@@ -209,8 +208,8 @@ class TestDocGeneration(Base):
 
     def test_func__errors__explicit_description(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
-        app = bottle.Bottle()
-        hapic.set_context(MyContext(app=app))
+        app = AgnosticApp()
+        hapic.set_context(AgnosticContext(app=app))
 
         @hapic.with_api_doc()
         @hapic.handle_exception(description="Any Exception")
@@ -232,8 +231,8 @@ class TestDocGeneration(Base):
 
     def test_func__errors__docstring_exception(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
-        app = bottle.Bottle()
-        hapic.set_context(MyContext(app=app))
+        app = AgnosticApp()
+        hapic.set_context(AgnosticContext(app=app))
 
         class MyException(Exception):
             "Just a docstring"
@@ -258,8 +257,8 @@ class TestDocGeneration(Base):
 
     def test_func__errors__http_status_description(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
-        app = bottle.Bottle()
-        hapic.set_context(MyContext(app=app))
+        app = AgnosticApp()
+        hapic.set_context(AgnosticContext(app=app))
 
         class MyException(Exception):
             pass
@@ -284,8 +283,8 @@ class TestDocGeneration(Base):
 
     def test_func__errors__http_status_as_int_description(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
-        app = bottle.Bottle()
-        hapic.set_context(MyContext(app=app))
+        app = AgnosticApp()
+        hapic.set_context(AgnosticContext(app=app))
 
         class MyException(Exception):
             pass
@@ -310,8 +309,8 @@ class TestDocGeneration(Base):
 
     def test_func__errors__multiple_same_http_status_description(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
-        app = bottle.Bottle()
-        hapic.set_context(MyContext(app=app))
+        app = AgnosticApp()
+        hapic.set_context(AgnosticContext(app=app))
 
         class MyFirstException(Exception):
             pass
@@ -371,9 +370,8 @@ class TestDocGeneration(Base):
 
     def test_func__enum__nominal_case(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
-        # TODO BS 20171113: Make this test non-bottle
-        app = bottle.Bottle()
-        hapic.set_context(MyContext(app=app))
+        app = AgnosticApp()
+        hapic.set_context(AgnosticContext(app=app))
 
         class MySchema(marshmallow.Schema):
             category = marshmallow.fields.String(
@@ -394,8 +392,8 @@ class TestDocGeneration(Base):
 
     def test_func__schema_in_doc__ok__nominal_case(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
-        app = bottle.Bottle()
-        hapic.set_context(MyContext(app=app))
+        app = AgnosticApp()
+        hapic.set_context(AgnosticContext(app=app))
 
         class MySchema(marshmallow.Schema):
             name = marshmallow.fields.String(required=True)
@@ -422,8 +420,8 @@ class TestDocGeneration(Base):
 
     def test_func__schema_in_doc__ok__many_case(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
-        app = bottle.Bottle()
-        hapic.set_context(MyContext(app=app))
+        app = AgnosticApp()
+        hapic.set_context(AgnosticContext(app=app))
 
         class MySchema(marshmallow.Schema):
             name = marshmallow.fields.String(required=True)
@@ -453,8 +451,8 @@ class TestDocGeneration(Base):
 
     def test_func__schema_in_doc__ok__exclude_case(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
-        app = bottle.Bottle()
-        hapic.set_context(MyContext(app=app))
+        app = AgnosticApp()
+        hapic.set_context(AgnosticContext(app=app))
 
         class MySchema(marshmallow.Schema):
             name = marshmallow.fields.String(required=True)
@@ -526,8 +524,8 @@ class TestDocGeneration(Base):
 
     def test_func__schema_in_doc__ok__many_and_exclude_case(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
-        app = bottle.Bottle()
-        hapic.set_context(MyContext(app=app))
+        app = AgnosticApp()
+        hapic.set_context(AgnosticContext(app=app))
 
         class MySchema(marshmallow.Schema):
             name = marshmallow.fields.String(required=True)
@@ -568,9 +566,8 @@ class TestDocGeneration(Base):
 
     def test_func_schema_in_doc__ok__additionals_fields__file(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
-        # TODO BS 20171113: Make this test non-bottle
-        app = bottle.Bottle()
-        hapic.set_context(MyContext(app=app))
+        app = AgnosticApp()
+        hapic.set_context(AgnosticContext(app=app))
 
         class MySchema(marshmallow.Schema):
             category = marshmallow.fields.Raw(
@@ -607,9 +604,8 @@ class TestDocGeneration(Base):
 
     def test_func_schema_in_doc__ok__additionals_fields__forms__string(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
-        # TODO BS 20171113: Make this test non-bottle
-        app = bottle.Bottle()
-        hapic.set_context(MyContext(app=app))
+        app = AgnosticApp()
+        hapic.set_context(AgnosticContext(app=app))
 
         class MySchema(marshmallow.Schema):
             category = marshmallow.fields.String(
@@ -658,9 +654,8 @@ class TestDocGeneration(Base):
 
     def test_func_schema_in_doc__ok__additionals_fields__query__string(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
-        # TODO BS 20171113: Make this test non-bottle
-        app = bottle.Bottle()
-        hapic.set_context(MyContext(app=app))
+        app = AgnosticApp()
+        hapic.set_context(AgnosticContext(app=app))
 
         class MySchema(marshmallow.Schema):
             category = marshmallow.fields.String(
@@ -706,9 +701,8 @@ class TestDocGeneration(Base):
 
     def test_func_schema_in_doc__ok__additionals_fields__path__string(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
-        # TODO BS 20171113: Make this test non-bottle
-        app = bottle.Bottle()
-        hapic.set_context(MyContext(app=app))
+        app = AgnosticApp()
+        hapic.set_context(AgnosticContext(app=app))
 
         class MySchema(marshmallow.Schema):
             category = marshmallow.fields.String(
@@ -754,9 +748,8 @@ class TestDocGeneration(Base):
 
     def test_func_schema_in_doc__ok__additionals_fields__path__number(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
-        # TODO BS 20171113: Make this test non-bottle
-        app = bottle.Bottle()
-        hapic.set_context(MyContext(app=app))
+        app = AgnosticApp()
+        hapic.set_context(AgnosticContext(app=app))
 
         class MySchema(marshmallow.Schema):
             category = marshmallow.fields.Integer(
@@ -799,9 +792,8 @@ class TestDocGeneration(Base):
 
     def test_func_schema_in_doc__ok__additionals_fields__body__number(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
-        # TODO BS 20171113: Make this test non-bottle
-        app = bottle.Bottle()
-        hapic.set_context(MyContext(app=app))
+        app = AgnosticApp()
+        hapic.set_context(AgnosticContext(app=app))
 
         class MySchema(marshmallow.Schema):
             category = marshmallow.fields.Integer(
@@ -846,9 +838,8 @@ class TestDocGeneration(Base):
 
     def test_func_schema_in_doc__ok__additionals_fields__body__string(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
-        # TODO BS 20171113: Make this test non-bottle
-        app = bottle.Bottle()
-        hapic.set_context(MyContext(app=app))
+        app = AgnosticApp()
+        hapic.set_context(AgnosticContext(app=app))
 
         class MySchema(marshmallow.Schema):
             category = marshmallow.fields.String(
@@ -886,9 +877,8 @@ class TestDocGeneration(Base):
 
     def test_func__schema_with_many__ok__with_exclude(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
-        # TODO BS 20171113: Make this test non-bottle
-        app = bottle.Bottle()
-        hapic.set_context(MyContext(app=app))
+        app = AgnosticApp()
+        hapic.set_context(AgnosticContext(app=app))
 
         class MySchema(marshmallow.Schema):
             first_name = marshmallow.fields.String(required=True)
