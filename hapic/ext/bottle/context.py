@@ -139,6 +139,24 @@ class BottleContext(BaseContext):
         """
         self.app.install(self.handle_exceptions_decorator_builder)
 
+    def add_view(
+        self,
+        route: str,
+        http_method: str,
+        view_func: typing.Callable[..., typing.Any],
+    ):
+        self.app.route(route, callback=view_func, method=http_method)
+
+    def serve_directory(self, route_prefix: str, directory_path: str):
+        if not route_prefix.endswith("/"):
+            route_prefix = "{}/".format(route_prefix)
+
+
+        def directory(filepath):
+             return bottle.static_file(filepath, root=directory_path)
+
+        self.app.route('{}<filepath:path>'.format(route_prefix), method='GET', callback=directory)
+
     def _get_handled_exception_class_and_http_codes(
         self,
     ) -> typing.List[HandledException]:

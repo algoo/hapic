@@ -1,33 +1,35 @@
 # -*- coding: utf-8 -*-
 
-import bottle
 from datetime import datetime
-
-from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
-
-try:  # Python 3.5+
-    from http import HTTPStatus
-except ImportError:
-    from http import client as HTTPStatus
 import json
 import time
 
-from hapic import Hapic
-from hapic.data import HapicData
-from hapic.ext.bottle import BottleContext
+import bottle
 
 from example.usermanagement.schema import AboutSchema
 from example.usermanagement.schema import NoContentSchema
 from example.usermanagement.schema import UserDigestSchema
 from example.usermanagement.schema import UserIdPathSchema
 from example.usermanagement.schema import UserSchema
-
 from example.usermanagement.userlib import User
 from example.usermanagement.userlib import UserLib
 from example.usermanagement.userlib import UserNotFound
+from hapic import Hapic
+from hapic import MarshmallowProcessor
+from hapic.data import HapicData
+from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
+from hapic.ext.bottle import BottleContext
+
+try:  # Python 3.5+
+    from http import HTTPStatus
+except ImportError:
+    from http import client as HTTPStatus
+
+
+
 
 hapic = Hapic()
-
+hapic.set_processor_class(MarshmallowProcessor)
 
 class BottleController(object):
     @hapic.with_api_doc()
@@ -98,15 +100,21 @@ if __name__ == "__main__":
     print('')
     print('')
     print('GENERATING OPENAPI DOCUMENTATION')
+
+
+    doc_title = 'Demo API documentation'
+    doc_description = 'This documentation has been generated from ' \
+                       'code. You can see it using swagger: ' \
+                       'http://editor2.swagger.io/'
+    # TODO: add support for documentation view in bottle
+    hapic.add_documentation_view('/doc/', doc_title, doc_description)
     openapi_file_name = 'api-documentation.json'
     with open(openapi_file_name, 'w') as openapi_file_handle:
         openapi_file_handle.write(
             json.dumps(
                 hapic.generate_doc(
-                    title='Demo API documentation',
-                    description='This documentation has been generated from '
-                                'code. You can see it using swagger: '
-                                'http://editor2.swagger.io/'
+                    title=doc_title,
+                    description=doc_description,
                 )
             )
         )
@@ -117,5 +125,6 @@ if __name__ == "__main__":
     print('')
     print('')
     print('RUNNING BOTTLE SERVER NOW')
+    print('DOCUMENTATION AVAILABLE AT /doc/')
     # Run app
     app.run(host='127.0.0.1', port=8081, debug=True)
