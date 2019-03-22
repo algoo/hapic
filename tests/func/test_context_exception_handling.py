@@ -36,6 +36,7 @@ class TestContextExceptionHandling(Base):
         # into this code for handle this exceptions.
         # - response come clearly from there, not from web framework:
         #  Check not only http code, but also body.
+        # see  issue #158 (https://github.com/algoo/hapic/issues/158)
         context.handle_exception(ZeroDivisionError, http_code=400)
         test_app = await test_client(app)
         response = await test_app.get("/my-view")
@@ -62,6 +63,7 @@ class TestContextExceptionHandling(Base):
         # into this code for handle this exceptions.
         # - response come clearly from there, not from web framework:
         #  Check not only http code, but also body.
+        # see  issue #158 (https://github.com/algoo/hapic/issues/158)
         context.handle_exception(ZeroDivisionError, http_code=400)
 
         test_app = TestApp(app)
@@ -85,6 +87,7 @@ class TestContextExceptionHandling(Base):
         # into this code for handle this exceptions.
         # - response come clearly from there, not from web framework:
         #  Check not only http code, but also body.
+        # see  issue #158 (https://github.com/algoo/hapic/issues/158)
         context.handle_exception(ZeroDivisionError, http_code=400)
 
         test_app = TestApp(app)
@@ -93,10 +96,6 @@ class TestContextExceptionHandling(Base):
         assert 400 == response.status_code
 
     def test_func__catch_one_exception__ok__pyramid(self):
-        # TODO - G.M - 17-05-2018 - Move/refactor this test
-        # in order to have here only framework agnostic test
-        # and framework_specific
-        # test somewhere else.
         from pyramid.config import Configurator
         configurator = Configurator(autocommit=True)
         context = PyramidContext(
@@ -117,6 +116,7 @@ class TestContextExceptionHandling(Base):
         # into this code for handle this exceptions.
         # - response come clearly from there, not from web framework:
         #  Check not only http code, but also body.
+        # see  issue #158 (https://github.com/algoo/hapic/issues/158)
         context.handle_exception(ZeroDivisionError, http_code=400)
 
         app = configurator.make_wsgi_app()
