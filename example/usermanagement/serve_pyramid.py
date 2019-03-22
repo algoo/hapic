@@ -5,7 +5,9 @@ import json
 import time
 from wsgiref.simple_server import make_server
 
-from pyramid.config import Configurator
+from hapic import Hapic, MarshmallowProcessor
+from hapic.data import HapicData
+from hapic.ext.pyramid import PyramidContext
 
 from example.usermanagement.schema import AboutSchema
 from example.usermanagement.schema import NoContentSchema
@@ -27,6 +29,7 @@ except ImportError:
 
 
 hapic = Hapic()
+hapic.set_processor_class(MarshmallowProcessor)
 
 
 class PyramidController(object):
@@ -99,22 +102,24 @@ if __name__ == "__main__":
     configurator = Configurator(autocommit=True)
     controllers = PyramidController()
     controllers.bind(configurator)
-    hapic.set_context(
-        PyramidContext(configurator, default_error_builder=MarshmallowDefaultErrorBuilder())
-    )
+    hapic.set_context(PyramidContext(configurator, default_error_builder=MarshmallowDefaultErrorBuilder()))
 
-    print("")
-    print("")
-    print("GENERATING OPENAPI DOCUMENTATION")
-    openapi_file_name = "api-documentation.json"
-    with open(openapi_file_name, "w") as openapi_file_handle:
+    print('')
+    print('')
+    print('GENERATING OPENAPI DOCUMENTATION')
+
+    doc_title = 'Demo API documentation'
+    doc_description = 'This documentation has been generated from ' \
+                       'code. You can see it using swagger: ' \
+                       'http://editor2.swagger.io/'
+    hapic.add_documentation_view('/doc/', doc_title, doc_description)
+    openapi_file_name = 'api-documentation.json'
+    with open(openapi_file_name, 'w') as openapi_file_handle:
         openapi_file_handle.write(
             json.dumps(
                 hapic.generate_doc(
-                    title="Demo API documentation",
-                    description="This documentation has been generated from "
-                    "code. You can see it using swagger: "
-                    "http://editor2.swagger.io/",
+                    title=doc_title,
+                    description=doc_description
                 )
             )
         )
@@ -122,9 +127,10 @@ if __name__ == "__main__":
     print("Documentation generated in {}".format(openapi_file_name))
     time.sleep(1)
 
-    print("")
-    print("")
-    print("RUNNING PYRAMID SERVER NOW")
+    print('')
+    print('')
+    print('RUNNING PYRAMID SERVER NOW')
+    print('DOCUMENTATION AVAILABLE AT /doc/')
     # Run app
     server = make_server("127.0.0.1", 8083, configurator.make_wsgi_app())
     server.serve_forever()

@@ -33,7 +33,7 @@ hapic.set_processor_class(MarshmallowProcessor)
 class BottleController(object):
     @hapic.with_api_doc()
     @hapic.output_body(AboutSchema())
-    def about(self, context, request):
+    def about(self):
         """
         This endpoint allow to check that the API is running. This description
         is generated from the docstring of the method.
@@ -104,9 +104,9 @@ if __name__ == "__main__":
         "http://editor2.swagger.io/"
     )
     # TODO: add support for documentation view in bottle
-    hapic.add_documentation_view("/doc/", doc_title, doc_description)
-    openapi_file_name = "api-documentation.json"
-    with open(openapi_file_name, "w") as openapi_file_handle:
+    # hapic.add_documentation_view('/doc/', doc_title, doc_description)
+    openapi_file_name = 'api-documentation.json'
+    with open(openapi_file_name, 'w') as openapi_file_handle:
         openapi_file_handle.write(
             json.dumps(hapic.generate_doc(title=doc_title, description=doc_description))
         )
@@ -114,9 +114,10 @@ if __name__ == "__main__":
     print("Documentation generated in {}".format(openapi_file_name))
     time.sleep(1)
 
-    print("")
-    print("")
-    print("RUNNING BOTTLE SERVER NOW")
-    print("DOCUMENTATION AVAILABLE AT /doc/")
+    print('')
+    print('')
+    print('RUNNING BOTTLE SERVER NOW')
+    # TODO: add support for documentation view in bottle
+    # print('DOCUMENTATION AVAILABLE AT /doc/')
     # Run app
     app.run(host="127.0.0.1", port=8081, debug=True)

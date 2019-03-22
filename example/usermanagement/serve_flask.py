@@ -4,7 +4,9 @@ from datetime import datetime
 import json
 import time
 
-import flask
+from hapic import Hapic, MarshmallowProcessor
+from hapic.data import HapicData
+from hapic.ext.flask import FlaskContext
 
 from example.usermanagement.schema import AboutSchema
 from example.usermanagement.schema import NoContentSchema
@@ -26,6 +28,7 @@ except ImportError:
 
 
 hapic = Hapic()
+hapic.set_processor_class(MarshmallowProcessor)
 
 
 class FlaskController(object):
@@ -91,18 +94,21 @@ if __name__ == "__main__":
     controllers.bind(app)
     hapic.set_context(FlaskContext(app, default_error_builder=MarshmallowDefaultErrorBuilder()))
 
-    print("")
-    print("")
-    print("GENERATING OPENAPI DOCUMENTATION")
-    openapi_file_name = "api-documentation.json"
-    with open(openapi_file_name, "w") as openapi_file_handle:
+    print('')
+    print('')
+    print('GENERATING OPENAPI DOCUMENTATION')
+    doc_title = 'Demo API documentation'
+    doc_description = 'This documentation has been generated from ' \
+                       'code. You can see it using swagger: ' \
+                       'http://editor2.swagger.io/'
+    hapic.add_documentation_view('/doc/', doc_title, doc_description)
+    openapi_file_name = 'api-documentation.json'
+    with open(openapi_file_name, 'w') as openapi_file_handle:
         openapi_file_handle.write(
             json.dumps(
                 hapic.generate_doc(
-                    title="Demo API documentation",
-                    description="This documentation has been generated from "
-                    "code. You can see it using swagger: "
-                    "http://editor2.swagger.io/",
+                    title=doc_title,
+                    description=doc_description
                 )
             )
         )
@@ -110,8 +116,9 @@ if __name__ == "__main__":
     print("Documentation generated in {}".format(openapi_file_name))
     time.sleep(1)
 
-    print("")
-    print("")
-    print("RUNNING FLASK SERVER NOW")
+    print('')
+    print('')
+    print('RUNNING FLASK SERVER NOW')
+    print('DOCUMENTATION AVAILABLE AT /doc/')
     # Run app
     app.run(host="127.0.0.1", port=8082, debug=True)
