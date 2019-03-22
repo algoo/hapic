@@ -1,16 +1,15 @@
 # coding: utf-8
 import json
+import sys
 
-import bottle
-from webtest import TestApp
+import pytest
 
 from hapic import Hapic
 from hapic import MarshmallowProcessor
 from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
-from hapic.error.serpyco import SerpycoDefaultErrorBuilder
 from hapic.ext.agnostic.context import AgnosticApp
 from hapic.ext.agnostic.context import AgnosticContext
-from hapic.processor.serpyco import SerpycoProcessor
+from tests.base import serpyco_compatible_python
 
 
 class TestViewExceptionHandling(object):
@@ -19,7 +18,12 @@ class TestViewExceptionHandling(object):
     Test is made with AgnosticContext
     """
 
-    def test_unit__handle_exception_with_default_error_builder__ok__serpyco(self):
+    @serpyco_compatible_python
+    @pytest.mark.asyncio
+    async def test_unit__handle_exception_with_default_error_builder__ok__serpyco(self, test_client):
+        from hapic.error.serpyco import SerpycoDefaultErrorBuilder
+        from hapic.processor.serpyco import SerpycoProcessor
+
         app = AgnosticApp()
         hapic = Hapic()
         hapic.set_processor_class(SerpycoProcessor)

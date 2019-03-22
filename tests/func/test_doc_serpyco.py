@@ -1,14 +1,15 @@
 # coding: utf-8
 import dataclasses
-
-
 from hapic import Hapic
 from hapic.error.serpyco import SerpycoDefaultErrorBuilder
+from hapic.processor.serpyco import SerpycoProcessor
 from hapic.ext.agnostic.context import AgnosticApp
 from hapic.ext.agnostic.context import AgnosticContext
-from hapic.processor.serpyco import SerpycoProcessor
+
+from tests.base import serpyco_compatible_python
 
 
+@serpyco_compatible_python
 class TestDocSerpyco(object):
     """
     Test doc generation for serpyco with AgnosticContext
