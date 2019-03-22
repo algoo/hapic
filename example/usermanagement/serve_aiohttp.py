@@ -128,5 +128,6 @@ if __name__ == "__main__":
     print('')
     print('')
     print('RUNNING AIOHTTP SERVER NOW')
+    print('DOCUMENTATION AVAILABLE AT /doc/')
     # Run app
-    web.run_app(app=app, host='127.0.0.1', port=8081)
+    web.run_app(app=app, host='127.0.0.1', port=8084)

@@ -13,7 +13,7 @@ import flask
 import time
 from wsgiref.simple_server import make_server
 
-from hapic import Hapic
+from hapic import Hapic, MarshmallowProcessor
 from hapic.data import HapicData
 from hapic.ext.flask import FlaskContext
 
@@ -28,6 +28,7 @@ from example.usermanagement.userlib import UserLib
 from example.usermanagement.userlib import UserNotFound
 
 hapic = Hapic()
+hapic.set_processor_class(MarshmallowProcessor)
 
 
 class FlaskController(object):
@@ -99,15 +100,18 @@ if __name__ == "__main__":
     print('')
     print('')
     print('GENERATING OPENAPI DOCUMENTATION')
+    doc_title = 'Demo API documentation'
+    doc_description = 'This documentation has been generated from ' \
+                       'code. You can see it using swagger: ' \
+                       'http://editor2.swagger.io/'
+    hapic.add_documentation_view('/doc/', doc_title, doc_description)
     openapi_file_name = 'api-documentation.json'
     with open(openapi_file_name, 'w') as openapi_file_handle:
         openapi_file_handle.write(
             json.dumps(
                 hapic.generate_doc(
-                    title='Demo API documentation',
-                    description='This documentation has been generated from '
-                                'code. You can see it using swagger: '
-                                'http://editor2.swagger.io/'
+                    title=doc_title,
+                    description=doc_description
                 )
             )
         )
@@ -118,5 +122,6 @@ if __name__ == "__main__":
     print('')
     print('')
     print('RUNNING FLASK SERVER NOW')
+    print('DOCUMENTATION AVAILABLE AT /doc/')
     # Run app
     app.run(host='127.0.0.1', port=8082, debug=True)
