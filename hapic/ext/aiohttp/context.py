@@ -13,6 +13,7 @@ from multidict import MultiDict
 from hapic.context import BaseContext
 from hapic.context import HandledException
 from hapic.context import RouteRepresentation
+from hapic.data import HapicFile
 from hapic.decorator import DECORATION_ATTRIBUTE_NAME
 from hapic.decorator import DecoratedController
 from hapic.error.main import ErrorBuilderInterface
@@ -132,6 +133,17 @@ class AiohttpContext(BaseContext):
                 return AiohttpRequestParameters(arg)
 
         raise WorkflowException("Unable to get aiohttp request object")
+
+    def get_file_response(
+        self,
+        file_response: HapicFile,
+        http_code: int
+    ) -> "Response":
+        if file_response.file_path:
+            # FIXME - G.M - 2019-03-26 - handle others headers in HapicFile
+            return web.FileResponse(path=file_response.file_path)
+        else:
+            raise NotImplementedError()
 
     def get_response(
         self, response: str, http_code: int, mimetype: str = "application/json"
