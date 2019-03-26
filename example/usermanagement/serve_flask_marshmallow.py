@@ -3,16 +3,15 @@
 from datetime import datetime
 import json
 import time
-from wsgiref.simple_server import make_server
 
-from pyramid.config import Configurator
+import flask
 
-from example.usermanagement.schema import AboutSchema
-from example.usermanagement.schema import NoContentSchema
-from example.usermanagement.schema import UserAvatarSchema
-from example.usermanagement.schema import UserDigestSchema
-from example.usermanagement.schema import UserIdPathSchema
-from example.usermanagement.schema import UserSchema
+from example.usermanagement.schema_marshmallow import AboutSchema
+from example.usermanagement.schema_marshmallow import NoContentSchema
+from example.usermanagement.schema_marshmallow import UserAvatarSchema
+from example.usermanagement.schema_marshmallow import UserDigestSchema
+from example.usermanagement.schema_marshmallow import UserIdPathSchema
+from example.usermanagement.schema_marshmallow import UserSchema
 from example.usermanagement.userlib import User
 from example.usermanagement.userlib import UserAvatarNotFound
 from example.usermanagement.userlib import UserLib
@@ -22,7 +21,7 @@ from hapic import MarshmallowProcessor
 from hapic.data import HapicData
 from hapic.data import HapicFile
 from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
-from hapic.ext.pyramid import PyramidContext
+from hapic.ext.flask import FlaskContext
 
 try:  # Python 3.5+
     from http import HTTPStatus
@@ -36,10 +35,10 @@ hapic = Hapic()
 hapic.set_processor_class(MarshmallowProcessor)
 
 
-class PyramidController(object):
+class FlaskController(object):
     @hapic.with_api_doc()
     @hapic.output_body(AboutSchema())
-    def about(self, context, request):
+    def about(self):
         """
         This endpoint allow to check that the API is running. This description
         is generated from the docstring of the method.
@@ -48,7 +47,7 @@ class PyramidController(object):
 
     @hapic.with_api_doc()
     @hapic.output_body(UserDigestSchema(many=True))
-    def get_users(self, context, request):
+    def get_users(self):
         """
         Obtain users list.
         """
@@ -58,7 +57,7 @@ class PyramidController(object):
     @hapic.handle_exception(UserNotFound, HTTPStatus.NOT_FOUND)
     @hapic.input_path(UserIdPathSchema())
     @hapic.output_body(UserSchema())
-    def get_user(self, context, request, hapic_data: HapicData):
+    def get_user(self, id, hapic_data: HapicData):
         """
         Return a user taken from the list or return a 404
         """
@@ -69,7 +68,7 @@ class PyramidController(object):
     # TODO - G.M - 2017-12-5 - Support exclude, only ?
     @hapic.input_body(UserSchema(exclude=("id",)))
     @hapic.output_body(UserSchema())
-    def add_user(self, context, request, hapic_data: HapicData):
+    def add_user(self, hapic_data: HapicData):
         """
         Add a user to the list
         """
@@ -81,7 +80,7 @@ class PyramidController(object):
     @hapic.handle_exception(UserNotFound, HTTPStatus.NOT_FOUND)
     @hapic.output_body(NoContentSchema(), default_http_code=204)
     @hapic.input_path(UserIdPathSchema())
-    def del_user(self, context, request, hapic_data: HapicData):
+    def del_user(self, id, hapic_data: HapicData):
         UserLib().del_user(int(hapic_data.path["id"]))
         return NoContentSchema()
 
@@ -90,7 +89,7 @@ class PyramidController(object):
     @hapic.handle_exception(UserAvatarNotFound, HTTPStatus.NOT_FOUND)
     @hapic.input_path(UserIdPathSchema())
     @hapic.output_file(['image/png'])
-    def get_user_avatar(self, context, request, hapic_data: HapicData):
+    def get_user_avatar(self, id, hapic_data: HapicData):
         return HapicFile(
             file_path=UserLib().get_user_avatar_path(user_id=(int(hapic_data.path['id'])))
         )
@@ -101,45 +100,31 @@ class PyramidController(object):
     @hapic.input_path(UserIdPathSchema())
     @hapic.input_files(UserAvatarSchema())
     @hapic.output_body(NoContentSchema(), default_http_code=204)
-    def update_user_avatar(self, context, request, hapic_data: HapicData):
+    def update_user_avatar(self, id, hapic_data: HapicData):
         UserLib().update_user_avatar(
             user_id=int(hapic_data.path['id']),
             avatar=hapic_data.files['avatar'],
         )
 
+    def bind(self, app: flask.Flask):
+        app.add_url_rule('/about', view_func=self.about)
+        app.add_url_rule('/users', view_func=self.get_users)
+        app.add_url_rule('/users/<id>', view_func=self.get_user)
+        app.add_url_rule('/users/', view_func=self.add_user, methods=['POST'])
+        app.add_url_rule('/users/<id>', view_func=self.del_user, methods=['DELETE'])  # nopep8
+        app.add_url_rule('/users/<id>/avatar', view_func=self.get_user_avatar, methods=['GET'])  # nopep8
+        app.add_url_rule('/users/<id>/avatar', view_func=self.update_user_avatar, methods=['PUT'])
 
-    def bind(self, configurator: Configurator):
-        configurator.add_route('about', '/about', request_method='GET')
-        configurator.add_view(self.about, route_name='about')
-
-        configurator.add_route('get_users', '/users', request_method='GET')
-        configurator.add_view(self.get_users, route_name='get_users')
-
-        configurator.add_route('get_user', '/users/{id}', request_method='GET')
-        configurator.add_view(self.get_user, route_name='get_user')
-
-        configurator.add_route('add_user', '/users', request_method='POST')
-        configurator.add_view(self.add_user, route_name='add_user')
-
-        configurator.add_route('del_user', '/users/{id}', request_method='DELETE')
-        configurator.add_view(self.del_user, route_name='del_user')
-
-        configurator.add_route('get_user_avatar', '/users/{id}/avatar', request_method='GET')   # nopep8
-        configurator.add_view(self.get_user_avatar, route_name='get_user_avatar')
-
-        configurator.add_route('update_user_avatar', '/users/{id}/avatar', request_method='PUT')   # nopep8
-        configurator.add_view(self.update_user_avatar, route_name='update_user_avatar')
 
 if __name__ == "__main__":
-    configurator = Configurator(autocommit=True)
-    controllers = PyramidController()
-    controllers.bind(configurator)
-    hapic.set_context(PyramidContext(configurator, default_error_builder=MarshmallowDefaultErrorBuilder()))
+    app = flask.Flask(__name__)
+    controllers = FlaskController()
+    controllers.bind(app)
+    hapic.set_context(FlaskContext(app, default_error_builder=MarshmallowDefaultErrorBuilder()))
 
     print('')
     print('')
     print('GENERATING OPENAPI DOCUMENTATION')
-
     doc_title = 'Demo API documentation'
     doc_description = 'This documentation has been generated from ' \
                        'code. You can see it using swagger: ' \
@@ -161,8 +146,7 @@ if __name__ == "__main__":
 
     print('')
     print('')
-    print('RUNNING PYRAMID SERVER NOW')
+    print('RUNNING FLASK SERVER NOW')
     print('DOCUMENTATION AVAILABLE AT /doc/')
     # Run app
-    server = make_server("127.0.0.1", 8083, configurator.make_wsgi_app())
-    server.serve_forever()
+    app.run(host="127.0.0.1", port=8082, debug=True)
