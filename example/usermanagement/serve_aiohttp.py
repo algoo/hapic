@@ -1,10 +1,26 @@
 # -*- coding: utf-8 -*-
 
-import bottle
 from datetime import datetime
+import json
+import time
 
 from aiohttp import web
+import bottle
 
+from example.usermanagement.schema import AboutSchema
+from example.usermanagement.schema import NoContentSchema
+from example.usermanagement.schema import UserAvatarSchema
+from example.usermanagement.schema import UserDigestSchema
+from example.usermanagement.schema import UserIdPathSchema
+from example.usermanagement.schema import UserSchema
+from example.usermanagement.userlib import User
+from example.usermanagement.userlib import UserAvatarNotFound
+from example.usermanagement.userlib import UserLib
+from example.usermanagement.userlib import UserNotFound
+from hapic import Hapic
+from hapic import MarshmallowProcessor
+from hapic.data import HapicData
+from hapic.data import HapicFile
 from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
 from hapic.ext.aiohttp.context import AiohttpContext
 
@@ -12,21 +28,9 @@ try:  # Python 3.5+
     from http import HTTPStatus
 except ImportError:
     from http import client as HTTPStatus
-import json
-import time
 
-from hapic import Hapic, MarshmallowProcessor
-from hapic.data import HapicData
 
-from example.usermanagement.schema import AboutSchema
-from example.usermanagement.schema import NoContentSchema
-from example.usermanagement.schema import UserDigestSchema
-from example.usermanagement.schema import UserIdPathSchema
-from example.usermanagement.schema import UserSchema
 
-from example.usermanagement.userlib import User
-from example.usermanagement.userlib import UserLib
-from example.usermanagement.userlib import UserNotFound
 
 hapic = Hapic(async_=True)
 hapic.set_processor_class(MarshmallowProcessor)
@@ -83,6 +87,28 @@ class AiohttpController(object):
         UserLib().del_user(int(hapic_data.path['id']))
         return NoContentSchema()
 
+    @hapic.with_api_doc()
+    @hapic.handle_exception(UserNotFound, HTTPStatus.NOT_FOUND)
+    @hapic.handle_exception(UserAvatarNotFound, HTTPStatus.NOT_FOUND)
+    @hapic.input_path(UserIdPathSchema())
+    @hapic.output_file(['image/png'])
+    async def get_user_avatar(self, id, hapic_data: HapicData):
+        return HapicFile(
+            file_path=UserLib().get_user_avatar_path(user_id=(int(hapic_data.path['id'])))
+        )
+
+    @hapic.with_api_doc()
+    @hapic.handle_exception(UserNotFound, HTTPStatus.NOT_FOUND)
+    @hapic.handle_exception(UserAvatarNotFound, HTTPStatus.BAD_REQUEST)
+    @hapic.input_path(UserIdPathSchema())
+    @hapic.input_files(UserAvatarSchema())
+    @hapic.output_body(NoContentSchema(), default_http_code=204)
+    async def update_user_avatar(self, id, hapic_data: HapicData):
+        UserLib().update_user_avatar(
+            user_id=int(hapic_data.path['id']),
+            avatar=hapic_data.files['avatar'],
+        )
+
     def bind(self, app: web.Application):
         app.add_routes([
             web.get('/about', self.about),
@@ -90,6 +116,8 @@ class AiohttpController(object):
             web.get(r'/users/{id}', self.get_user),
             web.post('/users/', self.add_user),
             web.delete('/users/{id}', self.del_user),
+            web.get('/users/{id}/avatar', self.get_user_avatar),
+            web.put('/users/{id}/avatar', self.update_user_avatar)
         ])
 
 

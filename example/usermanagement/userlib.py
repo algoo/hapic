@@ -3,12 +3,15 @@
 """
 This module implements a basic User management library
 """
+import cgi
 import os
 from datetime import datetime
 from io import BytesIO
 
 from PIL import Image
-
+from aiohttp.web_request import FileField
+from bottle import FileUpload
+from werkzeug.datastructures import FileStorage
 
 
 
@@ -83,12 +86,23 @@ class UserLib(object):
     def update_user_avatar(self, user_id: int, avatar):
         try:
             user = UserLib.USERS[user_id - 1]
-        except Exception:
+        except Exception as exc:
             raise UserNotFound
         if avatar.filename:
             fn = os.path.basename(avatar.filename)
             avatar_path = user_avatar_base_path + fn
-            open(avatar_path, 'wb').write(avatar.file.read())
+            if isinstance(avatar, cgi.FieldStorage):
+                # pyramid
+                open(avatar_path, 'wb').write(avatar.file.read())
+            elif isinstance(avatar, FileField):
+                # aiohttp
+                open(avatar_path, 'wb').write(avatar.file.read())
+            elif isinstance(avatar, FileUpload):
+                # bottle
+                open(avatar_path, 'wb').write(avatar.file.read())
+            elif isinstance(avatar, FileStorage):
+                # Flask
+                open(avatar_path, 'wb').write(avatar.stream.read())
             user.avatar_path = avatar_path
         else:
             raise UserAvatarNotFound()
