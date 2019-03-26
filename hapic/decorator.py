@@ -469,6 +469,25 @@ class OutputFileControllerWrapper(OutputControllerWrapper):
             error_response = self.get_error_response(response)
             return error_response
 
+# TODO GM 2019-03-26: This class is an async version of
+# OutputFileControllerWrapper (ControllerWrapper.get_wrapper rewrite)
+# to permit async compatibility.
+# Please re-think about code refact. TAG: REFACT_ASYNC
+class AsyncOutputFileControllerWrapper(OutputFileControllerWrapper):
+    def get_wrapper(self, func: "typing.Callable") -> "typing.Callable":
+        # async def wrapper(*args, **kwargs) -> typing.Any:
+        async def wrapper(*args, **kwargs) -> typing.Any:
+            # Note: Design of before_wrapped_func can be to update kwargs
+            # by reference here
+            replacement_response = self.before_wrapped_func(args, kwargs)
+            if replacement_response is not None:
+                return replacement_response
+
+            response = await self._execute_wrapped_function(func, args, kwargs)
+            new_response = self.after_wrapped_function(response)
+            return new_response
+
+        return functools.update_wrapper(wrapper, func)
 
 class InputPathControllerWrapper(InputControllerWrapper):
     def update_hapic_data(

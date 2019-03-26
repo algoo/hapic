@@ -14,6 +14,7 @@ from hapic.decorator import AsyncInputFilesControllerWrapper
 from hapic.decorator import AsyncInputPathControllerWrapper
 from hapic.decorator import AsyncInputQueryControllerWrapper
 from hapic.decorator import AsyncOutputBodyControllerWrapper
+from hapic.decorator import AsyncOutputFileControllerWrapper
 from hapic.decorator import AsyncOutputStreamControllerWrapper
 from hapic.decorator import ControllerReference
 from hapic.decorator import DecoratedController
@@ -320,12 +321,20 @@ class Hapic(object):
         # TODO BS 2018-11-16: This is not smart to give None instead schema
         processor_factory = self._get_processor_factory(None, processor)
         context = context or self._context_getter
-        decoration = OutputFileControllerWrapper(
-            context=context,
-            processor_factory=processor_factory,
-            output_types=output_types,
-            default_http_code=default_http_code,
-        )
+        if self._async:
+            decoration = AsyncOutputFileControllerWrapper(
+                context=context,
+                processor_factory=processor_factory,
+                output_types=output_types,
+                default_http_code=default_http_code,
+            )
+        else:
+            decoration = OutputFileControllerWrapper(
+                context=context,
+                processor_factory=processor_factory,
+                output_types=output_types,
+                default_http_code=default_http_code,
+            )
 
         def decorator(func):
             self._buffer.output_file = OutputFileDescription(decoration)
