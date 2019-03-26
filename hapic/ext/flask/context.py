@@ -4,10 +4,12 @@ import re
 import typing
 
 from flask import Flask
+from flask import send_file
 from flask import send_from_directory
 
 from hapic.context import BaseContext
 from hapic.context import RouteRepresentation
+from hapic.data import HapicFile
 from hapic.decorator import DECORATION_ATTRIBUTE_NAME
 from hapic.decorator import DecoratedController
 from hapic.error.main import ErrorBuilderInterface
@@ -56,6 +58,17 @@ class FlaskContext(BaseContext):
                 [(k.lower(), v) for k, v in request.headers.items()]
             ),
             files_parameters=request.files,
+        )
+
+    def get_file_response(
+        self,
+        file_response: HapicFile,
+        http_code: int
+    ) -> "Response":
+        return send_file(
+            filename_or_fp=file_response.file_path or file_response.file_object,
+            mimetype=file_response.mimetype,
+            as_attachment=file_response.as_attachment,
         )
 
     def get_response(
