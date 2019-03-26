@@ -7,12 +7,12 @@ from wsgiref.simple_server import make_server
 
 from pyramid.config import Configurator
 
-from example.usermanagement.schema import AboutSchema
-from example.usermanagement.schema import NoContentSchema
-from example.usermanagement.schema import UserAvatarSchema
-from example.usermanagement.schema import UserDigestSchema
-from example.usermanagement.schema import UserIdPathSchema
-from example.usermanagement.schema import UserSchema
+from example.usermanagement.schema_marshmallow import AboutSchema
+from example.usermanagement.schema_marshmallow import NoContentSchema
+from example.usermanagement.schema_marshmallow import UserAvatarSchema
+from example.usermanagement.schema_marshmallow import UserDigestSchema
+from example.usermanagement.schema_marshmallow import UserIdPathSchema
+from example.usermanagement.schema_marshmallow import UserSchema
 from example.usermanagement.userlib import User
 from example.usermanagement.userlib import UserAvatarNotFound
 from example.usermanagement.userlib import UserLib

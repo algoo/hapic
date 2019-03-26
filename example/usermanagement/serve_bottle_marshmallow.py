@@ -3,16 +3,15 @@
 from datetime import datetime
 import json
 import time
-from wsgiref.simple_server import make_server
 
-import flask
+import bottle
 
-from example.usermanagement.schema import AboutSchema
-from example.usermanagement.schema import NoContentSchema
-from example.usermanagement.schema import UserAvatarSchema
-from example.usermanagement.schema import UserDigestSchema
-from example.usermanagement.schema import UserIdPathSchema
-from example.usermanagement.schema import UserSchema
+from example.usermanagement.schema_marshmallow import AboutSchema
+from example.usermanagement.schema_marshmallow import NoContentSchema
+from example.usermanagement.schema_marshmallow import UserAvatarSchema
+from example.usermanagement.schema_marshmallow import UserDigestSchema
+from example.usermanagement.schema_marshmallow import UserIdPathSchema
+from example.usermanagement.schema_marshmallow import UserSchema
 from example.usermanagement.userlib import User
 from example.usermanagement.userlib import UserAvatarNotFound
 from example.usermanagement.userlib import UserLib
@@ -22,7 +21,7 @@ from hapic import MarshmallowProcessor
 from hapic.data import HapicData
 from hapic.data import HapicFile
 from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
-from hapic.ext.flask import FlaskContext
+from hapic.ext.bottle import BottleContext
 
 try:  # Python 3.5+
     from http import HTTPStatus
@@ -30,13 +29,10 @@ except ImportError:
     from http import client as HTTPStatus
 
 
-
-
 hapic = Hapic()
 hapic.set_processor_class(MarshmallowProcessor)
 
-
-class FlaskController(object):
+class BottleController(object):
     @hapic.with_api_doc()
     @hapic.output_body(AboutSchema())
     def about(self):
@@ -110,25 +106,27 @@ class FlaskController(object):
             avatar=hapic_data.files['avatar'],
         )
 
-    def bind(self, app: flask.Flask):
-        app.add_url_rule('/about', view_func=self.about)
-        app.add_url_rule('/users', view_func=self.get_users)
-        app.add_url_rule('/users/<id>', view_func=self.get_user)
-        app.add_url_rule('/users/', view_func=self.add_user, methods=['POST'])
-        app.add_url_rule('/users/<id>', view_func=self.del_user, methods=['DELETE'])  # nopep8
-        app.add_url_rule('/users/<id>/avatar', view_func=self.get_user_avatar, methods=['GET'])  # nopep8
-        app.add_url_rule('/users/<id>/avatar', view_func=self.update_user_avatar, methods=['PUT'])
+    def bind(self, app:bottle.Bottle):
+        app.route('/about', callback=self.about)
+        app.route('/users', callback=self.get_users)
+        app.route('/users/<id>', callback=self.get_user)
+        app.route('/users', callback=self.add_user,  method='POST')
+        app.route('/users/<id>', callback=self.del_user, method='DELETE')
+        app.route('/users/<id>/avatar', callback=self.get_user_avatar)
+        app.route('/users/<id>/avatar', callback=self.update_user_avatar, method='PUT')
 
 
 if __name__ == "__main__":
-    app = flask.Flask(__name__)
-    controllers = FlaskController()
+    app = bottle.Bottle()
+    controllers = BottleController()
     controllers.bind(app)
-    hapic.set_context(FlaskContext(app, default_error_builder=MarshmallowDefaultErrorBuilder()))
+    hapic.set_context(BottleContext(app, default_error_builder=MarshmallowDefaultErrorBuilder()))
 
     print('')
     print('')
     print('GENERATING OPENAPI DOCUMENTATION')
+
+
     doc_title = 'Demo API documentation'
     doc_description = 'This documentation has been generated from ' \
                        'code. You can see it using swagger: ' \
@@ -140,7 +138,7 @@ if __name__ == "__main__":
             json.dumps(
                 hapic.generate_doc(
                     title=doc_title,
-                    description=doc_description
+                    description=doc_description,
                 )
             )
         )
@@ -150,7 +148,7 @@ if __name__ == "__main__":
 
     print('')
     print('')
-    print('RUNNING FLASK SERVER NOW')
+    print('RUNNING BOTTLE SERVER NOW')
     print('DOCUMENTATION AVAILABLE AT /doc/')
     # Run app
-    app.run(host='127.0.0.1', port=8082, debug=True)
+    app.run(host='127.0.0.1', port=8081, debug=True)
