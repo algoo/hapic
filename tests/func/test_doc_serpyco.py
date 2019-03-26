@@ -1,21 +1,26 @@
 # coding: utf-8
 import dataclasses
-
-import bottle
-
 from hapic import Hapic
 from hapic.error.serpyco import SerpycoDefaultErrorBuilder
-from hapic.ext.bottle import BottleContext
 from hapic.processor.serpyco import SerpycoProcessor
+from hapic.ext.agnostic.context import AgnosticApp
+from hapic.ext.agnostic.context import AgnosticContext
+
+from tests.base import serpyco_compatible_python
 
 
+@serpyco_compatible_python
 class TestDocSerpyco(object):
+    """
+    Test doc generation for serpyco with AgnosticContext
+    """
+
     def test_func__ok__doc__exclude_in_processor_output_body(self,):
-        app = bottle.Bottle()
+        app = AgnosticApp()
         hapic = Hapic()
         hapic.set_processor_class(SerpycoProcessor)
         hapic.set_context(
-            BottleContext(
+            AgnosticContext(
                 app, default_error_builder=SerpycoDefaultErrorBuilder()
             )
         )
@@ -45,11 +50,11 @@ class TestDocSerpyco(object):
         assert "UserSchema_exclude_password" in doc["definitions"]
 
     def test_func__ok__doc__exclude_in_processor_input_body(self,):
-        app = bottle.Bottle()
+        app = AgnosticApp()
         hapic = Hapic()
         hapic.set_processor_class(SerpycoProcessor)
         hapic.set_context(
-            BottleContext(
+            AgnosticContext(
                 app, default_error_builder=SerpycoDefaultErrorBuilder()
             )
         )
@@ -77,11 +82,11 @@ class TestDocSerpyco(object):
         assert "UserSchema_exclude_password" in doc["definitions"]
 
     def test_func__ok__doc__exclude_in_processor_input_query(self,):
-        app = bottle.Bottle()
+        app = AgnosticApp()
         hapic = Hapic()
         hapic.set_processor_class(SerpycoProcessor)
         hapic.set_context(
-            BottleContext(
+            AgnosticContext(
                 app, default_error_builder=SerpycoDefaultErrorBuilder()
             )
         )
@@ -108,11 +113,11 @@ class TestDocSerpyco(object):
         assert "UserSchema_exclude_password" in doc["definitions"]
 
     def test_func__ok__doc__exclude_in_processor_input_path(self,):
-        app = bottle.Bottle()
+        app = AgnosticApp()
         hapic = Hapic()
         hapic.set_processor_class(SerpycoProcessor)
         hapic.set_context(
-            BottleContext(
+            AgnosticContext(
                 app, default_error_builder=SerpycoDefaultErrorBuilder()
             )
         )
@@ -151,11 +156,11 @@ class TestDocSerpyco(object):
         assert "UserSchema_exclude_password" in doc["definitions"]
 
     def test_func__ok__doc__with_handle_exception(self):
-        app = bottle.Bottle()
+        app = AgnosticApp()
         hapic = Hapic()
         hapic.set_processor_class(SerpycoProcessor)
         hapic.set_context(
-            BottleContext(
+            AgnosticContext(
                 app, default_error_builder=SerpycoDefaultErrorBuilder()
             )
         )

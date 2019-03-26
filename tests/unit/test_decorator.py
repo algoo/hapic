@@ -16,12 +16,12 @@ from hapic.decorator import OutputControllerWrapper
 from hapic.error.main import ErrorBuilderInterface
 from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
 from hapic.exception import OutputValidationException
+from hapic.ext.agnostic.context import AgnosticContext
 from hapic.processor.main import Processor
 from hapic.processor.main import ProcessValidationError
 from hapic.processor.main import RequestParameters
 from hapic.processor.marshmallow import MarshmallowProcessor
 from tests.base import Base
-from tests.base import MyContext
 
 try:  # Python 3.5+
     from http import HTTPStatus
@@ -137,7 +137,7 @@ class MySchema(marshmallow.Schema):
 
 class TestControllerWrapper(Base):
     def test_unit__base_controller_wrapper__ok__no_behaviour(self):
-        context = MyContext(app=None)
+        context = AgnosticContext(app=None)
         processor = MyProcessor()
         wrapper = InputOutputControllerWrapper(context, lambda: processor)
 
@@ -149,7 +149,7 @@ class TestControllerWrapper(Base):
         assert result == 42
 
     def test_unit__base_controller__ok__replaced_response(self):
-        context = MyContext(app=None)
+        context = AgnosticContext(app=None)
         processor = MyProcessor()
         wrapper = MyControllerWrapper(context, lambda: processor)
 
@@ -163,7 +163,7 @@ class TestControllerWrapper(Base):
         assert {"error_response": "we are testing"} == result
 
     def test_unit__controller_wrapper__ok__overload_input(self):
-        context = MyContext(app=None)
+        context = AgnosticContext(app=None)
         processor = MyProcessor()
         wrapper = MyControllerWrapper(context, lambda: processor)
 
@@ -180,8 +180,8 @@ class TestControllerWrapper(Base):
 
 class TestInputControllerWrapper(Base):
     def test_unit__input_data_wrapping__ok__nominal_case(self):
-        context = MyContext(
-            app=None, fake_query_parameters=MultiDict((("foo", "bar"),))
+        context = AgnosticContext(
+            app=None, query_parameters=MultiDict((("foo", "bar"),))
         )
         processor = MyProcessor()
         wrapper = MyInputQueryControllerWrapper(context, lambda: processor)
@@ -198,9 +198,9 @@ class TestInputControllerWrapper(Base):
         assert result == 42
 
     def test_unit__multi_query_param_values__ok__use_as_list(self):
-        context = MyContext(
+        context = AgnosticContext(
             app=None,
-            fake_query_parameters=MultiDict(
+            query_parameters=MultiDict(
                 (("user_id", "abc"), ("user_id", "def"))
             ),
         )
@@ -221,9 +221,9 @@ class TestInputControllerWrapper(Base):
         assert result == ["abc", "def"]
 
     def test_unit__multi_query_param_values__ok__without_as_list(self):
-        context = MyContext(
+        context = AgnosticContext(
             app=None,
-            fake_query_parameters=MultiDict(
+            query_parameters=MultiDict(
                 (("user_id", "abc"), ("user_id", "def"))
             ),
         )
@@ -244,7 +244,7 @@ class TestInputControllerWrapper(Base):
 
 class TestOutputControllerWrapper(Base):
     def test_unit__output_data_wrapping__ok__nominal_case(self):
-        context = MyContext(app=None)
+        context = AgnosticContext(app=None)
         processor = MyProcessor()
         wrapper = OutputControllerWrapper(context, lambda: processor)
 
@@ -259,7 +259,7 @@ class TestOutputControllerWrapper(Base):
         assert "43" == result.body
 
     def test_unit__output_data_wrapping__fail__error_response(self):
-        context = MyContext(app=None)
+        context = AgnosticContext(app=None)
         processor = MarshmallowProcessor()
         processor.set_schema(MySchema())
         wrapper = OutputControllerWrapper(context, lambda: processor)
@@ -281,7 +281,7 @@ class TestOutputControllerWrapper(Base):
 
 class TestExceptionHandlerControllerWrapper(Base):
     def test_unit__exception_handled__ok__nominal_case(self):
-        context = MyContext(app=None)
+        context = AgnosticContext(app=None)
         error_builder = MarshmallowDefaultErrorBuilder()
         wrapper = ExceptionHandlerControllerWrapper(
             ZeroDivisionError,
@@ -311,7 +311,7 @@ class TestExceptionHandlerControllerWrapper(Base):
                 super().__init__(*args, **kwargs)
                 self.error_dict = {}
 
-        context = MyContext(app=None)
+        context = AgnosticContext(app=None)
         error_builder = MarshmallowDefaultErrorBuilder()
         wrapper = ExceptionHandlerControllerWrapper(
             MyException,
@@ -348,7 +348,7 @@ class TestExceptionHandlerControllerWrapper(Base):
                 # this is not matching with DefaultErrorBuilder schema
                 return {}
 
-        context = MyContext(app=None)
+        context = AgnosticContext(app=None)
         error_builder = MyErrorBuilder()
         wrapper = ExceptionHandlerControllerWrapper(
             MyException,

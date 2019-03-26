@@ -6,7 +6,7 @@ import marshmallow
 from hapic import Hapic
 from hapic import MarshmallowProcessor
 from tests.base import Base
-from tests.base import MyContext
+from hapic.ext.agnostic.context import AgnosticContext
 
 try:  # Python 3.5+
     from http import HTTPStatus
@@ -18,8 +18,8 @@ class TestMarshmallowDecoration(Base):
     def test_unit__input_files__ok__file_is_present(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
         hapic.set_context(
-            MyContext(
-                app=None, fake_files_parameters={"file_abc": "10101010101"}
+            AgnosticContext(
+                app=None, files_parameters={"file_abc": "10101010101"}
             )
         )
 
@@ -38,9 +38,9 @@ class TestMarshmallowDecoration(Base):
     def test_unit__input_files__ok__file_is_not_present(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
         hapic.set_context(
-            MyContext(
+            AgnosticContext(
                 app=None,
-                fake_files_parameters={
+                files_parameters={
                     # No file here
                 },
             )
@@ -68,7 +68,7 @@ class TestMarshmallowDecoration(Base):
     def test_unit__input_files__ok__file_is_empty_string(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
         hapic.set_context(
-            MyContext(app=None, fake_files_parameters={"file_abc": ""})
+            AgnosticContext(app=None, files_parameters={"file_abc": ""})
         )
 
         class MySchema(marshmallow.Schema):
