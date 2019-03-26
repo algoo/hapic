@@ -1,31 +1,36 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime
+import json
+import time
+from wsgiref.simple_server import make_server
 
+import flask
+
+from example.usermanagement.schema import AboutSchema
+from example.usermanagement.schema import NoContentSchema
+from example.usermanagement.schema import UserAvatarSchema
+from example.usermanagement.schema import UserDigestSchema
+from example.usermanagement.schema import UserIdPathSchema
+from example.usermanagement.schema import UserSchema
+from example.usermanagement.userlib import User
+from example.usermanagement.userlib import UserAvatarNotFound
+from example.usermanagement.userlib import UserLib
+from example.usermanagement.userlib import UserNotFound
+from hapic import Hapic
+from hapic import MarshmallowProcessor
+from hapic.data import HapicData
+from hapic.data import HapicFile
 from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
+from hapic.ext.flask import FlaskContext
 
 try:  # Python 3.5+
     from http import HTTPStatus
 except ImportError:
     from http import client as HTTPStatus
-import json
-import flask
-import time
-from wsgiref.simple_server import make_server
 
-from hapic import Hapic, MarshmallowProcessor
-from hapic.data import HapicData
-from hapic.ext.flask import FlaskContext
 
-from example.usermanagement.schema import AboutSchema
-from example.usermanagement.schema import NoContentSchema
-from example.usermanagement.schema import UserDigestSchema
-from example.usermanagement.schema import UserIdPathSchema
-from example.usermanagement.schema import UserSchema
 
-from example.usermanagement.userlib import User
-from example.usermanagement.userlib import UserLib
-from example.usermanagement.userlib import UserNotFound
 
 hapic = Hapic()
 hapic.set_processor_class(MarshmallowProcessor)
@@ -83,12 +88,36 @@ class FlaskController(object):
         UserLib().del_user(int(hapic_data.path['id']))
         return NoContentSchema()
 
+    @hapic.with_api_doc()
+    @hapic.handle_exception(UserNotFound, HTTPStatus.NOT_FOUND)
+    @hapic.handle_exception(UserAvatarNotFound, HTTPStatus.NOT_FOUND)
+    @hapic.input_path(UserIdPathSchema())
+    @hapic.output_file(['image/png'])
+    def get_user_avatar(self, id, hapic_data: HapicData):
+        return HapicFile(
+            file_path=UserLib().get_user_avatar_path(user_id=(int(hapic_data.path['id'])))
+        )
+
+    @hapic.with_api_doc()
+    @hapic.handle_exception(UserNotFound, HTTPStatus.NOT_FOUND)
+    @hapic.handle_exception(UserAvatarNotFound, HTTPStatus.BAD_REQUEST)
+    @hapic.input_path(UserIdPathSchema())
+    @hapic.input_files(UserAvatarSchema())
+    @hapic.output_body(NoContentSchema(), default_http_code=204)
+    def update_user_avatar(self, id, hapic_data: HapicData):
+        UserLib().update_user_avatar(
+            user_id=int(hapic_data.path['id']),
+            avatar=hapic_data.files['avatar'],
+        )
+
     def bind(self, app: flask.Flask):
         app.add_url_rule('/about', view_func=self.about)
         app.add_url_rule('/users', view_func=self.get_users)
         app.add_url_rule('/users/<id>', view_func=self.get_user)
         app.add_url_rule('/users/', view_func=self.add_user, methods=['POST'])
         app.add_url_rule('/users/<id>', view_func=self.del_user, methods=['DELETE'])  # nopep8
+        app.add_url_rule('/users/<id>/avatar', view_func=self.get_user_avatar, methods=['GET'])  # nopep8
+        app.add_url_rule('/users/<id>/avatar', view_func=self.update_user_avatar, methods=['PUT'])
 
 
 if __name__ == "__main__":
