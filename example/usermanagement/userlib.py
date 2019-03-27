@@ -21,6 +21,7 @@ class User(object):
         first_name: str='first',
         last_name: str='last',
         email_address: str='',
+        display_name: str = None,
         company: str='',
         avatar_path: str = None,
     ):
@@ -49,6 +50,20 @@ class UserLib(object):
     A dummy library to list, add and delete users
     """
     USERS = []
+
+    @classmethod
+    def reset_database(cls):
+        UserLib.USERS=[]
+        UserLib.USERS.append(
+            User(**{
+                'id': 1,
+                'first_name': 'Damien',
+                'last_name': 'Accorsi',
+                'email_address': 'damien.accorsi@algoo.fr',
+                'company': 'Algoo',
+                'avatar_path': None
+            }),
+        )
 
     def add_user(self, user: User) -> User:
         user.id = 1 + max(u.id for u in UserLib.USERS)
@@ -107,13 +122,4 @@ class UserLib(object):
 
 user_avatar_base_path = '/tmp/'
 
-UserLib.USERS.append(
-    User(**{
-        'id': 1,
-        'first_name': 'Damien',
-        'last_name': 'Accorsi',
-        'email_address': 'damien.accorsi@algoo.fr',
-        'company': 'Algoo',
-        'avatar_path': None
-    }),
-)
+UserLib.reset_database()
