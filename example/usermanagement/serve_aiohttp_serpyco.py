@@ -93,7 +93,7 @@ class AiohttpController(object):
     @hapic.output_body(NoContentSchema, default_http_code=204)
     @hapic.input_path(UserIdPathSchema)
     async def del_user(self, request: Request, hapic_data: HapicData):
-        UserLib().del_user(int(hapic_data.path['id']))
+        UserLib().del_user(int(hapic_data.path.id))
         return NoContentSchema()
 
     @hapic.with_api_doc()
