@@ -130,6 +130,7 @@ class SerpycoProcessor(Processor):
             return ProcessValidationError(
                 message='Validation error of input data: "{}"'.format(exc.args[0]),
                 details=exc.args[1],
+                original_exception=exc,
             )
         except Exception as exc:
             self._logger.exception(
@@ -141,6 +142,7 @@ class SerpycoProcessor(Processor):
                 message="Unknown error during validation "
                 'of input data: "{}": "{}"'.format(type(exc).__name__, str(exc)),
                 details={},
+                original_exception=exc,
             )
 
     def get_input_files_validation_error(
@@ -170,6 +172,7 @@ class SerpycoProcessor(Processor):
             return ProcessValidationError(
                 message='Validation error of output data: "{}"'.format(exc.args[0]),
                 details=exc.args[1],
+                original_exception=exc,
             )
         except Exception as exc:
             self._logger.exception(
@@ -181,6 +184,7 @@ class SerpycoProcessor(Processor):
                 message="Unknown error during validation error "
                 'of output data: "{}": "{}"'.format(type(exc).__name__, str(exc)),
                 details={},
+                original_exception=exc,
             )
 
     def get_output_file_validation_error(
@@ -213,13 +217,13 @@ class SerpycoProcessor(Processor):
         try:
             return self.serializer.load(data)
         except ValidationError as exc:
-            raise ValidationException("Error when loading: {}".format(exc.args[0]))
+            raise ValidationException("Error when loading: {}".format(exc.args[0])) from exc
         except Exception as exc:
             raise ValidationException(
                 'Unknown error when serpyco load: "{}": "{}"'.format(
                     type(exc).__name__, str(exc)
                 )
-            )
+            ) from exc
 
     def dump(self, data: typing.Any) -> typing.Any:
         """
@@ -232,7 +236,7 @@ class SerpycoProcessor(Processor):
         try:
             return self.serializer.dump(data, validate=True)
         except ValidationError as exc:
-            raise ValidationException("Error when dumping: {}".format(exc.args[0]))
+            raise ValidationException("Error when dumping: {}".format(exc.args[0])) from exc
         except Exception as exc:
             self._logger.exception(
                 'Unknown error during serpyco dump: "{}": "{}"'.format(
@@ -243,7 +247,7 @@ class SerpycoProcessor(Processor):
                 'Unknown error when serpyco dump: "{}": "{}"'.format(
                     type(exc).__name__, str(exc)
                 )
-            )
+            ) from exc
 
     def load_files_input(self, input_data: typing.Dict[str, typing.Any]) -> object:
         """
