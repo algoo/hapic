@@ -63,9 +63,15 @@ class RequestParameters(object):
 
 
 class ProcessValidationError(object):
-    def __init__(self, message: str, details: dict) -> None:
+    def __init__(
+        self,
+        message: str,
+        details: dict,
+        original_exception: typing.Optional[Exception] = None,
+    ) -> None:
         self.message = message
         self.details = details
+        self.original_exception = original_exception
 
 
 class Processor(metaclass=abc.ABCMeta):
