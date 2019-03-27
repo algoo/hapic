@@ -110,14 +110,14 @@ class PyramidController(object):
         configurator.add_route("get_users", "/users/", request_method="GET")
         configurator.add_view(self.get_users, route_name="get_users")
 
-        configurator.add_route('get_users', '/users/', request_method='GET')
-        configurator.add_view(self.get_users, route_name='get_users')
+        configurator.add_route('get_user', '/users/{id}', request_method='GET')
+        configurator.add_view(self.get_user, route_name='get_user')
 
         configurator.add_route("add_user", "/users/", request_method="POST")
         configurator.add_view(self.add_user, route_name="add_user")
 
-        configurator.add_route('add_user', '/users/', request_method='POST')
-        configurator.add_view(self.add_user, route_name='add_user')
+        configurator.add_route('del_user', '/users/{id}', request_method='DELETE')
+        configurator.add_view(self.del_user, route_name='del_user')
 
         configurator.add_route(
             "get_user_avatar", "/users/{id}/avatar", request_method="GET"
