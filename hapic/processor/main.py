@@ -1,6 +1,7 @@
 import abc
 import os
 import typing
+from datetime import datetime
 
 from apispec import BasePlugin
 from multidict.__init__ import MultiDict
@@ -62,9 +63,15 @@ class RequestParameters(object):
 
 
 class ProcessValidationError(object):
-    def __init__(self, message: str, details: dict) -> None:
+    def __init__(
+        self,
+        message: str,
+        details: dict,
+        original_exception: typing.Optional[Exception] = None,
+    ) -> None:
         self.message = message
         self.details = details
+        self.original_exception = original_exception
 
 
 class Processor(metaclass=abc.ABCMeta):
@@ -213,6 +220,12 @@ class Processor(metaclass=abc.ABCMeta):
             error_message = "File path is not correct, file do not exist"
         elif data.file_object and not data.mimetype:
             error_message = "File object should have explicit mimetype"
+        elif data.content_length and not isinstance(data.content_length, int):
+            error_message = "Content length should be integer"
+        elif data.content_length and data.content_length < 0:
+            error_message = "Content length should positive or null integer"
+        elif data.last_modified and not isinstance(data.last_modified, datetime):
+            error_message = "Last-modified value should be datetime type"
         return error_message
 
     # NOTE BS 2018-12-20: the decorators order is not semantically right,

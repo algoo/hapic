@@ -111,6 +111,11 @@ class PyramidContext(BaseContext):
             response.content_type = file_response.mimetype
             response.app_iter = FileIter(file_response.file_object)
 
+        if file_response.content_length:
+            response.content_length = file_response.content_length
+        if file_response.last_modified:
+            response.last_modified = file_response.last_modified
+
         response.status_code = http_code
         response.content_disposition = (
             file_response.get_content_disposition_header_value()
