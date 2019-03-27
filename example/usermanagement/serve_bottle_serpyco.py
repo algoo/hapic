@@ -4,8 +4,7 @@ from datetime import datetime
 import json
 import time
 
-from aiohttp import web
-from aiohttp.web_request import Request
+import bottle
 
 from example.usermanagement.schema_serpyco import AboutSchema
 from example.usermanagement.schema_serpyco import NoContentSchema
@@ -21,7 +20,7 @@ from hapic import Hapic
 from hapic.data import HapicData
 from hapic.data import HapicFile
 from hapic.error.serpyco import SerpycoDefaultErrorBuilder
-from hapic.ext.aiohttp.context import AiohttpContext
+from hapic.ext.bottle import BottleContext
 from hapic.processor.serpyco import SerpycoProcessor
 
 try:  # Python 3.5+
@@ -30,22 +29,21 @@ except ImportError:
     from http import client as HTTPStatus
 
 
-hapic = Hapic(async_=True)
+hapic = Hapic(async_=False)
 hapic.set_processor_class(SerpycoProcessor)
 
 class DictLikeObject(dict):
     def __getattr__(self, item):
         return self[item]
 
-class AiohttpController(object):
+class BottleController(object):
     @hapic.with_api_doc()
     @hapic.output_body(AboutSchema)
-    async def about(self, request: Request):
+    def about(self):
         """
         This endpoint allow to check that the API is running. This description
         is generated from the docstring of the method.
         """
-
         return DictLikeObject({
             'version': '1.2.3',
             'datetime': datetime.now(),
@@ -56,7 +54,7 @@ class AiohttpController(object):
         UserDigestSchema,
         processor=SerpycoProcessor(many=True)
     )
-    async def get_users(self, request: Request):
+    def get_users(self):
         """
         Obtain users list.
         """
@@ -66,7 +64,7 @@ class AiohttpController(object):
     @hapic.handle_exception(UserNotFound, HTTPStatus.NOT_FOUND)
     @hapic.input_path(UserIdPathSchema)
     @hapic.output_body(UserSchema)
-    async def get_user(self, request: Request, hapic_data: HapicData):
+    def get_user(self, id, hapic_data: HapicData):
         """
         Return a user taken from the list or return a 404
         """
@@ -80,7 +78,7 @@ class AiohttpController(object):
         processor=SerpycoProcessor(exclude=['id'])
     )
     @hapic.output_body(UserSchema)
-    async def add_user(self, request: Request, hapic_data: HapicData):
+    def add_user(self, hapic_data: HapicData):
         """
         Add a user to the list
         """
@@ -92,7 +90,7 @@ class AiohttpController(object):
     @hapic.handle_exception(UserNotFound, HTTPStatus.NOT_FOUND)
     @hapic.output_body(NoContentSchema, default_http_code=204)
     @hapic.input_path(UserIdPathSchema)
-    async def del_user(self, request: Request, hapic_data: HapicData):
+    def del_user(self, id, hapic_data: HapicData):
         UserLib().del_user(int(hapic_data.path.id))
         return NoContentSchema()
 
@@ -101,7 +99,7 @@ class AiohttpController(object):
     @hapic.handle_exception(UserAvatarNotFound, HTTPStatus.NOT_FOUND)
     @hapic.input_path(UserIdPathSchema)
     @hapic.output_file(['image/png'])
-    async def get_user_avatar(self, request: Request, hapic_data: HapicData):
+    def get_user_avatar(self, id, hapic_data: HapicData):
         return HapicFile(
             file_path=UserLib().get_user_avatar_path(user_id=(int(hapic_data.path.id)))
         )
@@ -112,49 +110,45 @@ class AiohttpController(object):
     @hapic.input_path(UserIdPathSchema)
     @hapic.input_files(UserAvatarSchema)
     @hapic.output_body(NoContentSchema, default_http_code=204)
-    async def update_user_avatar(self, request, hapic_data: HapicData):
+    def update_user_avatar(self, id, hapic_data: HapicData):
         UserLib().update_user_avatar(
             user_id=int(hapic_data.path.id),
             avatar=hapic_data.files.avatar,
         )
 
-    def bind(self, app: web.Application):
-        app.add_routes([
-            web.get('/about', self.about),
-            web.get('/users', self.get_users),
-            web.get(r'/users/{id}', self.get_user),
-            web.post('/users/', self.add_user),
-            web.delete('/users/{id}', self.del_user),
-            web.get('/users/{id}/avatar', self.get_user_avatar),
-            web.put('/users/{id}/avatar', self.update_user_avatar)
-        ])
+    def bind(self, app:bottle.Bottle):
+        app.route('/about', callback=self.about)
+        app.route('/users', callback=self.get_users)
+        app.route('/users/<id>', callback=self.get_user)
+        app.route('/users', callback=self.add_user,  method='POST')
+        app.route('/users/<id>', callback=self.del_user, method='DELETE')
+        app.route('/users/<id>/avatar', callback=self.get_user_avatar)
+        app.route('/users/<id>/avatar', callback=self.update_user_avatar, method='PUT')
 
 
 if __name__ == "__main__":
-    app = web.Application()
-    controllers = AiohttpController()
+    app = bottle.Bottle()
+    controllers = BottleController()
     controllers.bind(app)
-    hapic.set_context(
-        AiohttpContext(
-            app,
-            default_error_builder=SerpycoDefaultErrorBuilder(),
-        ),
-    )
+    hapic.set_context(BottleContext(app, default_error_builder=SerpycoDefaultErrorBuilder()))
+
+    print('')
+    print('')
+    print('GENERATING OPENAPI DOCUMENTATION')
+
+
     doc_title = 'Demo API documentation'
     doc_description = 'This documentation has been generated from ' \
                        'code. You can see it using swagger: ' \
                        'http://editor2.swagger.io/'
     hapic.add_documentation_view('/doc/', doc_title, doc_description)
-    print('')
-    print('')
-    print('GENERATING OPENAPI DOCUMENTATION')
     openapi_file_name = 'api-documentation.json'
     with open(openapi_file_name, 'w') as openapi_file_handle:
         openapi_file_handle.write(
             json.dumps(
                 hapic.generate_doc(
                     title=doc_title,
-                    description=doc_description
+                    description=doc_description,
                 )
             )
         )
@@ -164,7 +158,7 @@ if __name__ == "__main__":
 
     print('')
     print('')
-    print('RUNNING AIOHTTP SERVER NOW')
+    print('RUNNING BOTTLE SERVER NOW')
     print('DOCUMENTATION AVAILABLE AT /doc/')
     # Run app
-    web.run_app(app=app, host='127.0.0.1', port=8084)
+    app.run(host='127.0.0.1', port=8081, debug=True)

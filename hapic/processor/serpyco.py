@@ -276,6 +276,11 @@ class SerpycoProcessor(Processor):
         missing_names = []
 
         for field in dataclasses.fields(self.schema):
+            # FIXME - G.M - 2019-03-27 - Does not work with pyramid Framework
+            # because cgi.FieldStorage is not convertable to bool (not here
+            # cause TypeError. We should adapt code to use same type of file
+            # for all frameworks.
+            # see #170: https://github.com/algoo/hapic/issues/170
             if not input_data.get(field.name, None):
                 missing_names.append(field.name)
 
