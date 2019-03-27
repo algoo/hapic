@@ -84,7 +84,6 @@ class AiohttpController(object):
         """
         Add a user to the list
         """
-        print(hapic_data.body)
         new_user = User(**hapic_data.body)
         return UserLib().add_user(new_user)
 
@@ -121,7 +120,7 @@ class AiohttpController(object):
     def bind(self, app: web.Application):
         app.add_routes([
             web.get('/about', self.about),
-            web.get('/users', self.get_users),
+            web.get('/users/', self.get_users),
             web.get(r'/users/{id}', self.get_user),
             web.post('/users/', self.add_user),
             web.delete('/users/{id}', self.del_user),
