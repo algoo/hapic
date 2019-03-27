@@ -76,7 +76,6 @@ class PyramidController(object):
         """
         Add a user to the list
         """
-        print(hapic_data.body)
         new_user = User(**hapic_data.body)
         return UserLib().add_user(new_user)
 
@@ -115,13 +114,13 @@ class PyramidController(object):
         configurator.add_route('about', '/about', request_method='GET')
         configurator.add_view(self.about, route_name='about')
 
-        configurator.add_route('get_users', '/users', request_method='GET')
+        configurator.add_route('get_users', '/users/', request_method='GET')
         configurator.add_view(self.get_users, route_name='get_users')
 
         configurator.add_route('get_user', '/users/{id}', request_method='GET')
         configurator.add_view(self.get_user, route_name='get_user')
 
-        configurator.add_route('add_user', '/users', request_method='POST')
+        configurator.add_route('add_user', '/users/', request_method='POST')
         configurator.add_view(self.add_user, route_name='add_user')
 
         configurator.add_route('del_user', '/users/{id}', request_method='DELETE')

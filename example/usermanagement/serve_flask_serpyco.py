@@ -86,7 +86,6 @@ class FlaskController(object):
         """
         Add a user to the list
         """
-        print(hapic_data.body)
         new_user = User(**hapic_data.body)
         return UserLib().add_user(new_user)
 
@@ -122,9 +121,9 @@ class FlaskController(object):
 
     def bind(self, app: flask.Flask):
         app.add_url_rule('/about', view_func=self.about)
-        app.add_url_rule('/users', view_func=self.get_users)
+        app.add_url_rule('/users/', view_func=self.get_users)
         app.add_url_rule('/users/<id>', view_func=self.get_user)
-        app.add_url_rule('/users/', view_func=self.add_user, methods=['POST'])
+        app.add_url_rule('/users//', view_func=self.add_user, methods=['POST'])
         app.add_url_rule('/users/<id>', view_func=self.del_user, methods=['DELETE'])  # nopep8
         app.add_url_rule('/users/<id>/avatar', view_func=self.get_user_avatar, methods=['GET'])  # nopep8
         app.add_url_rule('/users/<id>/avatar', view_func=self.update_user_avatar, methods=['PUT'])
