@@ -23,22 +23,6 @@ from hapic.type import TYPE_SCHEMA
 from hapic.util import LOGGER_NAME
 
 
-def exception_to_error_dict(exc: ValidationError) -> dict:
-    """
-    FIXME BS 2018-11-16: Error dict is not structured. See with serpyco
-    author for structured error.
-    :param exc: ValidationError exception to process
-    :return: dict with detail of error
-    """
-    errors = {}
-
-    for err_tuple in exc.args[1:]:
-        if err_tuple and len(err_tuple) == 3:
-            errors[err_tuple[0]] = (err_tuple[1], err_tuple[2])
-
-    return errors
-
-
 class SerpycoProcessor(Processor):
     def __init__(
         self,
@@ -70,8 +54,7 @@ class SerpycoProcessor(Processor):
         ref = {
             "$ref": "#/definitions/{}".format(
                 main_plugin.schema_name_resolver(
-                    schema_usage.schema,
-                    **schema_usage.plugin_name_resolver_kwargs
+                    schema_usage.schema, **schema_usage.plugin_name_resolver_kwargs
                 )
             )
         }
@@ -98,9 +81,7 @@ class SerpycoProcessor(Processor):
 
         return SchemaUsage(
             self.schema,
-            plugin_helper_kwargs={
-                "serpyco_builder_args": serpyco_plugin_kwargs
-            },
+            plugin_helper_kwargs={"serpyco_builder_args": serpyco_plugin_kwargs},
             plugin_name_resolver_kwargs=serpyco_name_resolver_kwargs,
         )
 
@@ -144,24 +125,24 @@ class SerpycoProcessor(Processor):
 
         try:
             self.serializer.load(data_to_validate)
-            raise WorkflowException(
-                "Serializer should raise an exception here"
-            )
+            raise WorkflowException("Serializer should raise an exception here")
         except ValidationError as exc:
             return ProcessValidationError(
-                message='Validation error of input data: "{}"'.format(
-                    exc.args[0]
-                ),
-                details=exception_to_error_dict(exc),
+                message='Validation error of input data: "{}"'.format(exc.args[0]),
+                details=exc.args[1],
+                original_exception=exc,
             )
         except Exception as exc:
             self._logger.exception(
-                'Unknown error during serpyco load: "{}": "{}"'.format(type(exc).__name__, str(exc))
+                'Unknown error during serpyco load: "{}": "{}"'.format(
+                    type(exc).__name__, str(exc)
+                )
             )
             return ProcessValidationError(
                 message="Unknown error during validation "
                 'of input data: "{}": "{}"'.format(type(exc).__name__, str(exc)),
                 details={},
+                original_exception=exc,
             )
 
     def get_input_files_validation_error(
@@ -186,24 +167,24 @@ class SerpycoProcessor(Processor):
         """
         try:
             self.serializer.dump(data_to_validate, validate=True)
-            raise WorkflowException(
-                "Serializer should raise an exception here"
-            )
+            raise WorkflowException("Serializer should raise an exception here")
         except ValidationError as exc:
             return ProcessValidationError(
-                message='Validation error of output data: "{}"'.format(
-                    exc.args[0]
-                ),
-                details=exception_to_error_dict(exc),
+                message='Validation error of output data: "{}"'.format(exc.args[0]),
+                details=exc.args[1],
+                original_exception=exc,
             )
         except Exception as exc:
             self._logger.exception(
-                'Unknown error during serpyco dump: "{}": "{}"'.format(type(exc).__name__, str(exc))
+                'Unknown error during serpyco dump: "{}": "{}"'.format(
+                    type(exc).__name__, str(exc)
+                )
             )
             return ProcessValidationError(
                 message="Unknown error during validation error "
                 'of output data: "{}": "{}"'.format(type(exc).__name__, str(exc)),
                 details={},
+                original_exception=exc,
             )
 
     def get_output_file_validation_error(
@@ -236,13 +217,13 @@ class SerpycoProcessor(Processor):
         try:
             return self.serializer.load(data)
         except ValidationError as exc:
-            raise ValidationException(
-                "Error when loading: {}".format(exc.args[0])
-            )
+            raise ValidationException("Error when loading: {}".format(exc.args[0])) from exc
         except Exception as exc:
             raise ValidationException(
-                "Unknown error when serpyco load: \"{}\": \"{}\"".format(type(exc).__name__, str(exc))
-            )
+                'Unknown error when serpyco load: "{}": "{}"'.format(
+                    type(exc).__name__, str(exc)
+                )
+            ) from exc
 
     def dump(self, data: typing.Any) -> typing.Any:
         """
@@ -255,16 +236,18 @@ class SerpycoProcessor(Processor):
         try:
             return self.serializer.dump(data, validate=True)
         except ValidationError as exc:
-            raise ValidationException(
-                "Error when dumping: {}".format(exc.args[0])
-            )
+            raise ValidationException("Error when dumping: {}".format(exc.args[0])) from exc
         except Exception as exc:
             self._logger.exception(
-                'Unknown error during serpyco dump: "{}": "{}"'.format(type(exc).__name__, str(exc))
+                'Unknown error during serpyco dump: "{}": "{}"'.format(
+                    type(exc).__name__, str(exc)
+                )
             )
             raise ValidationException(
-                'Unknown error when serpyco dump: "{}": "{}"'.format(type(exc).__name__, str(exc))
-            )
+                'Unknown error when serpyco dump: "{}": "{}"'.format(
+                    type(exc).__name__, str(exc)
+                )
+            ) from exc
 
     def load_files_input(self, input_data: typing.Dict[str, typing.Any]) -> object:
         """
@@ -281,7 +264,7 @@ class SerpycoProcessor(Processor):
 
         if missing_names:
             raise OutputValidationException(
-                "\"{}\" files are missing".format('", "'.join(missing_names))
+                '"{}" files are missing'.format('", "'.join(missing_names))
             )
 
         return self.schema(**input_data)

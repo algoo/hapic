@@ -28,7 +28,7 @@ marshmallow_require = [
 ]
 serpyco_require = [
     'apispec_serpyco>=0.15',
-    'serpyco',
+    'serpyco>=0.17',
 ]
 tests_base_require = [
     'pytest',

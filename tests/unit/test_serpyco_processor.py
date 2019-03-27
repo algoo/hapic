@@ -3,6 +3,7 @@ import dataclasses
 import typing
 
 import pytest
+from serpyco import ValidationError
 
 from hapic.exception import OutputValidationException
 from hapic.processor.serpyco import SerpycoProcessor
@@ -24,6 +25,11 @@ class OneFileSchema:
 class TwoFileSchema:
     file1: typing.Any
     file2: typing.Any
+
+
+@dataclasses.dataclass
+class UserSchema:
+    name: str
 
 
 class TestSerpycoProcessor(Base):
@@ -79,3 +85,27 @@ class TestSerpycoProcessor(Base):
 
         with pytest.raises(OutputValidationException):
             serpyco_processor.load_files_input({"file1": None})
+
+    def test_unit__get_input_validation_error__ok__exception_transmitted(
+        self, serpyco_processor: SerpycoProcessor,
+    ) -> None:
+        serpyco_processor.set_schema(UserSchema)
+        validation_error = serpyco_processor.get_input_validation_error(
+            {"name": 42}
+        )
+
+        assert validation_error.original_exception
+        assert isinstance(validation_error.original_exception, ValidationError)
+
+    def test_unit__get_output_validation_error__ok__exception_transmitted(
+        self, serpyco_processor: SerpycoProcessor,
+    ) -> None:
+        serpyco_processor.set_schema(UserSchema)
+        validation_error = serpyco_processor.get_output_validation_error(
+            {"name": 42}
+        )
+
+        assert validation_error.original_exception
+        # TODO BS 2019-03-27: Must be tested when
+        #  https://gitlab.com/sgrignard/serpyco/issues/26 fixed
+        # assert isinstance(validation_error.original_exception, ValidationError)
