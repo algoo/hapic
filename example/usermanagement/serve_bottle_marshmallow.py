@@ -70,7 +70,6 @@ class BottleController(object):
         """
         Add a user to the list
         """
-        print(hapic_data.body)
         new_user = User(**hapic_data.body)
         return UserLib().add_user(new_user)
 
@@ -106,9 +105,9 @@ class BottleController(object):
 
     def bind(self, app:bottle.Bottle):
         app.route('/about', callback=self.about)
-        app.route('/users', callback=self.get_users)
+        app.route('/users/', callback=self.get_users)
         app.route('/users/<id>', callback=self.get_user)
-        app.route('/users', callback=self.add_user,  method='POST')
+        app.route('/users/', callback=self.add_user,  method='POST')
         app.route('/users/<id>', callback=self.del_user, method='DELETE')
         app.route('/users/<id>/avatar', callback=self.get_user_avatar)
         app.route('/users/<id>/avatar', callback=self.update_user_avatar, method='PUT')
