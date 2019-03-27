@@ -140,9 +140,15 @@ class AiohttpContext(BaseContext):
         http_code: int
     ) -> "Response":
         if file_response.file_path:
-            # FIXME - G.M - 2019-03-26 - handle others headers in HapicFile
+            # TODO - G.M - 2019-03-27 - add support for others parameters of
+            # file_response
+            # Extended support for file response:
+            # https://github.com/algoo/hapic/issues/171
             return web.FileResponse(path=file_response.file_path)
         else:
+            # TODO - G.M - 2019-03-27 - add support for file object case
+            # Extended support for file response:
+            # https://github.com/algoo/hapic/issues/171
             raise NotImplementedError()
 
     def get_response(

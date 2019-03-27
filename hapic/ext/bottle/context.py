@@ -69,9 +69,15 @@ class BottleContext(BaseContext):
         self, file_response: HapicFile, http_code: int
     ) -> bottle.HTTPResponse:
         if file_response.file_path:
-            # TODO - G.M - 2019-03-26 - support for relative link ?
+            # TODO - G.M - 2019-03-27 - add support for others parameters of
+            # file_response
+            # Extended support for file response:
+            # https://github.com/algoo/hapic/issues/171
             return bottle.static_file(file_response.file_path, root='/')
         else:
+            # TODO - G.M - 2019-03-27 - add support for file object case
+            # Extended support for file response:
+            # https://github.com/algoo/hapic/issues/171
             raise NotImplementedError()
 
     def get_response(
