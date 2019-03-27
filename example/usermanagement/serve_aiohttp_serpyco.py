@@ -33,11 +33,9 @@ except ImportError:
 hapic = Hapic(async_=True)
 hapic.set_processor_class(SerpycoProcessor)
 
-
 class DictLikeObject(dict):
     def __getattr__(self, item):
         return self[item]
-
 
 class AiohttpController(object):
     @hapic.with_api_doc()
@@ -48,10 +46,16 @@ class AiohttpController(object):
         is generated from the docstring of the method.
         """
 
-        return DictLikeObject({"version": "1.2.3", "datetime": datetime.now()})
+        return DictLikeObject({
+            'version': '1.2.3',
+            'datetime': datetime.now(),
+        })
 
     @hapic.with_api_doc()
-    @hapic.output_body(UserDigestSchema, processor=SerpycoProcessor(many=True))
+    @hapic.output_body(
+        UserDigestSchema,
+        processor=SerpycoProcessor(many=True)
+    )
     async def get_users(self, request: Request):
         """
         Obtain users list.
@@ -71,12 +75,16 @@ class AiohttpController(object):
     @hapic.with_api_doc()
     # TODO - G.M - 2017-12-5 - Support input_forms ?
     # TODO - G.M - 2017-12-5 - Support exclude, only ?
-    @hapic.input_body(UserSchema, processor=SerpycoProcessor(exclude=["id"]))
+    @hapic.input_body(
+        UserSchema,
+        processor=SerpycoProcessor(exclude=['id'])
+    )
     @hapic.output_body(UserSchema)
     async def add_user(self, request: Request, hapic_data: HapicData):
         """
         Add a user to the list
         """
+        print(hapic_data.body)
         new_user = User(**hapic_data.body)
         return UserLib().add_user(new_user)
 
@@ -85,14 +93,14 @@ class AiohttpController(object):
     @hapic.output_body(NoContentSchema, default_http_code=204)
     @hapic.input_path(UserIdPathSchema)
     async def del_user(self, request: Request, hapic_data: HapicData):
-        UserLib().del_user(int(hapic_data.path.id))
+        UserLib().del_user(int(hapic_data.path['id']))
         return NoContentSchema()
 
     @hapic.with_api_doc()
     @hapic.handle_exception(UserNotFound, HTTPStatus.NOT_FOUND)
     @hapic.handle_exception(UserAvatarNotFound, HTTPStatus.NOT_FOUND)
     @hapic.input_path(UserIdPathSchema)
-    @hapic.output_file(["image/png"])
+    @hapic.output_file(['image/png'])
     async def get_user_avatar(self, request: Request, hapic_data: HapicData):
         return HapicFile(
             file_path=UserLib().get_user_avatar_path(user_id=(int(hapic_data.path.id)))
@@ -106,50 +114,57 @@ class AiohttpController(object):
     @hapic.output_body(NoContentSchema, default_http_code=204)
     async def update_user_avatar(self, request, hapic_data: HapicData):
         UserLib().update_user_avatar(
-            user_id=int(hapic_data.path.id), avatar=hapic_data.files.avatar
+            user_id=int(hapic_data.path.id),
+            avatar=hapic_data.files.avatar,
         )
 
     def bind(self, app: web.Application):
-        app.add_routes(
-            [
-                web.get("/about", self.about),
-                web.get("/users/", self.get_users),
-                web.get(r"/users/{id}", self.get_user),
-                web.post("/users/", self.add_user),
-                web.delete("/users/{id}", self.del_user),
-                web.get("/users/{id}/avatar", self.get_user_avatar),
-                web.put("/users/{id}/avatar", self.update_user_avatar),
-            ]
-        )
+        app.add_routes([
+            web.get('/about', self.about),
+            web.get('/users', self.get_users),
+            web.get(r'/users/{id}', self.get_user),
+            web.post('/users/', self.add_user),
+            web.delete('/users/{id}', self.del_user),
+            web.get('/users/{id}/avatar', self.get_user_avatar),
+            web.put('/users/{id}/avatar', self.update_user_avatar)
+        ])
 
 
 if __name__ == "__main__":
     app = web.Application()
     controllers = AiohttpController()
     controllers.bind(app)
-    hapic.set_context(AiohttpContext(app, default_error_builder=SerpycoDefaultErrorBuilder()))
-    doc_title = "Demo API documentation"
-    doc_description = (
-        "This documentation has been generated from "
-        "code. You can see it using swagger: "
-        "http://editor2.swagger.io/"
+    hapic.set_context(
+        AiohttpContext(
+            app,
+            default_error_builder=SerpycoDefaultErrorBuilder(),
+        ),
     )
-    hapic.add_documentation_view("/doc/", doc_title, doc_description)
-    print("")
-    print("")
-    print("GENERATING OPENAPI DOCUMENTATION")
-    openapi_file_name = "api-documentation.json"
-    with open(openapi_file_name, "w") as openapi_file_handle:
+    doc_title = 'Demo API documentation'
+    doc_description = 'This documentation has been generated from ' \
+                       'code. You can see it using swagger: ' \
+                       'http://editor2.swagger.io/'
+    hapic.add_documentation_view('/doc/', doc_title, doc_description)
+    print('')
+    print('')
+    print('GENERATING OPENAPI DOCUMENTATION')
+    openapi_file_name = 'api-documentation.json'
+    with open(openapi_file_name, 'w') as openapi_file_handle:
         openapi_file_handle.write(
-            json.dumps(hapic.generate_doc(title=doc_title, description=doc_description))
+            json.dumps(
+                hapic.generate_doc(
+                    title=doc_title,
+                    description=doc_description
+                )
+            )
         )
 
-    print("Documentation generated in {}".format(openapi_file_name))
+    print('Documentation generated in {}'.format(openapi_file_name))
     time.sleep(1)
 
-    print("")
-    print("")
-    print("RUNNING AIOHTTP SERVER NOW")
-    print("DOCUMENTATION AVAILABLE AT /doc/")
+    print('')
+    print('')
+    print('RUNNING AIOHTTP SERVER NOW')
+    print('DOCUMENTATION AVAILABLE AT /doc/')
     # Run app
-    web.run_app(app=app, host="127.0.0.1", port=8084)
+    web.run_app(app=app, host='127.0.0.1', port=8084)
