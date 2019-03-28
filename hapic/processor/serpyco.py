@@ -276,8 +276,23 @@ class SerpycoProcessor(Processor):
         :return: Hapic compatible file object (Processable by
             used context.get_file_response method)
         """
-        # FIXME BS 2018-11-22: code it
-        raise NotImplementedError("TODO")
+        self._validate_output_file(output_file)
+        return output_file
+
+    def _validate_output_file(self, data: typing.Any) -> None:
+        """
+        Raise OutputValidationException if given object cannot be accepted as file
+        :param data: object to be check as acceptable file
+        """
+        validation_error_message = self._get_ouput_file_validation_error_message(
+            data
+        )
+        if validation_error_message:
+            raise OutputValidationException(
+                "Error when validate output file : {}".format(
+                    validation_error_message
+                )
+            )
 
     @classmethod
     def get_default_error_builder(cls) -> ErrorBuilderInterface:
