@@ -96,7 +96,10 @@ class PyramidContext(BaseContext):
     def get_file_response(self, file_response: HapicFile, http_code: int):
         if file_response.file_path:
             from pyramid.response import FileResponse
-
+            # TODO - G.M - 2019-03-27 - add support for overriding parameters of
+            # file_response like content_length
+            # Extended support for file response:
+            # https://github.com/algoo/hapic/issues/171
             response = FileResponse(
                 path=file_response.file_path,
                 # INFO - G.M - 2018-09-13 - If content_type is no, mimetype

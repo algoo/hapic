@@ -9,6 +9,7 @@ from multidict import MultiDict
 from hapic.context import BaseContext
 from hapic.context import HandledException
 from hapic.context import RouteRepresentation
+from hapic.data import HapicFile
 from hapic.decorator import DECORATION_ATTRIBUTE_NAME
 from hapic.decorator import DecoratedController
 from hapic.error.main import ErrorBuilderInterface
@@ -63,6 +64,21 @@ class BottleContext(BaseContext):
             header_parameters=header_parameters,
             files_parameters=files_parameters,
         )
+
+    def get_file_response(
+        self, file_response: HapicFile, http_code: int
+    ) -> bottle.HTTPResponse:
+        if file_response.file_path:
+            # TODO - G.M - 2019-03-27 - add support for others parameters of
+            # file_response
+            # Extended support for file response:
+            # https://github.com/algoo/hapic/issues/171
+            return bottle.static_file(file_response.file_path, root='/')
+        else:
+            # TODO - G.M - 2019-03-27 - add support for file object case
+            # Extended support for file response:
+            # https://github.com/algoo/hapic/issues/171
+            raise NotImplementedError()
 
     def get_response(
         self, response: str, http_code: int, mimetype: str = "application/json"

@@ -4,10 +4,12 @@ import re
 import typing
 
 from flask import Flask
+from flask import send_file
 from flask import send_from_directory
 
 from hapic.context import BaseContext
 from hapic.context import RouteRepresentation
+from hapic.data import HapicFile
 from hapic.decorator import DECORATION_ATTRIBUTE_NAME
 from hapic.decorator import DecoratedController
 from hapic.error.main import ErrorBuilderInterface
@@ -57,6 +59,25 @@ class FlaskContext(BaseContext):
             ),
             files_parameters=request.files,
         )
+
+    def get_file_response(
+        self,
+        file_response: HapicFile,
+        http_code: int
+    ) -> "Response":
+        if file_response.file_path:
+            # TODO - G.M - 2019-03-27 - add support for others parameters of
+            # file_response
+            # Extended support for file response:
+            # https://github.com/algoo/hapic/issues/171
+            return send_file(
+                filename_or_fp=file_response.file_path
+            )
+        else:
+            # TODO - G.M - 2019-03-27 - add support for file object case
+            # Extended support for file response:
+            # https://github.com/algoo/hapic/issues/171
+            raise NotImplementedError()
 
     def get_response(
         self, response: str, http_code: int, mimetype: str = "application/json"
