@@ -83,8 +83,13 @@ class FlaskContext(BaseContext):
         self, response: str, http_code: int, mimetype: str = "application/json"
     ) -> "Response":
         from flask import Response
-
-        return Response(response=response, mimetype=mimetype, status=http_code)
+        response = Response(response=response, mimetype=mimetype, status=http_code)
+        # INFO - G.M - 2019-04-01 - Response object of flask always setup content-type
+        # even when http_code is 204 NO-CONTENT
+        # this is a fix to have correct behaviour with 204 response.
+        if http_code == 204:
+            del response.headers['content-type']
+        return response
 
     def get_validation_error_response(
         self,
