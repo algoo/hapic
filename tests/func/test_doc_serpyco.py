@@ -43,7 +43,7 @@ class TestDocSerpyco(object):
 
         assert (
             "#/definitions/UserSchema_exclude_password"
-            == doc["paths"]["/hello"]["get"]["responses"][200]["schema"][
+            == doc["paths"]["/hello"]["get"]["responses"]['200']["schema"][
                 "$ref"
             ]
         )

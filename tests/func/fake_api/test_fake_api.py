@@ -1,4 +1,6 @@
 # coding: utf-8
+import json
+
 from bottle import Bottle
 from flask import Flask
 from pyramid.config import Configurator
@@ -170,11 +172,11 @@ def test_func__test_fake_api_doc_ok__all_framework(context):
     doc = hapic.generate_doc(
         title="Fake API", description="just an example of hapic API"
     )
+    # INFO BS 2019-04-15: Prevent keep of OrderedDict
+    doc = json.loads(json.dumps(doc))
 
     assert doc["info"] == SWAGGER_DOC_API["info"]
-    assert doc["tags"] == SWAGGER_DOC_API["tags"]
     assert doc["swagger"] == SWAGGER_DOC_API["swagger"]
-    assert doc["parameters"] == SWAGGER_DOC_API["parameters"]
     assert doc["paths"]["/about"] == SWAGGER_DOC_API["paths"]["/about"]
     assert doc["paths"]["/users"] == SWAGGER_DOC_API["paths"]["/users"]
     assert (

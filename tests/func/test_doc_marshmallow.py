@@ -104,7 +104,7 @@ class TestDocGeneration(Base):
         assert "/avatar" in doc["paths"]
         assert "produces" in doc["paths"]["/avatar"]["get"]
         assert "image/jpeg" in doc["paths"]["/avatar"]["get"]["produces"]
-        assert 200 in doc["paths"]["/avatar"]["get"]["responses"]
+        assert '200' in doc["paths"]["/avatar"]["get"]["responses"]
 
     def test_func__input_files_doc__ok__one_file_and_text(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
@@ -200,11 +200,11 @@ class TestDocGeneration(Base):
         assert "/upload" in doc["paths"]
         assert "post" in doc["paths"]["/upload"]
         assert "responses" in doc["paths"]["/upload"]["post"]
-        assert 500 in doc["paths"]["/upload"]["post"]["responses"]
+        assert '500' in doc["paths"]["/upload"]["post"]["responses"]
         assert {
             "description": Exception.__doc__,
             "schema": {"$ref": "#/definitions/DefaultErrorSchema"},
-        } == doc["paths"]["/upload"]["post"]["responses"][500]
+        } == doc["paths"]["/upload"]["post"]["responses"]['500']
 
     def test_func__errors__explicit_description(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
@@ -223,11 +223,11 @@ class TestDocGeneration(Base):
         assert "/upload" in doc["paths"]
         assert "post" in doc["paths"]["/upload"]
         assert "responses" in doc["paths"]["/upload"]["post"]
-        assert 500 in doc["paths"]["/upload"]["post"]["responses"]
+        assert '500' in doc["paths"]["/upload"]["post"]["responses"]
         assert {
             "description": "Any Exception",
             "schema": {"$ref": "#/definitions/DefaultErrorSchema"},
-        } == doc["paths"]["/upload"]["post"]["responses"][500]
+        } == doc["paths"]["/upload"]["post"]["responses"]['500']
 
     def test_func__errors__docstring_exception(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
@@ -249,11 +249,11 @@ class TestDocGeneration(Base):
         assert "/upload" in doc["paths"]
         assert "post" in doc["paths"]["/upload"]
         assert "responses" in doc["paths"]["/upload"]["post"]
-        assert 500 in doc["paths"]["/upload"]["post"]["responses"]
+        assert '500' in doc["paths"]["/upload"]["post"]["responses"]
         assert {
             "description": "Just a docstring",
             "schema": {"$ref": "#/definitions/DefaultErrorSchema"},
-        } == doc["paths"]["/upload"]["post"]["responses"][500]
+        } == doc["paths"]["/upload"]["post"]["responses"]['500']
 
     def test_func__errors__http_status_description(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
@@ -275,11 +275,11 @@ class TestDocGeneration(Base):
         assert "/upload" in doc["paths"]
         assert "post" in doc["paths"]["/upload"]
         assert "responses" in doc["paths"]["/upload"]["post"]
-        assert 400 in doc["paths"]["/upload"]["post"]["responses"]
+        assert '400' in doc["paths"]["/upload"]["post"]["responses"]
         assert {
             "description": "BAD_REQUEST: Bad request syntax or unsupported method",
             "schema": {"$ref": "#/definitions/DefaultErrorSchema"},
-        } == doc["paths"]["/upload"]["post"]["responses"][400]
+        } == doc["paths"]["/upload"]["post"]["responses"]['400']
 
     def test_func__errors__http_status_as_int_description(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
@@ -301,11 +301,11 @@ class TestDocGeneration(Base):
         assert "/upload" in doc["paths"]
         assert "post" in doc["paths"]["/upload"]
         assert "responses" in doc["paths"]["/upload"]["post"]
-        assert 400 in doc["paths"]["/upload"]["post"]["responses"]
+        assert '400' in doc["paths"]["/upload"]["post"]["responses"]
         assert {
             "description": "400",
             "schema": {"$ref": "#/definitions/DefaultErrorSchema"},
-        } == doc["paths"]["/upload"]["post"]["responses"][400]
+        } == doc["paths"]["/upload"]["post"]["responses"]['400']
 
     def test_func__errors__multiple_same_http_status_description(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
@@ -348,11 +348,11 @@ class TestDocGeneration(Base):
         assert "/upload" in doc["paths"]
         assert "post" in doc["paths"]["/upload"]
         assert "responses" in doc["paths"]["/upload"]["post"]
-        assert 400 in doc["paths"]["/upload"]["post"]["responses"]
+        assert '400' in doc["paths"]["/upload"]["post"]["responses"]
         assert "description"
 
-        assert doc["paths"]["/upload"]["post"]["responses"][400]["description"]
-        descriptions = doc["paths"]["/upload"]["post"]["responses"][400][
+        assert doc["paths"]["/upload"]["post"]["responses"]['400']["description"]
+        descriptions = doc["paths"]["/upload"]["post"]["responses"]['400'][
             "description"
         ].split("\n\n")
         assert (
@@ -363,10 +363,10 @@ class TestDocGeneration(Base):
         assert "400" in descriptions
         assert "Just a docstring" in descriptions
         assert not "Docstring not used" in descriptions
-        assert doc["paths"]["/upload"]["post"]["responses"][400]["schema"]
+        assert doc["paths"]["/upload"]["post"]["responses"]['400']["schema"]
         assert {"$ref": "#/definitions/DefaultErrorSchema"} == doc["paths"][
             "/upload"
-        ]["post"]["responses"][400]["schema"]
+        ]["post"]["responses"]['400']["schema"]
 
     def test_func__enum__nominal_case(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
