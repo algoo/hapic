@@ -89,21 +89,17 @@ async def test_func__test_fake_api_endpoints_ok__aiohttp(test_client,):
     assert resp.status == 400
     json_ = await resp.json()
 
-    # NOTE BS 2019-03-27: This error message will be changed when
-    # https://gitlab.com/sgrignard/serpyco/issues/26 fixed.
     assert (
-        'Unknown error during validation of input data: "IndexError": '
-        '"list index out of range"' in json_.get("message")
+        'Validation error of input data: "data: is missing required properties'
+        in json_.get("message")
     )
 
-    # NOTE BS 2019-03-27: This error message will be changed when
-    # https://gitlab.com/sgrignard/serpyco/issues/26 fixed.
-    # assert "email_address" in json_.get("message")
-    # assert "last_name" in json_.get("message")
-    # assert "display_name" in json_.get("message")
-    # assert "company" in json_.get("message")
-    # assert "username" in json_.get("message")
-    # assert "first_name" in json_.get("message")
+    assert "email_address" in json_.get("message")
+    assert "last_name" in json_.get("message")
+    assert "display_name" in json_.get("message")
+    assert "company" in json_.get("message")
+    assert "username" in json_.get("message")
+    assert "first_name" in json_.get("message")
 
     user = {
         "email_address": "some.user@hapic.com",
