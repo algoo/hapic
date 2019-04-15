@@ -1,4 +1,5 @@
 # coding: utf-8
+import json
 from http import HTTPStatus
 import io
 import sys
@@ -507,6 +508,9 @@ class TestAiohttpExt(object):
         )
 
         doc = hapic.generate_doc("aiohttp", "testing")
+        # INFO BS 2019-04-15: Prevent keep of OrderedDict
+        doc = json.loads(json.dumps(doc))
+
         assert "UserSchema" in doc.get("definitions")
         assert {"name": {"type": "string"}} == doc["definitions"][
             "UserSchema"
@@ -530,7 +534,7 @@ class TestAiohttpExt(object):
             },
         ] == doc["paths"]["/{username}"]["get"]["parameters"]
         assert {
-            200: {
+            '200': {
                 "schema": {"$ref": "#/definitions/UserSchema"},
                 "description": "200",
             }
@@ -545,7 +549,7 @@ class TestAiohttpExt(object):
             }
         ] == doc["paths"]["/{username}"]["post"]["parameters"]
         assert {
-            200: {
+            '200': {
                 "schema": {"$ref": "#/definitions/UserSchema"},
                 "description": "200",
             }
@@ -573,13 +577,16 @@ class TestAiohttpExt(object):
         )
 
         doc = hapic.generate_doc("aiohttp", "testing")
+        # INFO BS 2019-04-15: Prevent keep of OrderedDict
+        doc = json.loads(json.dumps(doc))
+
         assert "/" in doc.get("paths")
         assert "get" in doc["paths"]["/"]
-        assert 200 in doc["paths"]["/"]["get"].get("responses", {})
+        assert '200' in doc["paths"]["/"]["get"].get("responses", {})
         assert {
             "items": {"$ref": "#/definitions/OuputStreamItemSchema"},
             "type": "array",
-        } == doc["paths"]["/"]["get"]["responses"][200]["schema"]
+        } == doc["paths"]["/"]["get"]["responses"]['200']["schema"]
 
     async def test_unit__general_exception_handling__ok__nominal_case(
         self, aiohttp_client, loop

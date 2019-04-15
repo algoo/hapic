@@ -94,7 +94,6 @@ SWAGGER_DOC_API = {
         "title": "Fake API",
         "version": "1.0.0",
     },
-    "parameters": {},
     "paths": OrderedDict(
         [
             (
@@ -103,7 +102,7 @@ SWAGGER_DOC_API = {
                     "get": {
                         "description": "General information about this API.",
                         "responses": {
-                            200: {
+                            '200': {
                                 "description": "200",
                                 "schema": {
                                     "$ref": "#/definitions/AboutResponseSchema"
@@ -119,7 +118,7 @@ SWAGGER_DOC_API = {
                     "get": {
                         "description": "Obtain users list.",
                         "responses": {
-                            200: {
+                            '200': {
                                 "description": "200",
                                 "schema": {
                                     "$ref": "#/definitions/ListsUserSchema"
@@ -145,7 +144,7 @@ SWAGGER_DOC_API = {
                             }
                         ],
                         "responses": {
-                            204: {
+                            '204': {
                                 "description": "204",
                                 "schema": {
                                     "$ref": "#/definitions/NoContentSchema"
@@ -166,7 +165,7 @@ SWAGGER_DOC_API = {
                             }
                         ],
                         "responses": {
-                            200: {
+                            '200': {
                                 "description": "200",
                                 "schema": {"$ref": "#/definitions/UserSchema"},
                             }
@@ -189,7 +188,7 @@ SWAGGER_DOC_API = {
                             }
                         ],
                         "responses": {
-                            200: {
+                            '200': {
                                 "description": "200",
                                 "schema": {"$ref": "#/definitions/UserSchema"},
                             }
@@ -203,7 +202,7 @@ SWAGGER_DOC_API = {
                     "get": {
                         "description": "Obtain users list.",
                         "responses": {
-                            200: {
+                            '200': {
                                 "description": "200",
                                 "schema": {
                                     "type": "array",
@@ -219,5 +218,4 @@ SWAGGER_DOC_API = {
         ]
     ),
     "swagger": "2.0",
-    "tags": [],
 }
