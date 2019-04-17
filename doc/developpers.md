@@ -93,9 +93,9 @@ Ce que ça fait (en plus de retourner une fonction pour remplacer la
 "fonction du dessous)": Ca place des token sur la méthode décoré et sur le wrapper (
  pour retrouver la vue lors de la génération de la doc). Ca construit un objet
  `hapic.decorator.DecoratedController` qui est la représentation de la vue et qui 
- contient tout ce qu'on y a attaché (les shémas, les erreur attrapés, etc).
+ contient tout ce qu'on y a attaché (les schémas, les erreur attrapés, etc).
 
-Avec ce système on à la liste de toute les vues et pour chaque vues les shémas, les
+Avec ce système on à la liste de toute les vues et pour chaque vues les schémas, les
  erreur attrapés, etc.
  
 
