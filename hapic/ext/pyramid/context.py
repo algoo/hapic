@@ -27,6 +27,7 @@ except ImportError:
 if typing.TYPE_CHECKING:
     from pyramid.response import Response
     from pyramid.config import Configurator
+    from hapic.context import HandledException  # noqa: F401
 
 # Bottle regular expression to locate url parameters
 PYRAMID_RE_PATH_URL = re.compile(r"")
@@ -41,9 +42,7 @@ class PyramidContext(BaseContext):
         debug: bool = False,
     ):
         super().__init__(processor_class, default_error_builder)
-        self._handled_exceptions = (
-            []
-        )  # type: typing.List[HandledException]  # nopep8
+        self._handled_exceptions = []  # type: typing.List[HandledException]
         self.configurator = configurator
         self.debug = debug
 
@@ -51,10 +50,7 @@ class PyramidContext(BaseContext):
         req = args[-1]  # TODO : Check
         # TODO : move this code to check_json
         # same idea as in : https://bottlepy.org/docs/dev/_modules/bottle.html#BaseRequest.json
-        if req.body and req.content_type in (
-            "application/json",
-            "application/json-rpc",
-        ):
+        if req.body and req.content_type in ("application/json", "application/json-rpc"):
             json_body = req.json_body
             # TODO : raise exception if not correct , return 400 if uncorrect instead ?
         else:
@@ -73,9 +69,7 @@ class PyramidContext(BaseContext):
             query_parameters=req.GET,
             body_parameters=json_body,
             form_parameters=req.POST,
-            header_parameters=LowercaseKeysDict(
-                [(k.lower(), v) for k, v in req.headers.items()]
-            ),
+            header_parameters=LowercaseKeysDict([(k.lower(), v) for k, v in req.headers.items()]),
             files_parameters=files_parameters,
         )
 
@@ -96,6 +90,7 @@ class PyramidContext(BaseContext):
     def get_file_response(self, file_response: HapicFile, http_code: int):
         if file_response.file_path:
             from pyramid.response import FileResponse
+
             # TODO - G.M - 2019-03-27 - add support for overriding parameters of
             # file_response like content_length
             # Extended support for file response:
@@ -120,15 +115,11 @@ class PyramidContext(BaseContext):
             response.last_modified = file_response.last_modified
 
         response.status_code = http_code
-        response.content_disposition = (
-            file_response.get_content_disposition_header_value()
-        )  # nopep8
+        response.content_disposition = file_response.get_content_disposition_header_value()
         return response
 
     def get_validation_error_response(
-        self,
-        error: ProcessValidationError,
-        http_code: HTTPStatus = HTTPStatus.BAD_REQUEST,
+        self, error: ProcessValidationError, http_code: HTTPStatus = HTTPStatus.BAD_REQUEST
     ) -> typing.Any:
         from pyramid.response import Response
 
@@ -139,17 +130,13 @@ class PyramidContext(BaseContext):
             status=int(http_code),
         )
 
-    def find_route(
-        self, decorated_controller: DecoratedController
-    ) -> RouteRepresentation:
+    def find_route(self, decorated_controller: DecoratedController) -> RouteRepresentation:
         for category in self.configurator.introspector.get_category("views"):
             view_intr = category["introspectable"]
             route_intr = category["related"]
 
             reference = decorated_controller.reference
-            route_token = getattr(
-                view_intr.get("callable"), DECORATION_ATTRIBUTE_NAME, None
-            )
+            route_token = getattr(view_intr.get("callable"), DECORATION_ATTRIBUTE_NAME, None)
 
             match_with_wrapper = view_intr.get("callable") == reference.wrapper
             match_with_wrapped = view_intr.get("callable") == reference.wrapped
@@ -172,7 +159,7 @@ class PyramidContext(BaseContext):
 
     def get_swagger_path(self, contextualised_rule: str) -> str:
         # TODO BS 20171110: Pyramid allow route like '/{foo:\d+}', so adapt
-        # and USE regular expression (see https://docs.pylonsproject.org/projects/pyramid/en/latest/narr/urldispatch.html#custom-route-predicates)  # nopep8
+        # and USE regular expression (see https://docs.pylonsproject.org/projects/pyramid/en/latest/narr/urldispatch.html#custom-route-predicates)
 
         # INFO - G.M - 27-04-2018 - route_pattern of pyramid without '/' case.
         # For example, when using config.include with route_prefix param,
@@ -187,22 +174,15 @@ class PyramidContext(BaseContext):
         return isinstance(response, Response)
 
     def add_view(
-        self,
-        route: str,
-        http_method: str,
-        view_func: typing.Callable[..., typing.Any],
+        self, route: str, http_method: str, view_func: typing.Callable[..., typing.Any]
     ) -> None:
 
-        self.configurator.add_route(
-            name=route, path=route, request_method=http_method
-        )
+        self.configurator.add_route(name=route, path=route, request_method=http_method)
 
         self.configurator.add_view(view_func, route_name=route)
 
     def serve_directory(self, route_prefix: str, directory_path: str) -> None:
-        self.configurator.add_static_view(
-            name=route_prefix, path=directory_path
-        )
+        self.configurator.add_static_view(name=route_prefix, path=directory_path)
 
     def _add_exception_class_to_catch(
         self, exception_class: typing.Type[Exception], http_code: int
@@ -214,10 +194,8 @@ class PyramidContext(BaseContext):
                 # see https://github.com/algoo/hapic/issues/93
                 logger = logging.getLogger(LOGGER_NAME)
                 logger.info(
-                    "Exception {exc} occured, return {http_code} http_code : {msg}".format(  # nopep8
-                        exc=type(exc).__name__,
-                        http_code=http_code,
-                        msg=str(exc),
+                    "Exception {exc} occured, return {http_code} http_code : {msg}".format(
+                        exc=type(exc).__name__, http_code=http_code, msg=str(exc)
                     )
                 )
                 logger.debug(traceback.format_exc())
@@ -231,8 +209,7 @@ class PyramidContext(BaseContext):
             return view_func
 
         self.configurator.add_view(
-            view=factory_view_func(exception_class, http_code),
-            context=exception_class,
+            view=factory_view_func(exception_class, http_code), context=exception_class
         )
 
     def is_debug(self) -> bool:

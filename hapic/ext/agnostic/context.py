@@ -9,7 +9,8 @@ from multidict import MultiDict
 from hapic.context import BaseContext
 from hapic.context import HandledException
 from hapic.context import RouteRepresentation
-from hapic.decorator import DECORATION_ATTRIBUTE_NAME, DecoratedController
+from hapic.decorator import DECORATION_ATTRIBUTE_NAME
+from hapic.decorator import DecoratedController
 from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
 from hapic.exception import RouteNotFound
 from hapic.processor.main import ProcessValidationError
@@ -23,6 +24,7 @@ class AgnosticApp(object):
     Framework Agnostic App for AgnosticContext. Cannot
     be run as a true wsgi app.
     """
+
     def __init__(self):
         self.routes = []  # type: typing.List[RouteRepresentation]
 
@@ -70,9 +72,7 @@ class AgnosticContext(BaseContext):
     ) -> None:
         super().__init__(default_error_builder=default_error_builder)
         self.debug = debug
-        self._handled_exceptions = (
-            []
-        )  # type: typing.List[HandledException]  # nopep8
+        self._handled_exceptions = []  # type: typing.List[HandledException]
         self.app = app
         self._exceptions_handler_installed = False
         self.path_url_regex = path_url_regex
@@ -94,17 +94,12 @@ class AgnosticContext(BaseContext):
         )
 
     def get_validation_error_response(
-        self,
-        error: ProcessValidationError,
-        http_code: HTTPStatus = HTTPStatus.BAD_REQUEST,
+        self, error: ProcessValidationError, http_code: HTTPStatus = HTTPStatus.BAD_REQUEST
     ) -> typing.Any:
         return self.get_response(
             response=json.dumps(
                 {
-                    "original_error": {
-                        "details": error.details,
-                        "message": error.message,
-                    },
+                    "original_error": {"details": error.details, "message": error.message},
                     "http_code": http_code,
                 }
             ),
@@ -114,28 +109,18 @@ class AgnosticContext(BaseContext):
     def _add_exception_class_to_catch(
         self, exception_class: typing.Type[Exception], http_code: int
     ) -> None:
-        self._handled_exceptions.append(
-            HandledException(exception_class, http_code)
-        )
+        self._handled_exceptions.append(HandledException(exception_class, http_code))
 
-    def _get_handled_exception_class_and_http_codes(
-        self,
-    ) -> typing.List[HandledException]:
+    def _get_handled_exception_class_and_http_codes(self,) -> typing.List[HandledException]:
         return self._handled_exceptions
 
     def find_route(self, decorated_controller: "DecoratedController"):
         reference = decorated_controller.reference
         for route in self.app.routes:
-            route_token = getattr(
-                route.original_route_object, DECORATION_ATTRIBUTE_NAME, None
-            )
+            route_token = getattr(route.original_route_object, DECORATION_ATTRIBUTE_NAME, None)
 
-            match_with_wrapper = (
-                route.original_route_object == reference.wrapper
-            )
-            match_with_wrapped = (
-                route.original_route_object == reference.wrapped
-            )
+            match_with_wrapper = route.original_route_object == reference.wrapper
+            match_with_wrapped = route.original_route_object == reference.wrapped
             match_with_token = route_token == reference.token
 
             if match_with_wrapper or match_with_wrapped or match_with_token:
@@ -146,9 +131,7 @@ class AgnosticContext(BaseContext):
                 )
         # TODO BS 20171010: Raise exception or print error ? see #10
         raise RouteNotFound(
-            'Decorated route "{}" was not found in bottle routes'.format(
-                decorated_controller.name
-            )
+            'Decorated route "{}" was not found in bottle routes'.format(decorated_controller.name)
         )
 
     def get_swagger_path(self, contextualised_rule: str) -> str:

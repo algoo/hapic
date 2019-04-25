@@ -7,7 +7,6 @@ from serpyco import ValidationError
 
 from hapic.exception import OutputValidationException
 from hapic.processor.serpyco import SerpycoProcessor
-
 from tests.base import Base
 
 
@@ -39,8 +38,8 @@ class TestSerpycoProcessor(Base):
         serpyco_processor.set_schema(OneFileSchema)
         error = serpyco_processor.get_input_files_validation_error({})
 
-        assert {'file1': 'data is missing'} == error.details
-        assert 'Validation error of input data' == error.message
+        assert {"file1": "data is missing"} == error.details
+        assert "Validation error of input data" == error.message
 
     def test_unit__get_input_files_validation_error__ok__missing_two_file(
         self, serpyco_processor: SerpycoProcessor
@@ -48,8 +47,8 @@ class TestSerpycoProcessor(Base):
         serpyco_processor.set_schema(TwoFileSchema)
         error = serpyco_processor.get_input_files_validation_error({})
 
-        assert {'file1': 'data is missing', 'file2': 'data is missing'} == error.details
-        assert 'Validation error of input data' == error.message
+        assert {"file1": "data is missing", "file2": "data is missing"} == error.details
+        assert "Validation error of input data" == error.message
 
     def test_unit__load_files_input__ok__one_file(
         self, serpyco_processor: SerpycoProcessor
@@ -87,23 +86,19 @@ class TestSerpycoProcessor(Base):
             serpyco_processor.load_files_input({"file1": None})
 
     def test_unit__get_input_validation_error__ok__exception_transmitted(
-        self, serpyco_processor: SerpycoProcessor,
+        self, serpyco_processor: SerpycoProcessor
     ) -> None:
         serpyco_processor.set_schema(UserSchema)
-        validation_error = serpyco_processor.get_input_validation_error(
-            {"name": 42}
-        )
+        validation_error = serpyco_processor.get_input_validation_error({"name": 42})
 
         assert validation_error.original_exception
         assert isinstance(validation_error.original_exception, ValidationError)
 
     def test_unit__get_output_validation_error__ok__exception_transmitted(
-        self, serpyco_processor: SerpycoProcessor,
+        self, serpyco_processor: SerpycoProcessor
     ) -> None:
         serpyco_processor.set_schema(UserSchema)
-        validation_error = serpyco_processor.get_output_validation_error(
-            {"name": 42}
-        )
+        validation_error = serpyco_processor.get_output_validation_error({"name": 42})
 
         assert validation_error.original_exception
         # TODO BS 2019-03-27: Must be tested when

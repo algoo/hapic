@@ -1,26 +1,24 @@
 # -*- coding: utf-8 -*-
 import marshmallow
 
+
 class NoContentSchema(marshmallow.Schema):
     pass
 
+
 class AboutResponseSchema(marshmallow.Schema):
-    version = marshmallow.fields.String(required=True,)
+    version = marshmallow.fields.String(required=True)
     datetime = marshmallow.fields.DateTime(required=True)
 
 
 class UserPathSchema(marshmallow.Schema):
-    id = marshmallow.fields.Int(
-        required=True,
-        validate=marshmallow.validate.Range(min=1),
-    )
+    id = marshmallow.fields.Int(required=True, validate=marshmallow.validate.Range(min=1))
 
 
 class UserSchema(marshmallow.Schema):
     id = marshmallow.fields.Int(required=True)
     username = marshmallow.fields.String(
-        required=True,
-        validate = marshmallow.validate.Regexp(regex='[\w-]+'),
+        required=True, validate=marshmallow.validate.Regexp(regex="[\w-]+")  # noqa: W605
     )
     email_address = marshmallow.fields.Email(required=True)
     first_name = marshmallow.fields.String(required=True)
@@ -36,19 +34,12 @@ class PaginationSchema(marshmallow.Schema):
 
 
 class ListsUserSchema(marshmallow.Schema):
-    item_nb = marshmallow.fields.Int(
-        required=True,
-        validate=marshmallow.validate.Range(min=0)
-    )
+    item_nb = marshmallow.fields.Int(required=True, validate=marshmallow.validate.Range(min=0))
     items = marshmallow.fields.Nested(
-        UserSchema,
-        many=True,
-        only=['id', 'username', 'display_name', 'company']
+        UserSchema, many=True, only=["id", "username", "display_name", "company"]
     )
     # TODO - G.M - 2017-12-05 - Fix nested schema import into doc !
     # Can't add doc for nested Schema properly
     # When schema item isn't added through their own method
     # Ex : Pagination Schema doesn't work here but UserSchema is ok.
-    pagination = marshmallow.fields.Nested(
-        PaginationSchema
-    )
+    pagination = marshmallow.fields.Nested(PaginationSchema)

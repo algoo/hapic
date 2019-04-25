@@ -8,9 +8,9 @@ class User(object):
         username: str,
         display_name: str,
         company: str,
-        email_address: str='',
-        first_name: str='',
-        last_name: str='',
+        email_address: str = "",
+        first_name: str = "",
+        last_name: str = "",
     ) -> None:
         self.id = id
         self.username = username

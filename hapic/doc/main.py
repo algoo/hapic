@@ -12,15 +12,12 @@ from hapic.context import RouteRepresentation
 from hapic.decorator import DecoratedController
 from hapic.description import ControllerDescription
 from hapic.doc.schema import SchemaUsage
-from hapic.processor.main import Processor
 
-FIELDS_PARAMS_GENERIC_ACCEPTED = [
-    "type",
-    "format",
-    "required",
-    "description",
-    "enum",
-]
+if typing.TYPE_CHECKING:
+    from hapic.hapic import Hapic
+
+
+FIELDS_PARAMS_GENERIC_ACCEPTED = ["type", "format", "required", "description", "enum"]
 FIELDS_TYPE_ARRAY = ["array"]
 FIELDS_PARAMS_ARRAY_ACCEPTED = [
     "items",
@@ -45,18 +42,9 @@ FIELDS_PARAMS_NUMERIC_ACCEPTED = [
 def field_accepted_param(type: str, param_name: str) -> bool:
     return (
         param_name in FIELDS_PARAMS_GENERIC_ACCEPTED
-        or (
-            type in FIELDS_TYPE_STRING
-            and param_name in FIELDS_PARAMS_STRING_ACCEPTED
-        )
-        or (
-            type in FIELDS_TYPE_ARRAY
-            and param_name in FIELDS_PARAMS_ARRAY_ACCEPTED
-        )
-        or (
-            type in FIELDS_TYPE_NUMERIC
-            and param_name in FIELDS_PARAMS_NUMERIC_ACCEPTED
-        )
+        or (type in FIELDS_TYPE_STRING and param_name in FIELDS_PARAMS_STRING_ACCEPTED)
+        or (type in FIELDS_TYPE_ARRAY and param_name in FIELDS_PARAMS_ARRAY_ACCEPTED)
+        or (type in FIELDS_TYPE_NUMERIC and param_name in FIELDS_PARAMS_NUMERIC_ACCEPTED)
     )
 
 
@@ -93,51 +81,37 @@ def generate_fields_description(
     if "example" in schema:
         if "description" not in description:
             description["description"] = ""
-        description[
-            "description"
-        ] = "{description}\n\n*example value: {example}*".format(  # nopep8
+        description["description"] = "{description}\n\n*example value: {example}*".format(
             description=description["description"], example=schema["example"]
         )
     return description
 
 
 def generate_operations(
-    main_plugin: BasePlugin,
-    route: RouteRepresentation,
-    description: ControllerDescription,
+    main_plugin: BasePlugin, route: RouteRepresentation, description: ControllerDescription
 ):
     method_operations = dict()
     if description.input_body:
-        schema_ref = description.input_body.wrapper.processor.generate_schema_ref(
-            main_plugin
-        )
+        schema_ref = description.input_body.wrapper.processor.generate_schema_ref(main_plugin)
         method_operations.setdefault("parameters", []).append(
             {"in": "body", "name": "body", "schema": schema_ref}
         )
 
     if description.output_body:
-        schema_ref = description.output_body.wrapper.processor.generate_schema_ref(
-            main_plugin
-        )
+        schema_ref = description.output_body.wrapper.processor.generate_schema_ref(main_plugin)
         method_operations.setdefault("responses", {})[
             int(description.output_body.wrapper.default_http_code)
         ] = {
-            "description": str(
-                int(description.output_body.wrapper.default_http_code)
-            ),  # nopep8
+            "description": str(int(description.output_body.wrapper.default_http_code)),
             "schema": schema_ref,
         }
 
     if description.output_stream:
-        schema_ref = description.output_stream.wrapper.processor.generate_schema_ref(
-            main_plugin
-        )
+        schema_ref = description.output_stream.wrapper.processor.generate_schema_ref(main_plugin)
         method_operations.setdefault("responses", {})[
             int(description.output_stream.wrapper.default_http_code)
         ] = {
-            "description": str(
-                int(description.output_stream.wrapper.default_http_code)
-            ),  # nopep8
+            "description": str(int(description.output_stream.wrapper.default_http_code)),
             "schema": {"type": "array", "items": schema_ref},
         }
 
@@ -147,18 +121,12 @@ def generate_operations(
         )
         method_operations.setdefault("responses", {})[
             int(description.output_file.wrapper.default_http_code)
-        ] = {
-            "description": str(
-                int(description.output_file.wrapper.default_http_code)
-            )  # nopep8
-        }
+        ] = {"description": str(int(description.output_file.wrapper.default_http_code))}
 
     if description.errors:
         http_status_errors = {}
         for error in description.errors:
-            http_status_errors.setdefault(
-                error.wrapper.error_http_code, []
-            ).append(error)
+            http_status_errors.setdefault(error.wrapper.error_http_code, []).append(error)
 
         for http_status in http_status_errors:
             # FIXME - G.M - 2018-11-30 - We use schema class from first error
@@ -181,16 +149,14 @@ def generate_operations(
 
     # jsonschema based
     if description.input_path:
-        schema_usage = description.input_path.wrapper.processor.schema_class_resolver(
-            main_plugin
-        )
+        schema_usage = description.input_path.wrapper.processor.schema_class_resolver(main_plugin)
         jsonschema = main_plugin.schema_helper(
             main_plugin.schema_name_resolver(
                 schema_usage.schema, **schema_usage.plugin_name_resolver_kwargs
             ),
             # INFO - G.M - 2019-03-19 - _ is required but
             # not found what it means in apispec code.
-            _ = None,
+            _=None,
             schema=schema_usage.schema,
             **schema_usage.plugin_helper_kwargs,
         )
@@ -206,16 +172,14 @@ def generate_operations(
             )
 
     if description.input_query:
-        schema_usage = description.input_query.wrapper.processor.schema_class_resolver(
-            main_plugin
-        )
+        schema_usage = description.input_query.wrapper.processor.schema_class_resolver(main_plugin)
         jsonschema = main_plugin.schema_helper(
             main_plugin.schema_name_resolver(
                 schema_usage.schema, **schema_usage.plugin_name_resolver_kwargs
             ),
             # INFO - G.M - 2019-03-19 - _ is required but
             # not found what it means in apispec code.
-            _ = None,
+            _=None,
             schema=schema_usage.schema,
             **schema_usage.plugin_helper_kwargs,
         )
@@ -231,9 +195,7 @@ def generate_operations(
             )
 
     if description.input_files or description.input_forms:
-        method_operations.setdefault("consumes", []).append(
-            "multipart/form-data"
-        )  # nopep8
+        method_operations.setdefault("consumes", []).append("multipart/form-data")
 
     if description.input_files:
         jsonschema = main_plugin.openapi.schema2jsonschema(
@@ -329,8 +291,7 @@ class DocGenerator(object):
             try:
                 spec.components.schema(
                     main_plugin.schema_name_resolver(
-                        schema_usage.schema,
-                        **schema_usage.plugin_name_resolver_kwargs,
+                        schema_usage.schema, **schema_usage.plugin_name_resolver_kwargs
                     ),
                     schema=schema_usage.schema,
                     **schema_usage.plugin_helper_kwargs,
@@ -346,9 +307,7 @@ class DocGenerator(object):
             route = context.find_route(controller)
             swagger_path = context.get_swagger_path(route.rule)
 
-            operations = generate_operations(
-                main_plugin, route, controller.description
-            )
+            operations = generate_operations(main_plugin, route, controller.description)
 
             doc_string = controller.reference.get_doc_string()
             if doc_string:
@@ -393,11 +352,7 @@ class DocGenerator(object):
         description: str = "",
     ) -> None:
         doc_yaml = self.get_doc_yaml(
-            hapic,
-            controllers=controllers,
-            context=context,
-            title=title,
-            description=description,
+            hapic, controllers=controllers, context=context, title=title, description=description
         )
         with open(doc_file_path, "w+") as doc_file:
             doc_file.write(doc_yaml)

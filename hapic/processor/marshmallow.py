@@ -3,9 +3,7 @@ import typing
 from apispec import BasePlugin
 from apispec_marshmallow_advanced import MarshmallowAdvancedPlugin
 from apispec_marshmallow_advanced.common import generate_schema_name
-from apispec_marshmallow_advanced.common import (
-    schema_class_resolver as schema_class_resolver_
-)
+from apispec_marshmallow_advanced.common import schema_class_resolver as schema_class_resolver_
 
 from hapic.doc.schema import SchemaUsage
 from hapic.error.main import ErrorBuilderInterface
@@ -27,33 +25,23 @@ class MarshmallowProcessor(Processor):
     ) -> BasePlugin:
         schema_name_resolver = schema_name_resolver or generate_schema_name
 
-        return MarshmallowAdvancedPlugin(
-            schema_name_resolver=schema_name_resolver
-        )
+        return MarshmallowAdvancedPlugin(schema_name_resolver=schema_name_resolver)
 
-    def generate_schema_ref(
-        self, main_plugin: MarshmallowAdvancedPlugin
-    ) -> dict:
+    def generate_schema_ref(self, main_plugin: MarshmallowAdvancedPlugin) -> dict:
         """
         Return OpenApi $ref in a dict,
         eg. {"$ref": "#/definitions/MySchema"} or
             {'type': 'array', 'items': {"$ref": "#/definitions/MySchema"}}
         """
         schema_class = schema_class_resolver_(main_plugin, self.schema)
-        ref = {
-            "$ref": "#/definitions/{}".format(
-                main_plugin.schema_name_resolver(schema_class)
-            )
-        }
+        ref = {"$ref": "#/definitions/{}".format(main_plugin.schema_name_resolver(schema_class))}
 
         if self.schema.many:
             return {"type": "array", "items": ref}
 
         return ref
 
-    def schema_class_resolver(
-        self, main_plugin: MarshmallowAdvancedPlugin
-    ) -> SchemaUsage:
+    def schema_class_resolver(self, main_plugin: MarshmallowAdvancedPlugin) -> SchemaUsage:
         """
         Return schema class with adaptation if needed.
         :param main_plugin: Apispec plugin associated for marshmallow
@@ -73,9 +61,7 @@ class MarshmallowProcessor(Processor):
             return {}
         return data
 
-    def get_input_validation_error(
-        self, data_to_validate: typing.Any
-    ) -> ProcessValidationError:
+    def get_input_validation_error(self, data_to_validate: typing.Any) -> ProcessValidationError:
         """
         Return ProcessValidationError for given input data
         :param data_to_validate: data used to produce ProcessValidationError
@@ -85,8 +71,7 @@ class MarshmallowProcessor(Processor):
         marshmallow_errors = self.schema.load(clean_data).errors
 
         return ProcessValidationError(
-            message="Validation error of input data",
-            details=marshmallow_errors,
+            message="Validation error of input data", details=marshmallow_errors
         )
 
     def get_input_files_validation_error(
@@ -103,13 +88,9 @@ class MarshmallowProcessor(Processor):
         additional_errors = self._get_input_files_errors(unmarshall.data)
         errors.update(additional_errors)
 
-        return ProcessValidationError(
-            message="Validation error of input data", details=errors
-        )
+        return ProcessValidationError(message="Validation error of input data", details=errors)
 
-    def get_output_validation_error(
-        self, data_to_validate: typing.Any
-    ) -> ProcessValidationError:
+    def get_output_validation_error(self, data_to_validate: typing.Any) -> ProcessValidationError:
         """
         Return ProcessValidationError for given output data
         :param data_to_validate: output data to use
@@ -119,9 +100,7 @@ class MarshmallowProcessor(Processor):
         dump_data = self.schema.dump(clean_data).data
         errors = self.schema.load(dump_data).errors
 
-        return ProcessValidationError(
-            message="Validation error of output data", details=errors
-        )
+        return ProcessValidationError(message="Validation error of output data", details=errors)
 
     def get_output_file_validation_error(
         self, data_to_validate: typing.Any
@@ -131,9 +110,7 @@ class MarshmallowProcessor(Processor):
         :param data_to_validate: output file
         :return: ProcessValidationError instance for given output file
         """
-        validation_error_message = self._get_ouput_file_validation_error_message(
-            data_to_validate
-        )
+        validation_error_message = self._get_ouput_file_validation_error_message(data_to_validate)
 
         return ProcessValidationError(
             message="Validation error of output file",
@@ -151,9 +128,7 @@ class MarshmallowProcessor(Processor):
         clean_data = self.clean_data(data)
         unmarshall = self.schema.load(clean_data)
         if unmarshall.errors:
-            raise ValidationException(
-                "Error when loading: {}".format(str(unmarshall.errors))
-            )
+            raise ValidationException("Error when loading: {}".format(str(unmarshall.errors)))
 
         return unmarshall.data
 
@@ -170,9 +145,7 @@ class MarshmallowProcessor(Processor):
         # Re-validate with dumped data
         errors = self.schema.load(dump_data).errors
         if errors:
-            raise ValidationException(
-                "Error when dumping: {}".format(str(errors))
-            )
+            raise ValidationException("Error when dumping: {}".format(str(errors)))
 
         return dump_data
 
@@ -195,9 +168,7 @@ class MarshmallowProcessor(Processor):
 
         return unmarshall.data
 
-    def _get_input_files_errors(
-        self, validated_data: dict
-    ) -> typing.Dict[str, str]:
+    def _get_input_files_errors(self, validated_data: dict) -> typing.Dict[str, str]:
         """
         Additional check of data
         :param validated_data: previously validated data by marshmallow schema
@@ -210,18 +181,13 @@ class MarshmallowProcessor(Processor):
             # TODO BS 20171102: Think about case where test file content is
             # more complicated
             if field.required and (
-                field_name not in validated_data
-                or not validated_data[field_name]
+                field_name not in validated_data or not validated_data[field_name]
             ):
-                errors.setdefault(field_name, []).append(
-                    "Missing data for required field"
-                )
+                errors.setdefault(field_name, []).append("Missing data for required field")
 
         return errors
 
-    def dump_output(
-        self, output_data: typing.Any
-    ) -> typing.Union[typing.Dict, typing.List]:
+    def dump_output(self, output_data: typing.Any) -> typing.Union[typing.Dict, typing.List]:
         """
         Dump output data and raise OutputValidationException if validation error
         :param output_data: output data to validate
@@ -233,9 +199,7 @@ class MarshmallowProcessor(Processor):
         # Validate
         errors = self.schema.load(dump_data).errors
         if errors:
-            raise OutputValidationException(
-                "Error when validate input: {}".format(str(errors))
-            )
+            raise OutputValidationException("Error when validate input: {}".format(str(errors)))
 
         return dump_data
 
@@ -254,14 +218,10 @@ class MarshmallowProcessor(Processor):
         Raise OutputValidationException if given object cannot be accepted as file
         :param data: object to be check as acceptable file
         """
-        validation_error_message = self._get_ouput_file_validation_error_message(
-            data
-        )
+        validation_error_message = self._get_ouput_file_validation_error_message(data)
         if validation_error_message:
             raise OutputValidationException(
-                "Error when validate output file : {}".format(
-                    validation_error_message
-                )
+                "Error when validate output file : {}".format(validation_error_message)
             )
 
     @classmethod

@@ -20,6 +20,7 @@ class TestContextExceptionHandling(Base):
     @pytest.mark.asyncio
     async def test_func__catch_one_exception__ok__aiohttp_case(self, test_client):
         from aiohttp import web
+
         app = web.Application()
         hapic = Hapic(processor_class=MarshmallowProcessor)
         context = AiohttpContext(app=app)
@@ -28,9 +29,7 @@ class TestContextExceptionHandling(Base):
         async def my_view(request):
             raise ZeroDivisionError("An exception message")
 
-        app.add_routes([
-            web.get('/my-view', my_view),
-        ])
+        app.add_routes([web.get("/my-view", my_view)])
         # FIXME - G.M - 17-05-2018 - Verify if:
         # - other view that work/raise an other exception do not go
         # into this code for handle this exceptions.
@@ -45,6 +44,7 @@ class TestContextExceptionHandling(Base):
 
     def test_func__catch_one_exception__ok__flask_case(self):
         from flask import Flask
+
         app = Flask(__name__)
         hapic = Hapic(processor_class=MarshmallowProcessor)
         context = FlaskContext(app=app)
@@ -53,11 +53,7 @@ class TestContextExceptionHandling(Base):
         def my_view():
             raise ZeroDivisionError("An exception message")
 
-        app.add_url_rule(
-            '/my-view',
-            view_func=my_view,
-            methods=['GET']
-        )
+        app.add_url_rule("/my-view", view_func=my_view, methods=["GET"])
         # FIXME - G.M - 17-05-2018 - Verify if:
         # - other view that work/raise an other exception do not go
         # into this code for handle this exceptions.
@@ -73,6 +69,7 @@ class TestContextExceptionHandling(Base):
 
     def test_func__catch_one_exception__ok__bottle_case(self):
         import bottle
+
         app = bottle.Bottle()
         hapic = Hapic(processor_class=MarshmallowProcessor)
         context = BottleContext(app=app)
@@ -97,10 +94,10 @@ class TestContextExceptionHandling(Base):
 
     def test_func__catch_one_exception__ok__pyramid(self):
         from pyramid.config import Configurator
+
         configurator = Configurator(autocommit=True)
         context = PyramidContext(
-            configurator,
-            default_error_builder=MarshmallowDefaultErrorBuilder(),
+            configurator, default_error_builder=MarshmallowDefaultErrorBuilder()
         )
         hapic = Hapic(processor_class=MarshmallowProcessor)
         hapic.set_context(context)

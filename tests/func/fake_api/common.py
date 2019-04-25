@@ -12,11 +12,7 @@ SWAGGER_DOC_API = {
         },
         "ListsUserSchema": {
             "properties": {
-                "item_nb": {
-                    "format": "int32",
-                    "minimum": 0,
-                    "type": "integer",
-                },
+                "item_nb": {"format": "int32", "minimum": 0, "type": "integer"},
                 "items": {
                     "items": {
                         "$ref": "#/definitions/UserSchema_without_email_address_first_name_last_name"
@@ -46,7 +42,7 @@ SWAGGER_DOC_API = {
                 "first_name": {"type": "string"},
                 "id": {"format": "int32", "type": "integer"},
                 "last_name": {"type": "string"},
-                "username": {"type": "string", 'pattern': '[\\w-]+'},
+                "username": {"type": "string", "pattern": "[\\w-]+"},
             },
             "required": [
                 "company",
@@ -61,7 +57,7 @@ SWAGGER_DOC_API = {
         },
         "UserSchema_without_id": {
             "properties": {
-                "username": {"type": "string", 'pattern': '[\\w-]+'},
+                "username": {"type": "string", "pattern": "[\\w-]+"},
                 "display_name": {"type": "string"},
                 "company": {"type": "string"},
                 "last_name": {"type": "string"},
@@ -80,7 +76,7 @@ SWAGGER_DOC_API = {
         },
         "UserSchema_without_email_address_first_name_last_name": {
             "properties": {
-                "username": {"type": "string", 'pattern': '[\\w-]+'},
+                "username": {"type": "string", "pattern": "[\\w-]+"},
                 "id": {"format": "int32", "type": "integer"},
                 "company": {"type": "string"},
                 "display_name": {"type": "string"},
@@ -102,11 +98,9 @@ SWAGGER_DOC_API = {
                     "get": {
                         "description": "General information about this API.",
                         "responses": {
-                            '200': {
+                            "200": {
                                 "description": "200",
-                                "schema": {
-                                    "$ref": "#/definitions/AboutResponseSchema"
-                                },
+                                "schema": {"$ref": "#/definitions/AboutResponseSchema"},
                             }
                         },
                     }
@@ -118,11 +112,9 @@ SWAGGER_DOC_API = {
                     "get": {
                         "description": "Obtain users list.",
                         "responses": {
-                            '200': {
+                            "200": {
                                 "description": "200",
-                                "schema": {
-                                    "$ref": "#/definitions/ListsUserSchema"
-                                },
+                                "schema": {"$ref": "#/definitions/ListsUserSchema"},
                             }
                         },
                     }
@@ -144,11 +136,9 @@ SWAGGER_DOC_API = {
                             }
                         ],
                         "responses": {
-                            '204': {
+                            "204": {
                                 "description": "204",
-                                "schema": {
-                                    "$ref": "#/definitions/NoContentSchema"
-                                },
+                                "schema": {"$ref": "#/definitions/NoContentSchema"},
                             }
                         },
                     },
@@ -165,7 +155,7 @@ SWAGGER_DOC_API = {
                             }
                         ],
                         "responses": {
-                            '200': {
+                            "200": {
                                 "description": "200",
                                 "schema": {"$ref": "#/definitions/UserSchema"},
                             }
@@ -182,13 +172,11 @@ SWAGGER_DOC_API = {
                             {
                                 "in": "body",
                                 "name": "body",
-                                "schema": {
-                                    "$ref": "#/definitions/UserSchema_without_id"
-                                },
+                                "schema": {"$ref": "#/definitions/UserSchema_without_id"},
                             }
                         ],
                         "responses": {
-                            '200': {
+                            "200": {
                                 "description": "200",
                                 "schema": {"$ref": "#/definitions/UserSchema"},
                             }
@@ -202,7 +190,7 @@ SWAGGER_DOC_API = {
                     "get": {
                         "description": "Obtain users list.",
                         "responses": {
-                            '200': {
+                            "200": {
                                 "description": "200",
                                 "schema": {
                                     "type": "array",

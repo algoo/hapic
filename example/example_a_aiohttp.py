@@ -1,40 +1,33 @@
 # coding: utf-8
 from aiohttp import web
-from hapic import async as hapic
-from hapic import async as HapicData
 import marshmallow
 
+from hapic import Hapic
+from hapic import HapicData
 from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
 from hapic.ext.aiohttp.context import AiohttpContext
 
+hapic = Hapic(async_=True)
+
 
 class DisplayNameInputPathSchema(marshmallow.Schema):
-    name = marshmallow.fields.String(
-        required=False,
-        allow_none=True,
-    )
+    name = marshmallow.fields.String(required=False, allow_none=True)
 
 
 class DisplayBodyInputBodySchema(marshmallow.Schema):
-    foo = marshmallow.fields.String(
-        required=True,
-    )
+    foo = marshmallow.fields.String(required=True)
 
 
 class DisplayBodyOutputBodySchema(marshmallow.Schema):
-    data = marshmallow.fields.Dict(
-        required=True,
-    )
+    data = marshmallow.fields.Dict(required=True)
 
 
 @hapic.with_api_doc()
 @hapic.input_path(DisplayNameInputPathSchema())
 async def display_name(request, hapic_data):
-    name = request.match_info.get('name', "Anonymous")
+    name = request.match_info.get("name", "Anonymous")
     text = "Hello, " + name
-    return web.json_response({
-        'sentence': text,
-    })
+    return web.json_response({"sentence": text})
 
 
 @hapic.with_api_doc()
@@ -42,28 +35,26 @@ async def display_name(request, hapic_data):
 @hapic.output_body(DisplayBodyOutputBodySchema())
 async def display_body(request, hapic_data: HapicData):
     data = hapic_data.body
-    return {
-        'data': data,
-    }
+    return {"data": data}
 
 
 async def do_login(request):
     data = await request.json()
-    login = data['login']
-    password = data['password']
+    login = data["login"]
 
-    return web.json_response({
-        'login': login,
-    })
+    return web.json_response({"login": login})
+
 
 app = web.Application(debug=True)
-app.add_routes([
-    web.get('/n/', display_name),
-    web.get('/n/{name}', display_name),
-    web.post('/n/{name}', display_name),
-    web.post('/b/', display_body),
-    web.post('/login', do_login),
-])
+app.add_routes(
+    [
+        web.get("/n/", display_name),
+        web.get("/n/{name}", display_name),
+        web.post("/n/{name}", display_name),
+        web.post("/b/", display_body),
+        web.post("/login", do_login),
+    ]
+)
 
 
 hapic.set_context(AiohttpContext(app, default_error_builder=MarshmallowDefaultErrorBuilder()))

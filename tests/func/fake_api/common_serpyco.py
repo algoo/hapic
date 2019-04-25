@@ -21,9 +21,7 @@ serpyco_SWAGGER_DOC_API = {
                         "responses": {
                             200: {
                                 "description": "200",
-                                "schema": {
-                                    "$ref": "#/definitions/AboutResponseSchema"
-                                },
+                                "schema": {"$ref": "#/definitions/AboutResponseSchema"},
                             }
                         },
                         "description": "General information about this API.",
@@ -37,9 +35,7 @@ serpyco_SWAGGER_DOC_API = {
                         "responses": {
                             200: {
                                 "description": "200",
-                                "schema": {
-                                    "$ref": "#/definitions/ListsUserSchema"
-                                },
+                                "schema": {"$ref": "#/definitions/ListsUserSchema"},
                             }
                         },
                         "description": "Obtain users list.",
@@ -87,9 +83,7 @@ serpyco_SWAGGER_DOC_API = {
                         "responses": {
                             204: {
                                 "description": "204",
-                                "schema": {
-                                    "$ref": "#/definitions/NoContentSchema"
-                                },
+                                "schema": {"$ref": "#/definitions/NoContentSchema"},
                             }
                         },
                         "parameters": [
@@ -113,9 +107,7 @@ serpyco_SWAGGER_DOC_API = {
                             {
                                 "in": "body",
                                 "name": "body",
-                                "schema": {
-                                    "$ref": "#/definitions/UserSchema_exclude_id"
-                                },
+                                "schema": {"$ref": "#/definitions/UserSchema_exclude_id"},
                             }
                         ],
                         "responses": {
@@ -131,7 +123,7 @@ serpyco_SWAGGER_DOC_API = {
         ]
     ),
     "tags": [],
-    'securityDefinitions': {},
+    "securityDefinitions": {},
     "swagger": "2.0",
     "parameters": {},
     "responses": {},
@@ -180,10 +172,7 @@ serpyco_SWAGGER_DOC_API = {
                 "display_name": {"type": "string"},
                 "company": {"type": "string"},
                 "username": {"type": "string", "pattern": "[\\w-]+"},
-                "email_address": {
-                    "type": "string",
-                    "format": StringFormat.EMAIL,
-                },
+                "email_address": {"type": "string", "format": StringFormat.EMAIL},
             },
             "required": [
                 "company",
@@ -208,11 +197,8 @@ serpyco_SWAGGER_DOC_API = {
                 "display_name": {"type": "string"},
                 "company": {"type": "string"},
                 "username": {"type": "string", "pattern": "[\\w-]+"},
-                "email_address": {
-                    "type": "string",
-                    "format": StringFormat.EMAIL,
-                },
-                "id" : {'type': 'integer'},
+                "email_address": {"type": "string", "format": StringFormat.EMAIL},
+                "id": {"type": "integer"},
             },
             "required": [
                 "company",

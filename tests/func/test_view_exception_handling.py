@@ -1,6 +1,5 @@
 # coding: utf-8
 import json
-import sys
 
 import pytest
 
@@ -20,18 +19,16 @@ class TestViewExceptionHandling(object):
 
     @serpyco_compatible_python
     @pytest.mark.asyncio
-    async def test_unit__handle_exception_with_default_error_builder__ok__serpyco(self, test_client):
+    async def test_unit__handle_exception_with_default_error_builder__ok__serpyco(
+        self, test_client
+    ):
         from hapic.error.serpyco import SerpycoDefaultErrorBuilder
         from hapic.processor.serpyco import SerpycoProcessor
 
         app = AgnosticApp()
         hapic = Hapic()
         hapic.set_processor_class(SerpycoProcessor)
-        hapic.set_context(
-            AgnosticContext(
-                app, default_error_builder=SerpycoDefaultErrorBuilder()
-            )
-        )
+        hapic.set_context(AgnosticContext(app, default_error_builder=SerpycoDefaultErrorBuilder()))
 
         @hapic.with_api_doc()
         @hapic.handle_exception(ZeroDivisionError, http_code=400)
@@ -51,9 +48,7 @@ class TestViewExceptionHandling(object):
         hapic = Hapic()
         hapic.set_processor_class(MarshmallowProcessor)
         hapic.set_context(
-            AgnosticContext(
-                app, default_error_builder=MarshmallowDefaultErrorBuilder()
-            )
+            AgnosticContext(app, default_error_builder=MarshmallowDefaultErrorBuilder())
         )
 
         @hapic.with_api_doc()

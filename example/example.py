@@ -14,23 +14,15 @@ class HelloResponseSchema(marshmallow.Schema):
 
 
 class HelloPathSchema(marshmallow.Schema):
-    name = marshmallow.fields.String(
-        required=True,
-        validate=marshmallow.validate.Length(min=3),
-    )
+    name = marshmallow.fields.String(required=True, validate=marshmallow.validate.Length(min=3))
 
 
 class HelloQuerySchema(marshmallow.Schema):
-    alive = marshmallow.fields.Boolean(
-        required=False,
-    )
+    alive = marshmallow.fields.Boolean(required=False)
 
 
 class HelloJsonSchema(marshmallow.Schema):
-    color =marshmallow.fields.String(
-        required=True,
-        validate=marshmallow.validate.Length(min=3),
-    )
+    color = marshmallow.fields.String(required=True, validate=marshmallow.validate.Length(min=3))
 
 
 class HelloFileSchema(marshmallow.Schema):

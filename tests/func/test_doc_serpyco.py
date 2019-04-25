@@ -1,11 +1,11 @@
 # coding: utf-8
 import dataclasses
+
 from hapic import Hapic
 from hapic.error.serpyco import SerpycoDefaultErrorBuilder
-from hapic.processor.serpyco import SerpycoProcessor
 from hapic.ext.agnostic.context import AgnosticApp
 from hapic.ext.agnostic.context import AgnosticContext
-
+from hapic.processor.serpyco import SerpycoProcessor
 from tests.base import serpyco_compatible_python
 
 
@@ -19,11 +19,7 @@ class TestDocSerpyco(object):
         app = AgnosticApp()
         hapic = Hapic()
         hapic.set_processor_class(SerpycoProcessor)
-        hapic.set_context(
-            AgnosticContext(
-                app, default_error_builder=SerpycoDefaultErrorBuilder()
-            )
-        )
+        hapic.set_context(AgnosticContext(app, default_error_builder=SerpycoDefaultErrorBuilder()))
 
         @dataclasses.dataclass
         class UserSchema(object):
@@ -32,9 +28,7 @@ class TestDocSerpyco(object):
             password: str
 
         @hapic.with_api_doc()
-        @hapic.output_body(
-            UserSchema, processor=SerpycoProcessor(exclude=["password"])
-        )
+        @hapic.output_body(UserSchema, processor=SerpycoProcessor(exclude=["password"]))
         def my_view():
             pass
 
@@ -43,9 +37,7 @@ class TestDocSerpyco(object):
 
         assert (
             "#/definitions/UserSchema_exclude_password"
-            == doc["paths"]["/hello"]["get"]["responses"]['200']["schema"][
-                "$ref"
-            ]
+            == doc["paths"]["/hello"]["get"]["responses"]["200"]["schema"]["$ref"]
         )
         assert "UserSchema_exclude_password" in doc["definitions"]
 
@@ -53,11 +45,7 @@ class TestDocSerpyco(object):
         app = AgnosticApp()
         hapic = Hapic()
         hapic.set_processor_class(SerpycoProcessor)
-        hapic.set_context(
-            AgnosticContext(
-                app, default_error_builder=SerpycoDefaultErrorBuilder()
-            )
-        )
+        hapic.set_context(AgnosticContext(app, default_error_builder=SerpycoDefaultErrorBuilder()))
 
         @dataclasses.dataclass
         class UserSchema(object):
@@ -66,9 +54,7 @@ class TestDocSerpyco(object):
             password: str
 
         @hapic.with_api_doc()
-        @hapic.input_body(
-            UserSchema, processor=SerpycoProcessor(exclude=["password"])
-        )
+        @hapic.input_body(UserSchema, processor=SerpycoProcessor(exclude=["password"]))
         def my_view(hapic_data):
             pass
 
@@ -85,11 +71,7 @@ class TestDocSerpyco(object):
         app = AgnosticApp()
         hapic = Hapic()
         hapic.set_processor_class(SerpycoProcessor)
-        hapic.set_context(
-            AgnosticContext(
-                app, default_error_builder=SerpycoDefaultErrorBuilder()
-            )
-        )
+        hapic.set_context(AgnosticContext(app, default_error_builder=SerpycoDefaultErrorBuilder()))
 
         @dataclasses.dataclass
         class UserSchema(object):
@@ -98,9 +80,7 @@ class TestDocSerpyco(object):
             password: str
 
         @hapic.with_api_doc()
-        @hapic.input_query(
-            UserSchema, processor=SerpycoProcessor(exclude=["password"])
-        )
+        @hapic.input_query(UserSchema, processor=SerpycoProcessor(exclude=["password"]))
         def my_view(hapic_data):
             pass
 
@@ -116,11 +96,7 @@ class TestDocSerpyco(object):
         app = AgnosticApp()
         hapic = Hapic()
         hapic.set_processor_class(SerpycoProcessor)
-        hapic.set_context(
-            AgnosticContext(
-                app, default_error_builder=SerpycoDefaultErrorBuilder()
-            )
-        )
+        hapic.set_context(AgnosticContext(app, default_error_builder=SerpycoDefaultErrorBuilder()))
 
         @dataclasses.dataclass
         class UserSchema(object):
@@ -129,41 +105,23 @@ class TestDocSerpyco(object):
             password: str
 
         @hapic.with_api_doc()
-        @hapic.input_path(
-            UserSchema, processor=SerpycoProcessor(exclude=["password"])
-        )
+        @hapic.input_path(UserSchema, processor=SerpycoProcessor(exclude=["password"]))
         def my_view(hapic_data):
             pass
 
         app.route("/hello/{id}/{name}", "GET", callback=my_view)
         doc = hapic.generate_doc()
 
-        assert 2 == len(
-            doc["paths"]["/hello/{id}/{name}"]["get"]["parameters"]
-        )
-        assert (
-            "id"
-            == doc["paths"]["/hello/{id}/{name}"]["get"]["parameters"][0][
-                "name"
-            ]
-        )
-        assert (
-            "name"
-            == doc["paths"]["/hello/{id}/{name}"]["get"]["parameters"][1][
-                "name"
-            ]
-        )
+        assert 2 == len(doc["paths"]["/hello/{id}/{name}"]["get"]["parameters"])
+        assert "id" == doc["paths"]["/hello/{id}/{name}"]["get"]["parameters"][0]["name"]
+        assert "name" == doc["paths"]["/hello/{id}/{name}"]["get"]["parameters"][1]["name"]
         assert "UserSchema_exclude_password" in doc["definitions"]
 
     def test_func__ok__doc__with_handle_exception(self):
         app = AgnosticApp()
         hapic = Hapic()
         hapic.set_processor_class(SerpycoProcessor)
-        hapic.set_context(
-            AgnosticContext(
-                app, default_error_builder=SerpycoDefaultErrorBuilder()
-            )
-        )
+        hapic.set_context(AgnosticContext(app, default_error_builder=SerpycoDefaultErrorBuilder()))
 
         @dataclasses.dataclass
         class UserSchema(object):

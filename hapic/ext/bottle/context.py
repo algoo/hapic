@@ -39,9 +39,7 @@ class BottleContext(BaseContext):
         debug: bool = False,
     ):
         super().__init__(processor_class, default_error_builder)
-        self._handled_exceptions = (
-            []
-        )  # type: typing.List[HandledException]  # nopep8
+        self._handled_exceptions = []  # type: typing.List[HandledException]
         self._exceptions_handler_installed = False
         self.app = app
         self.debug = debug
@@ -65,15 +63,13 @@ class BottleContext(BaseContext):
             files_parameters=files_parameters,
         )
 
-    def get_file_response(
-        self, file_response: HapicFile, http_code: int
-    ) -> bottle.HTTPResponse:
+    def get_file_response(self, file_response: HapicFile, http_code: int) -> bottle.HTTPResponse:
         if file_response.file_path:
             # TODO - G.M - 2019-03-27 - add support for others parameters of
             # file_response
             # Extended support for file response:
             # https://github.com/algoo/hapic/issues/171
-            return bottle.static_file(file_response.file_path, root='/')
+            return bottle.static_file(file_response.file_path, root="/")
         else:
             # TODO - G.M - 2019-03-27 - add support for file object case
             # Extended support for file response:
@@ -84,15 +80,11 @@ class BottleContext(BaseContext):
         self, response: str, http_code: int, mimetype: str = "application/json"
     ) -> bottle.HTTPResponse:
         return bottle.HTTPResponse(
-            body=response,
-            headers=[("Content-Type", mimetype)],
-            status=http_code,
+            body=response, headers=[("Content-Type", mimetype)], status=http_code
         )
 
     def get_validation_error_response(
-        self,
-        error: ProcessValidationError,
-        http_code: HTTPStatus = HTTPStatus.BAD_REQUEST,
+        self, error: ProcessValidationError, http_code: HTTPStatus = HTTPStatus.BAD_REQUEST
     ) -> typing.Any:
         dumped_error = self._get_dumped_error_from_validation_error(error)
         return bottle.HTTPResponse(
@@ -101,17 +93,13 @@ class BottleContext(BaseContext):
             status=int(http_code),
         )
 
-    def find_route(
-        self, decorated_controller: DecoratedController
-    ) -> RouteRepresentation:
+    def find_route(self, decorated_controller: DecoratedController) -> RouteRepresentation:
         if not self.app.routes:
             raise NoRoutesException("There is no routes in your bottle app")
 
         reference = decorated_controller.reference
         for route in self.app.routes:
-            route_token = getattr(
-                route.callback, DECORATION_ATTRIBUTE_NAME, None
-            )
+            route_token = getattr(route.callback, DECORATION_ATTRIBUTE_NAME, None)
 
             match_with_wrapper = route.callback == reference.wrapper
             match_with_wrapped = route.callback == reference.wrapped
@@ -125,9 +113,7 @@ class BottleContext(BaseContext):
                 )
         # TODO BS 20171010: Raise exception or print error ? see #10
         raise RouteNotFound(
-            'Decorated route "{}" was not found in bottle routes'.format(
-                decorated_controller.name
-            )
+            'Decorated route "{}" was not found in bottle routes'.format(decorated_controller.name)
         )
 
     def get_swagger_path(self, contextualised_rule: str) -> str:
@@ -144,9 +130,7 @@ class BottleContext(BaseContext):
         if not self._exceptions_handler_installed:
             self._install_exceptions_handler()
 
-        self._handled_exceptions.append(
-            HandledException(exception_class, http_code)
-        )
+        self._handled_exceptions.append(HandledException(exception_class, http_code))
 
     def _install_exceptions_handler(self) -> None:
         """
@@ -155,29 +139,21 @@ class BottleContext(BaseContext):
         """
         self.app.install(self.handle_exceptions_decorator_builder)
 
-    def add_view(
-        self,
-        route: str,
-        http_method: str,
-        view_func: typing.Callable[..., typing.Any],
-    ):
+    def add_view(self, route: str, http_method: str, view_func: typing.Callable[..., typing.Any]):
         self.app.route(route, callback=view_func, method=http_method)
 
     def serve_directory(self, route_prefix: str, directory_path: str):
         if not route_prefix.endswith("/"):
             route_prefix = "{}/".format(route_prefix)
 
-
         def directory(filepath):
-             return bottle.static_file(filepath, root=directory_path)
+            return bottle.static_file(filepath, root=directory_path)
 
-        self.app.route('{}<filepath:path>'.format(route_prefix), method='GET', callback=directory)
+        self.app.route("{}<filepath:path>".format(route_prefix), method="GET", callback=directory)
 
-    def _get_handled_exception_class_and_http_codes(
-        self,
-    ) -> typing.List[HandledException]:
+    def _get_handled_exception_class_and_http_codes(self,) -> typing.List[HandledException]:
         """
-        See hapic.context.BaseContext#_get_handled_exception_class_and_http_codes  # nopep8
+        See hapic.context.BaseContext#_get_handled_exception_class_and_http_codes
         """
         return self._handled_exceptions
 

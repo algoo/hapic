@@ -6,9 +6,9 @@ from marshmallow.validate import OneOf
 
 from hapic import Hapic
 from hapic import MarshmallowProcessor
-from tests.base import Base
-from hapic.ext.agnostic.context import AgnosticContext
 from hapic.ext.agnostic.context import AgnosticApp
+from hapic.ext.agnostic.context import AgnosticContext
+from tests.base import Base
 
 
 class TestDocGeneration(Base):
@@ -36,17 +36,11 @@ class TestDocGeneration(Base):
         assert doc
         assert "/upload" in doc["paths"]
         assert "consumes" in doc["paths"]["/upload"]["post"]
-        assert (
-            "multipart/form-data"
-            in doc["paths"]["/upload"]["post"]["consumes"]
-        )  # nopep8
+        assert "multipart/form-data" in doc["paths"]["/upload"]["post"]["consumes"]
         assert "parameters" in doc["paths"]["/upload"]["post"]
-        assert {
-            "name": "file_abc",
-            "required": True,
-            "in": "formData",
-            "type": "file",
-        } in doc["paths"]["/upload"]["post"]["parameters"]
+        assert {"name": "file_abc", "required": True, "in": "formData", "type": "file"} in doc[
+            "paths"
+        ]["/upload"]["post"]["parameters"]
 
     def test_func__input_files_doc__ok__two_file(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
@@ -69,23 +63,14 @@ class TestDocGeneration(Base):
         assert doc
         assert "/upload" in doc["paths"]
         assert "consumes" in doc["paths"]["/upload"]["post"]
-        assert (
-            "multipart/form-data"
-            in doc["paths"]["/upload"]["post"]["consumes"]
-        )  # nopep8
+        assert "multipart/form-data" in doc["paths"]["/upload"]["post"]["consumes"]
         assert "parameters" in doc["paths"]["/upload"]["post"]
-        assert {
-            "name": "file_abc",
-            "required": True,
-            "in": "formData",
-            "type": "file",
-        } in doc["paths"]["/upload"]["post"]["parameters"]
-        assert {
-            "name": "file_def",
-            "required": False,
-            "in": "formData",
-            "type": "file",
-        } in doc["paths"]["/upload"]["post"]["parameters"]
+        assert {"name": "file_abc", "required": True, "in": "formData", "type": "file"} in doc[
+            "paths"
+        ]["/upload"]["post"]["parameters"]
+        assert {"name": "file_def", "required": False, "in": "formData", "type": "file"} in doc[
+            "paths"
+        ]["/upload"]["post"]["parameters"]
 
     def test_func__output_file_doc__ok__nominal_case(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
@@ -104,7 +89,7 @@ class TestDocGeneration(Base):
         assert "/avatar" in doc["paths"]
         assert "produces" in doc["paths"]["/avatar"]["get"]
         assert "image/jpeg" in doc["paths"]["/avatar"]["get"]["produces"]
-        assert '200' in doc["paths"]["/avatar"]["get"]["responses"]
+        assert "200" in doc["paths"]["/avatar"]["get"]["responses"]
 
     def test_func__input_files_doc__ok__one_file_and_text(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
@@ -130,17 +115,11 @@ class TestDocGeneration(Base):
         assert doc
         assert "/upload" in doc["paths"]
         assert "consumes" in doc["paths"]["/upload"]["post"]
-        assert (
-            "multipart/form-data"
-            in doc["paths"]["/upload"]["post"]["consumes"]
-        )  # nopep8
+        assert "multipart/form-data" in doc["paths"]["/upload"]["post"]["consumes"]
         assert "parameters" in doc["paths"]["/upload"]["post"]
-        assert {
-            "name": "file_abc",
-            "required": True,
-            "in": "formData",
-            "type": "file",
-        } in doc["paths"]["/upload"]["post"]["parameters"]
+        assert {"name": "file_abc", "required": True, "in": "formData", "type": "file"} in doc[
+            "paths"
+        ]["/upload"]["post"]["parameters"]
 
     def test_func__docstring__ok__simple_case(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
@@ -200,11 +179,11 @@ class TestDocGeneration(Base):
         assert "/upload" in doc["paths"]
         assert "post" in doc["paths"]["/upload"]
         assert "responses" in doc["paths"]["/upload"]["post"]
-        assert '500' in doc["paths"]["/upload"]["post"]["responses"]
+        assert "500" in doc["paths"]["/upload"]["post"]["responses"]
         assert {
             "description": Exception.__doc__,
             "schema": {"$ref": "#/definitions/DefaultErrorSchema"},
-        } == doc["paths"]["/upload"]["post"]["responses"]['500']
+        } == doc["paths"]["/upload"]["post"]["responses"]["500"]
 
     def test_func__errors__explicit_description(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
@@ -223,11 +202,11 @@ class TestDocGeneration(Base):
         assert "/upload" in doc["paths"]
         assert "post" in doc["paths"]["/upload"]
         assert "responses" in doc["paths"]["/upload"]["post"]
-        assert '500' in doc["paths"]["/upload"]["post"]["responses"]
+        assert "500" in doc["paths"]["/upload"]["post"]["responses"]
         assert {
             "description": "Any Exception",
             "schema": {"$ref": "#/definitions/DefaultErrorSchema"},
-        } == doc["paths"]["/upload"]["post"]["responses"]['500']
+        } == doc["paths"]["/upload"]["post"]["responses"]["500"]
 
     def test_func__errors__docstring_exception(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
@@ -249,11 +228,11 @@ class TestDocGeneration(Base):
         assert "/upload" in doc["paths"]
         assert "post" in doc["paths"]["/upload"]
         assert "responses" in doc["paths"]["/upload"]["post"]
-        assert '500' in doc["paths"]["/upload"]["post"]["responses"]
+        assert "500" in doc["paths"]["/upload"]["post"]["responses"]
         assert {
             "description": "Just a docstring",
             "schema": {"$ref": "#/definitions/DefaultErrorSchema"},
-        } == doc["paths"]["/upload"]["post"]["responses"]['500']
+        } == doc["paths"]["/upload"]["post"]["responses"]["500"]
 
     def test_func__errors__http_status_description(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
@@ -275,11 +254,11 @@ class TestDocGeneration(Base):
         assert "/upload" in doc["paths"]
         assert "post" in doc["paths"]["/upload"]
         assert "responses" in doc["paths"]["/upload"]["post"]
-        assert '400' in doc["paths"]["/upload"]["post"]["responses"]
+        assert "400" in doc["paths"]["/upload"]["post"]["responses"]
         assert {
             "description": "BAD_REQUEST: Bad request syntax or unsupported method",
             "schema": {"$ref": "#/definitions/DefaultErrorSchema"},
-        } == doc["paths"]["/upload"]["post"]["responses"]['400']
+        } == doc["paths"]["/upload"]["post"]["responses"]["400"]
 
     def test_func__errors__http_status_as_int_description(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
@@ -301,11 +280,11 @@ class TestDocGeneration(Base):
         assert "/upload" in doc["paths"]
         assert "post" in doc["paths"]["/upload"]
         assert "responses" in doc["paths"]["/upload"]["post"]
-        assert '400' in doc["paths"]["/upload"]["post"]["responses"]
+        assert "400" in doc["paths"]["/upload"]["post"]["responses"]
         assert {
             "description": "400",
             "schema": {"$ref": "#/definitions/DefaultErrorSchema"},
-        } == doc["paths"]["/upload"]["post"]["responses"]['400']
+        } == doc["paths"]["/upload"]["post"]["responses"]["400"]
 
     def test_func__errors__multiple_same_http_status_description(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
@@ -326,16 +305,10 @@ class TestDocGeneration(Base):
             pass
 
         @hapic.with_api_doc()
+        @hapic.handle_exception(MyFirstException, http_code=HTTPStatus.BAD_REQUEST)
+        @hapic.handle_exception(MySecondException, http_code=HTTPStatus.BAD_REQUEST)
         @hapic.handle_exception(
-            MyFirstException, http_code=HTTPStatus.BAD_REQUEST
-        )
-        @hapic.handle_exception(
-            MySecondException, http_code=HTTPStatus.BAD_REQUEST
-        )
-        @hapic.handle_exception(
-            MyThirdException,
-            http_code=HTTPStatus.BAD_REQUEST,
-            description="explicit description",
+            MyThirdException, http_code=HTTPStatus.BAD_REQUEST, description="explicit description"
         )
         @hapic.handle_exception(MyFourthException, http_code=400)
         def my_controller(hapic_data=None):
@@ -348,25 +321,22 @@ class TestDocGeneration(Base):
         assert "/upload" in doc["paths"]
         assert "post" in doc["paths"]["/upload"]
         assert "responses" in doc["paths"]["/upload"]["post"]
-        assert '400' in doc["paths"]["/upload"]["post"]["responses"]
+        assert "400" in doc["paths"]["/upload"]["post"]["responses"]
         assert "description"
 
-        assert doc["paths"]["/upload"]["post"]["responses"]['400']["description"]
-        descriptions = doc["paths"]["/upload"]["post"]["responses"]['400'][
-            "description"
-        ].split("\n\n")
-        assert (
-            "BAD_REQUEST: Bad request syntax or unsupported method"
-            in descriptions
+        assert doc["paths"]["/upload"]["post"]["responses"]["400"]["description"]
+        descriptions = doc["paths"]["/upload"]["post"]["responses"]["400"]["description"].split(
+            "\n\n"
         )
+        assert "BAD_REQUEST: Bad request syntax or unsupported method" in descriptions
         assert "explicit description" in descriptions
         assert "400" in descriptions
         assert "Just a docstring" in descriptions
-        assert not "Docstring not used" in descriptions
-        assert doc["paths"]["/upload"]["post"]["responses"]['400']["schema"]
-        assert {"$ref": "#/definitions/DefaultErrorSchema"} == doc["paths"][
-            "/upload"
-        ]["post"]["responses"]['400']["schema"]
+        assert "Docstring not used" not in descriptions
+        assert doc["paths"]["/upload"]["post"]["responses"]["400"]["schema"]
+        assert {"$ref": "#/definitions/DefaultErrorSchema"} == doc["paths"]["/upload"]["post"][
+            "responses"
+        ]["400"]["schema"]
 
     def test_func__enum__nominal_case(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
@@ -374,9 +344,7 @@ class TestDocGeneration(Base):
         hapic.set_context(AgnosticContext(app=app))
 
         class MySchema(marshmallow.Schema):
-            category = marshmallow.fields.String(
-                validate=OneOf(["foo", "bar"])
-            )
+            category = marshmallow.fields.String(validate=OneOf(["foo", "bar"]))
 
         @hapic.with_api_doc()
         @hapic.input_body(MySchema())
@@ -386,9 +354,9 @@ class TestDocGeneration(Base):
         app.route("/paper", method="POST", callback=my_controller)
         doc = hapic.generate_doc()
 
-        assert ["foo", "bar"] == doc.get("definitions", {}).get(
-            "MySchema", {}
-        ).get("properties", {}).get("category", {}).get("enum")
+        assert ["foo", "bar"] == doc.get("definitions", {}).get("MySchema", {}).get(
+            "properties", {}
+        ).get("category", {}).get("enum")
 
     def test_func__schema_in_doc__ok__nominal_case(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
@@ -411,9 +379,7 @@ class TestDocGeneration(Base):
         assert schema_def.get("properties", {}).get("name", {}).get("type")
 
         assert doc.get("paths").get("/paper").get("post").get("parameters")[0]
-        schema_ref = (
-            doc.get("paths").get("/paper").get("post").get("parameters")[0]
-        )
+        schema_ref = doc.get("paths").get("/paper").get("post").get("parameters")[0]
         assert schema_ref.get("in") == "body"
         assert schema_ref.get("name") == "body"
         assert schema_ref["schema"]["$ref"] == "#/definitions/MySchema"
@@ -439,9 +405,7 @@ class TestDocGeneration(Base):
         assert schema_def.get("properties", {}).get("name", {}).get("type")
 
         assert doc.get("paths").get("/paper").get("post").get("parameters")[0]
-        schema_ref = (
-            doc.get("paths").get("/paper").get("post").get("parameters")[0]
-        )
+        schema_ref = doc.get("paths").get("/paper").get("post").get("parameters")[0]
         assert schema_ref.get("in") == "body"
         assert schema_ref.get("name") == "body"
         assert schema_ref["schema"] == {
@@ -477,18 +441,11 @@ class TestDocGeneration(Base):
                 break
         assert schema_name
         schema_def = definitions[schema_name]
-        assert (
-            schema_def.get("properties", {}).get("name", {}).get("type")
-            == "string"
-        )
+        assert schema_def.get("properties", {}).get("name", {}).get("type") == "string"
         assert doc.get("paths").get("/paper").get("post").get("parameters")[0]
-        schema_ref = (
-            doc.get("paths").get("/paper").get("post").get("parameters")[0]
-        )
+        schema_ref = doc.get("paths").get("/paper").get("post").get("parameters")[0]
         assert schema_ref.get("in") == "body"
-        assert schema_ref["schema"]["$ref"] == "#/definitions/{}".format(
-            schema_name
-        )
+        assert schema_ref["schema"]["$ref"] == "#/definitions/{}".format(schema_name)
 
         @hapic.with_api_doc()
         @hapic.input_body(MySchema(only=("name",)))
@@ -509,18 +466,11 @@ class TestDocGeneration(Base):
                 break
         assert schema_name
         schema_def = definitions[schema_name]
-        assert (
-            schema_def.get("properties", {}).get("name", {}).get("type")
-            == "string"
-        )
+        assert schema_def.get("properties", {}).get("name", {}).get("type") == "string"
         assert doc.get("paths").get("/paper").get("post").get("parameters")[0]
-        schema_ref = (
-            doc.get("paths").get("/paper").get("post").get("parameters")[0]
-        )
+        schema_ref = doc.get("paths").get("/paper").get("post").get("parameters")[0]
         assert schema_ref.get("in") == "body"
-        assert schema_ref["schema"]["$ref"] == "#/definitions/{}".format(
-            schema_name
-        )
+        assert schema_ref["schema"]["$ref"] == "#/definitions/{}".format(schema_name)
 
     def test_func__schema_in_doc__ok__many_and_exclude_case(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
@@ -550,14 +500,9 @@ class TestDocGeneration(Base):
                 break
         assert schema_name
         schema_def = definitions[schema_name]
-        assert (
-            schema_def.get("properties", {}).get("name", {}).get("type")
-            == "string"
-        )
+        assert schema_def.get("properties", {}).get("name", {}).get("type") == "string"
         assert doc.get("paths").get("/paper").get("post").get("parameters")[0]
-        schema_ref = (
-            doc.get("paths").get("/paper").get("post").get("parameters")[0]
-        )
+        schema_ref = doc.get("paths").get("/paper").get("post").get("parameters")[0]
         assert schema_ref.get("in") == "body"
         assert schema_ref["schema"] == {
             "items": {"$ref": "#/definitions/{}".format(schema_name)},
@@ -584,17 +529,10 @@ class TestDocGeneration(Base):
         assert doc
         assert "/upload" in doc["paths"]
         assert "consumes" in doc["paths"]["/upload"]["post"]
-        assert (
-            "multipart/form-data"
-            in doc["paths"]["/upload"]["post"]["consumes"]
-        )  # nopep8
+        assert "multipart/form-data" in doc["paths"]["/upload"]["post"]["consumes"]
         assert doc.get("paths").get("/upload").get("post").get("parameters")[0]
-        field = (
-            doc.get("paths").get("/upload").get("post").get("parameters")[0]
-        )
-        assert (
-            field["description"] == "a description\n\n*example value: 00010*"
-        )
+        field = doc.get("paths").get("/upload").get("post").get("parameters")[0]
+        assert field["description"] == "a description\n\n*example value: 00010*"
         # INFO - G.M - 01-06-2018 - Field example not allowed here,
         # added in description instead
         assert "example" not in field
@@ -632,14 +570,10 @@ class TestDocGeneration(Base):
 
         app.route("/paper", method="POST", callback=my_controller)
         doc = hapic.generate_doc()
-        assert (
-            "multipart/form-data" in doc["paths"]["/paper"]["post"]["consumes"]
-        )  # nopep8
+        assert "multipart/form-data" in doc["paths"]["/paper"]["post"]["consumes"]
         assert doc.get("paths").get("/paper").get("post").get("parameters")[0]
         field = doc.get("paths").get("/paper").get("post").get("parameters")[0]
-        assert (
-            field["description"] == "a description\n\n*example value: 00010*"
-        )
+        assert field["description"] == "a description\n\n*example value: 00010*"
         # INFO - G.M - 01-06-2018 - Field example not allowed here,
         # added in description instead
         assert "example" not in field
@@ -684,9 +618,7 @@ class TestDocGeneration(Base):
         doc = hapic.generate_doc()
         assert doc.get("paths").get("/paper").get("post").get("parameters")[0]
         field = doc.get("paths").get("/paper").get("post").get("parameters")[0]
-        assert (
-            field["description"] == "a description\n\n*example value: 00010*"
-        )
+        assert field["description"] == "a description\n\n*example value: 00010*"
         # INFO - G.M - 01-06-2018 - Field example not allowed here,
         # added in description instead
         assert "example" not in field
@@ -695,7 +627,7 @@ class TestDocGeneration(Base):
         assert field["type"] == "string"
         assert field["maxLength"] == 5
         assert field["minLength"] == 5
-        assert field["required"] == True
+        assert field["required"] is True
         assert field["enum"] == ["01000", "11111"]
         assert "maximum" not in field
 
@@ -731,9 +663,7 @@ class TestDocGeneration(Base):
         doc = hapic.generate_doc()
         assert doc.get("paths").get("/paper").get("post").get("parameters")[0]
         field = doc.get("paths").get("/paper").get("post").get("parameters")[0]
-        assert (
-            field["description"] == "a description\n\n*example value: 00010*"
-        )
+        assert field["description"] == "a description\n\n*example value: 00010*"
         # INFO - G.M - 01-06-2018 - Field example not allowed here,
         # added in description instead
         assert "example" not in field
@@ -742,7 +672,7 @@ class TestDocGeneration(Base):
         assert field["type"] == "string"
         assert field["maxLength"] == 5
         assert field["minLength"] == 5
-        assert field["required"] == True
+        assert field["required"] is True
         assert field["enum"] == ["01000", "11111"]
         assert "maximum" not in field
 
@@ -785,8 +715,8 @@ class TestDocGeneration(Base):
         assert field["type"] == "integer"
         assert field["maximum"] == 14
         assert field["minimum"] == 0
-        assert field["exclusiveMinimum"] == True
-        assert field["required"] == True
+        assert field["exclusiveMinimum"] is True
+        assert field["required"] is True
         assert field["enum"] == [4, 6]
         assert field["multipleOf"] == 2
 
@@ -820,11 +750,8 @@ class TestDocGeneration(Base):
         doc = hapic.generate_doc()
 
         schema_field = (
-            doc.get("definitions", {})
-            .get("MySchema", {})
-            .get("properties", {})
-            .get("category", {})
-        )  # nopep8
+            doc.get("definitions", {}).get("MySchema", {}).get("properties", {}).get("category", {})
+        )
         assert schema_field
         assert schema_field["description"] == "a number"
         assert schema_field["example"] == "12"
@@ -832,7 +759,7 @@ class TestDocGeneration(Base):
         assert schema_field["type"] == "integer"
         assert schema_field["maximum"] == 14
         assert schema_field["minimum"] == 0
-        assert schema_field["exclusiveMinimum"] == True
+        assert schema_field["exclusiveMinimum"] is True
         assert schema_field["enum"] == [4, 6]
         assert schema_field["multipleOf"] == 2
 
@@ -861,11 +788,8 @@ class TestDocGeneration(Base):
         doc = hapic.generate_doc()
 
         schema_field = (
-            doc.get("definitions", {})
-            .get("MySchema", {})
-            .get("properties", {})
-            .get("category", {})
-        )  # nopep8
+            doc.get("definitions", {}).get("MySchema", {}).get("properties", {}).get("category", {})
+        )
         assert schema_field
         assert schema_field["description"] == "a description"
         assert schema_field["example"] == "00010"

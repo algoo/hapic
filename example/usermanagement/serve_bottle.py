@@ -26,10 +26,9 @@ except ImportError:
     from http import client as HTTPStatus
 
 
-
-
 hapic = Hapic()
 hapic.set_processor_class(MarshmallowProcessor)
+
 
 class BottleController(object):
     @hapic.with_api_doc()
@@ -39,10 +38,7 @@ class BottleController(object):
         This endpoint allow to check that the API is running. This description
         is generated from the docstring of the method.
         """
-        return {
-            'version': '1.2.3',
-            'datetime': datetime.now(),
-        }
+        return {"version": "1.2.3", "datetime": datetime.now()}
 
     @hapic.with_api_doc()
     @hapic.output_body(UserDigestSchema(many=True))
@@ -60,12 +56,12 @@ class BottleController(object):
         """
         Return a user taken from the list or return a 404
         """
-        return UserLib().get_user(int(hapic_data.path['id']))
+        return UserLib().get_user(int(hapic_data.path["id"]))
 
     @hapic.with_api_doc()
     # TODO - G.M - 2017-12-5 - Support input_forms ?
     # TODO - G.M - 2017-12-5 - Support exclude, only ?
-    @hapic.input_body(UserSchema(exclude=('id',)))
+    @hapic.input_body(UserSchema(exclude=("id",)))
     @hapic.output_body(UserSchema())
     def add_user(self, hapic_data: HapicData):
         """
@@ -80,15 +76,15 @@ class BottleController(object):
     @hapic.output_body(NoContentSchema(), default_http_code=204)
     @hapic.input_path(UserIdPathSchema())
     def del_user(self, id, hapic_data: HapicData):
-        UserLib().del_user(int(hapic_data.path['id']))
+        UserLib().del_user(int(hapic_data.path["id"]))
         return NoContentSchema()
 
-    def bind(self, app:bottle.Bottle):
-        app.route('/about', callback=self.about)
-        app.route('/users', callback=self.get_users)
-        app.route('/users/<id>', callback=self.get_user)
-        app.route('/users', callback=self.add_user,  method='POST')
-        app.route('/users/<id>', callback=self.del_user, method='DELETE')
+    def bind(self, app: bottle.Bottle):
+        app.route("/about", callback=self.about)
+        app.route("/users", callback=self.get_users)
+        app.route("/users/<id>", callback=self.get_user)
+        app.route("/users", callback=self.add_user, method="POST")
+        app.route("/users/<id>", callback=self.del_user, method="DELETE")
 
 
 if __name__ == "__main__":
@@ -97,34 +93,30 @@ if __name__ == "__main__":
     controllers.bind(app)
     hapic.set_context(BottleContext(app, default_error_builder=MarshmallowDefaultErrorBuilder()))
 
-    print('')
-    print('')
-    print('GENERATING OPENAPI DOCUMENTATION')
+    print("")
+    print("")
+    print("GENERATING OPENAPI DOCUMENTATION")
 
-
-    doc_title = 'Demo API documentation'
-    doc_description = 'This documentation has been generated from ' \
-                       'code. You can see it using swagger: ' \
-                       'http://editor2.swagger.io/'
+    doc_title = "Demo API documentation"
+    doc_description = (
+        "This documentation has been generated from "
+        "code. You can see it using swagger: "
+        "http://editor2.swagger.io/"
+    )
     # TODO: add support for documentation view in bottle
-    hapic.add_documentation_view('/doc/', doc_title, doc_description)
-    openapi_file_name = 'api-documentation.json'
-    with open(openapi_file_name, 'w') as openapi_file_handle:
+    hapic.add_documentation_view("/doc/", doc_title, doc_description)
+    openapi_file_name = "api-documentation.json"
+    with open(openapi_file_name, "w") as openapi_file_handle:
         openapi_file_handle.write(
-            json.dumps(
-                hapic.generate_doc(
-                    title=doc_title,
-                    description=doc_description,
-                )
-            )
+            json.dumps(hapic.generate_doc(title=doc_title, description=doc_description))
         )
 
-    print('Documentation generated in {}'.format(openapi_file_name))
+    print("Documentation generated in {}".format(openapi_file_name))
     time.sleep(1)
 
-    print('')
-    print('')
-    print('RUNNING BOTTLE SERVER NOW')
-    print('DOCUMENTATION AVAILABLE AT /doc/')
+    print("")
+    print("")
+    print("RUNNING BOTTLE SERVER NOW")
+    print("DOCUMENTATION AVAILABLE AT /doc/")
     # Run app
-    app.run(host='127.0.0.1', port=8081, debug=True)
+    app.run(host="127.0.0.1", port=8081, debug=True)

@@ -1,19 +1,53 @@
 sudo: false
 language: python
 dist: xenial
-python:
-  - "3.5"
-  - "3.6"
-  - "3.7"
 
-install:
-  - python setup.py develop
-  - if [[ $TRAVIS_PYTHON_VERSION == 3.5 ]]; then pip install -e ."[test_marshmallow]"; fi
-  - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then pip install -e ."[test]"; fi
-  - if [[ $TRAVIS_PYTHON_VERSION == 3.7 ]]; then pip install -e ."[test]"; fi
-
-script: 
-  - pytest --cov=hapic tests -vvvvv
-
-after_success:
-  - coveralls
+jobs:
+  include:
+    - stage: static-tests
+      name: fmt
+      python: "3.7"
+      before_script:
+        - pip install black isort
+      script:
+        - black --version
+        - echo -n "isort " && isort --version-number
+        - black -l 100 --exclude '/(\..*)/' --diff --check hapic tests example
+        - isort -df -c **/*.py
+    - stage: static-tests
+      name: flake8
+      python: "3.7"
+      before_script:
+        - pip install flake8
+      script:
+        - flake8 --version
+        - flake8
+    - stage: tests
+      name: tests python3.5
+      python:
+        - "3.5"
+      before_script:
+        - python setup.py develop
+        - pip install -e ."[test_marshmallow]"
+      script:
+        - pytest --cov=hapic tests -vvvvv
+    - stage: tests
+      name: tests python3.6
+      python:
+        - "3.6"
+      before_script:
+        - python setup.py develop
+        - pip install -e ."[test]"
+      script:
+        - pytest --cov=hapic tests -vvvvv
+    - stage: tests
+      name: tests python3.7
+      python:
+        - "3.7"
+      before_script:
+        - python setup.py develop
+        - pip install -e ."[test]"
+      script:
+        - pytest --cov=hapic tests -vvvvv
+      after_success:
+        - coveralls

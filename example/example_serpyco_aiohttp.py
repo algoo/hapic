@@ -1,6 +1,6 @@
 # coding: utf-8
-import json
 from dataclasses import dataclass
+import json
 
 from aiohttp import web
 
@@ -36,24 +36,14 @@ class GetUserPath(object):
 @hapic.input_path(GetUserPath)
 @hapic.output_body(UserModel)
 async def get_user(request, hapic_data: HapicData):
-    return UserModel(
-        id=hapic_data.path.id,
-        name='Bob',
-    )
+    return UserModel(id=hapic_data.path.id, name="Bob")
 
 
 app = web.Application()
-app.add_routes([
-    web.get(r'/user/{id}', get_user),
-])
+app.add_routes([web.get(r"/user/{id}", get_user)])
 
-context = AiohttpContext(
-    app,
-    default_error_builder=SerpycoDefaultErrorBuilder()
-)
-hapic.set_context(
-    context
-)
+context = AiohttpContext(app, default_error_builder=SerpycoDefaultErrorBuilder())
+hapic.set_context(context)
 hapic.add_documentation_view("/api/doc")
 print(json.dumps(hapic.generate_doc()))
 web.run_app(app)
