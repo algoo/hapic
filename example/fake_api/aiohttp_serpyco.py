@@ -5,12 +5,12 @@ import time
 
 from aiohttp import web
 
-from example.fake_api.schema import AboutResponseSchema
-from example.fake_api.schema import ListsUserSchema
-from example.fake_api.schema import NoContentSchema
-from example.fake_api.schema import PaginationSchema
-from example.fake_api.schema import UserPathSchema
-from example.fake_api.schema import UserSchema
+from example.fake_api.schema_serpyco import AboutResponseSchema
+from example.fake_api.schema_serpyco import ListsUserSchema
+from example.fake_api.schema_serpyco import NoContentSchema
+from example.fake_api.schema_serpyco import PaginationSchema
+from example.fake_api.schema_serpyco import UserPathSchema
+from example.fake_api.schema_serpyco import UserSchema
 from hapic import Hapic
 from hapic import HapicData
 from hapic.error.serpyco import SerpycoDefaultErrorBuilder
