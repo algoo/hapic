@@ -12,4 +12,7 @@ except ImportError:
 class Base(object):
     pass
 
-serpyco_compatible_python = pytest.mark.skipif(sys.version_info < (3, 6), reason="serpyco dataclasses required python>3.6")
+
+serpyco_compatible_python = pytest.mark.skipif(
+    sys.version_info < (3, 6), reason="serpyco dataclasses required python>3.6"
+)

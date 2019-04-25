@@ -5,8 +5,8 @@ import marshmallow
 
 from hapic import Hapic
 from hapic import MarshmallowProcessor
-from tests.base import Base
 from hapic.ext.agnostic.context import AgnosticContext
+from tests.base import Base
 
 try:  # Python 3.5+
     from http import HTTPStatus
@@ -17,11 +17,7 @@ except ImportError:
 class TestMarshmallowDecoration(Base):
     def test_unit__input_files__ok__file_is_present(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
-        hapic.set_context(
-            AgnosticContext(
-                app=None, files_parameters={"file_abc": "10101010101"}
-            )
-        )
+        hapic.set_context(AgnosticContext(app=None, files_parameters={"file_abc": "10101010101"}))
 
         class MySchema(marshmallow.Schema):
             file_abc = marshmallow.fields.Raw(required=True)
@@ -67,9 +63,7 @@ class TestMarshmallowDecoration(Base):
 
     def test_unit__input_files__ok__file_is_empty_string(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
-        hapic.set_context(
-            AgnosticContext(app=None, files_parameters={"file_abc": ""})
-        )
+        hapic.set_context(AgnosticContext(app=None, files_parameters={"file_abc": ""}))
 
         class MySchema(marshmallow.Schema):
             file_abc = marshmallow.fields.Raw(required=True)

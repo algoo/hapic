@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
+from datetime import datetime
 import json
+import time
 
 import bottle
-import time
-from datetime import datetime
 
 from example.fake_api.model import User
-from hapic import Hapic, MarshmallowProcessor
 from example.fake_api.schema import *
+from hapic import Hapic
+from hapic import MarshmallowProcessor
 from hapic.data import HapicData
 from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
 from hapic.ext.bottle import BottleContext

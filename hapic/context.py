@@ -22,9 +22,7 @@ if typing.TYPE_CHECKING:
 
 
 class RouteRepresentation(object):
-    def __init__(
-        self, rule: str, method: str, original_route_object: typing.Any = None
-    ) -> None:
+    def __init__(self, rule: str, method: str, original_route_object: typing.Any = None) -> None:
         self.rule = rule
         self.method = method
         self.original_route_object = original_route_object
@@ -34,9 +32,7 @@ class ContextInterface(object):
     def get_request_parameters(self, *args, **kwargs) -> RequestParameters:
         raise NotImplementedError()
 
-    def set_processor_class(
-        self, processor_class: typing.Type[Processor]
-    ) -> None:
+    def set_processor_class(self, processor_class: typing.Type[Processor]) -> None:
         """
         Set processor class to be used in the context. Processor class
         will be used to validate and generate errors.
@@ -55,21 +51,15 @@ class ContextInterface(object):
     ) -> typing.Any:
         raise NotImplementedError()
 
-    def get_file_response(
-        self, file_response: HapicFile, http_code: int
-    ) -> typing.Any:
+    def get_file_response(self, file_response: HapicFile, http_code: int) -> typing.Any:
         raise NotImplementedError()
 
     def get_validation_error_response(
-        self,
-        error: ProcessValidationError,
-        http_code: HTTPStatus = HTTPStatus.BAD_REQUEST,
+        self, error: ProcessValidationError, http_code: HTTPStatus = HTTPStatus.BAD_REQUEST
     ) -> typing.Any:
         raise NotImplementedError()
 
-    def find_route(
-        self, decorated_controller: "DecoratedController"
-    ) -> RouteRepresentation:
+    def find_route(self, decorated_controller: "DecoratedController") -> RouteRepresentation:
         raise NotImplementedError()
 
     # TODO BS 20171228: rename into openapi !
@@ -102,9 +92,7 @@ class ContextInterface(object):
         raise NotImplementedError()
 
     @default_error_builder.setter
-    def default_error_builder(
-        self, error_builder: ErrorBuilderInterface
-    ) -> None:
+    def default_error_builder(self, error_builder: ErrorBuilderInterface) -> None:
         """
         Set the default error builder for this context
         :param error_builder: ErrorBuilderInterface instance to use as
@@ -113,10 +101,7 @@ class ContextInterface(object):
         raise NotImplementedError()
 
     def add_view(
-        self,
-        route: str,
-        http_method: str,
-        view_func: typing.Callable[..., typing.Any],
+        self, route: str, http_method: str, view_func: typing.Callable[..., typing.Any]
     ) -> None:
         """
         This method must permit to add a view in current context
@@ -134,9 +119,7 @@ class ContextInterface(object):
         """
         raise NotImplementedError()
 
-    def handle_exception(
-        self, exception_class: typing.Type[Exception], http_code: int
-    ) -> None:
+    def handle_exception(self, exception_class: typing.Type[Exception], http_code: int) -> None:
         """
         Enable management of this exception during execution of views. If this
         exception caught, an http response will be returned with this http
@@ -147,9 +130,7 @@ class ContextInterface(object):
         raise NotImplementedError()
 
     def handle_exceptions(
-        self,
-        exception_classes: typing.List[typing.Type[Exception]],
-        http_code: int,
+        self, exception_classes: typing.List[typing.Type[Exception]], http_code: int
     ) -> None:
         """
         Enable management of these exceptions during execution of views. If
@@ -175,9 +156,7 @@ class HandledException(object):
     Representation of an handled exception with it's http code
     """
 
-    def __init__(
-        self, exception_class: typing.Type[Exception], http_code: int = 500
-    ):
+    def __init__(self, exception_class: typing.Type[Exception], http_code: int = 500):
         self.exception_class = exception_class
         self.http_code = http_code
 
@@ -208,17 +187,13 @@ class BaseContext(ContextInterface):
         return self._default_error_builder
 
     @default_error_builder.setter
-    def default_error_builder(
-        self, error_builder: ErrorBuilderInterface
-    ) -> None:
+    def default_error_builder(self, error_builder: ErrorBuilderInterface) -> None:
         """
         see hapic.context.ContextInterface#set_default_error_builder
         """
         self._default_error_builder = error_builder
 
-    def set_processor_class(
-        self, processor_class: typing.Type[Processor]
-    ) -> None:
+    def set_processor_class(self, processor_class: typing.Type[Processor]) -> None:
         """
         Change processor class associated to this context. It will be used
         to validate error, eg. in handle_exceptions_decorator_builder.
@@ -226,22 +201,16 @@ class BaseContext(ContextInterface):
         """
         self._processor_class = processor_class
 
-    def handle_exception(
-        self, exception_class: typing.Type[Exception], http_code: int
-    ) -> None:
+    def handle_exception(self, exception_class: typing.Type[Exception], http_code: int) -> None:
         self._add_exception_class_to_catch(exception_class, http_code)
 
     def handle_exceptions(
-        self,
-        exception_classes: typing.List[typing.Type[Exception]],
-        http_code: int,
+        self, exception_classes: typing.List[typing.Type[Exception]], http_code: int
     ) -> None:
         for exception_class in exception_classes:
             self._add_exception_class_to_catch(exception_class, http_code)
 
-    def _get_dumped_error_from_exception_error(
-        self, exception: Exception
-    ) -> typing.Any:
+    def _get_dumped_error_from_exception_error(self, exception: Exception) -> typing.Any:
         """
         Build dumped error from given exception.
         Raise OutputValidationException if error built from error_builder is
@@ -262,9 +231,7 @@ class BaseContext(ContextInterface):
                 "Validation error of error response: {}".format(str(exc))
             ) from exc
 
-    def _get_dumped_error_from_validation_error(
-        self, error: ProcessValidationError
-    ) -> typing.Any:
+    def _get_dumped_error_from_validation_error(self, error: ProcessValidationError) -> typing.Any:
         """
         Build dumped error from given validation error.
         Raise OutputValidationException if error built from error_builder is
@@ -300,26 +267,19 @@ class BaseContext(ContextInterface):
             except Exception as exc:
                 # Reverse list to read first user given exception before
                 # the hapic default Exception catch
-                handled_exceptions = reversed(
-                    self._get_handled_exception_class_and_http_codes()
-                )
+                handled_exceptions = reversed(self._get_handled_exception_class_and_http_codes())
                 # TODO BS 2018-05-04: How to be attentive to hierarchy ?
                 for handled_exception in handled_exceptions:
                     if isinstance(exc, handled_exception.exception_class):
-                        dumped_error = self._get_dumped_error_from_exception_error(
-                            exc
-                        )
+                        dumped_error = self._get_dumped_error_from_exception_error(exc)
                         return self.get_response(
-                            json.dumps(dumped_error),
-                            handled_exception.http_code,
+                            json.dumps(dumped_error), handled_exception.http_code
                         )
                 raise exc
 
         return decorator
 
-    def _get_handled_exception_class_and_http_codes(
-        self,
-    ) -> typing.List[HandledException]:
+    def _get_handled_exception_class_and_http_codes(self,) -> typing.List[HandledException]:
         """
         :return: A list of tuple where: thirst item of tuple is a exception
         class and second tuple item is a http code. This list will be used by

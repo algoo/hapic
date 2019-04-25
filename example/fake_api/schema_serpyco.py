@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 import dataclasses
-import typing
 from datetime import datetime
+import typing
 
 import marshmallow
-from serpyco import number_field, string_field, StringFormat, nested_field
+from serpyco import StringFormat
+from serpyco import nested_field
+from serpyco import number_field
+from serpyco import string_field
 
 
 @dataclasses.dataclass

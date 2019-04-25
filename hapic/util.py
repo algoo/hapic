@@ -20,13 +20,9 @@ class LowercaseKeysDict(dict):
                     'Invalid key "{}": must be lowercase str'.format(key)
                 )
         except (TypeError, AttributeError):
-            raise NotLowercaseCaseException(
-                'Invalid key "{}": must be lowercase str'.format(key)
-            )
+            raise NotLowercaseCaseException('Invalid key "{}": must be lowercase str'.format(key))
 
-    def __init__(
-        self, seq: typing.Iterable[typing.Tuple[str, typing.Any]] = None
-    ) -> None:
+    def __init__(self, seq: typing.Iterable[typing.Tuple[str, typing.Any]] = None) -> None:
         """
         Create dict only if given key lowercase string
         """
@@ -79,9 +75,7 @@ class LowercaseKeysDict(dict):
         """
         return key.lower() in self.__dict__
 
-    def update(
-        self, seq: typing.Iterable[typing.Tuple[str, typing.Any]]
-    ) -> None:
+    def update(self, seq: typing.Iterable[typing.Tuple[str, typing.Any]]) -> None:
         seq = seq or []  # FDV
         seq = seq.items() if isinstance(seq, dict) else seq
 

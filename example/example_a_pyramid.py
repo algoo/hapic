@@ -1,13 +1,8 @@
 # -*- coding: utf-8 -*-
-import json
 from io import BytesIO
+import json
 from wsgiref.simple_server import make_server
 
-import hapic
-from hapic.data import HapicData
-from hapic.data import HapicFile
-from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
-from hapic.ext.pyramid import PyramidContext
 from PIL import Image
 from pyramid.config import Configurator
 
@@ -15,6 +10,11 @@ from example import HelloJsonSchema
 from example import HelloPathSchema
 from example import HelloQuerySchema
 from example import HelloResponseSchema
+import hapic
+from hapic.data import HapicData
+from hapic.data import HapicFile
+from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
+from hapic.ext.pyramid import PyramidContext
 
 try:  # Python 3.5+
     from http import HTTPStatus
@@ -133,20 +133,20 @@ class Controllers(object):
         configurator.add_route('hello', '/hello/{name}', request_method='GET')
         configurator.add_view(self.hello, route_name='hello', renderer='json')
 
-        configurator.add_route('hello2', '/hello/{name}', request_method='POST')  # nopep8
-        configurator.add_view(self.hello2, route_name='hello2', renderer='json')  # nopep8
+        configurator.add_route('hello2', '/hello/{name}', request_method='POST')
+        configurator.add_view(self.hello2, route_name='hello2', renderer='json')
 
-        configurator.add_route('hello3', '/hello3/{name}', request_method='GET')  # nopep8
-        configurator.add_view(self.hello3, route_name='hello3', renderer='json')  # nopep8
+        configurator.add_route('hello3', '/hello3/{name}', request_method='GET')
+        configurator.add_view(self.hello3, route_name='hello3', renderer='json')
 
-        configurator.add_route('hellofile', '/hellofile', request_method='GET')  # nopep8
-        configurator.add_view(self.hellofile, route_name='hellofile')  # nopep8
+        configurator.add_route('hellofile', '/hellofile', request_method='GET')
+        configurator.add_view(self.hellofile, route_name='hellofile')
 
-        configurator.add_route('hellofile2', '/hellofile2', request_method='GET')  # nopep8
-        configurator.add_view(self.hellofile2, route_name='hellofile2')  # nopep8
+        configurator.add_route('hellofile2', '/hellofile2', request_method='GET')
+        configurator.add_view(self.hellofile2, route_name='hellofile2')
 
-        configurator.add_route('hellofile3', '/hellofile3', request_method='GET')  # nopep8
-        configurator.add_view(self.hellofile3, route_name='hellofile3')  # nopep8
+        configurator.add_route('hellofile3', '/hellofile3', request_method='GET')
+        configurator.add_view(self.hellofile3, route_name='hellofile3')
 
 configurator = Configurator(autocommit=True)
 controllers = Controllers()

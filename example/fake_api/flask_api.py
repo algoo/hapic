@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
+from datetime import datetime
 import json
+import time
 
 import flask
-import time
-from datetime import datetime
-from hapic import Hapic, MarshmallowProcessor
 
 from example.fake_api.schema import *
+from hapic import Hapic
+from hapic import MarshmallowProcessor
+from hapic.data import HapicData
 from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
 from hapic.ext.flask import FlaskContext
-from hapic.data import HapicData
 
 hapic = Hapic(processor_class=MarshmallowProcessor)
 

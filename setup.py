@@ -1,9 +1,10 @@
 # coding: utf-8
 # Always prefer setuptools over distutils
-from setuptools import setup
-from setuptools import find_packages
 from os import path
 import sys
+
+from setuptools import find_packages
+from setuptools import setup
 
 # INFO - G.M - 29-05-2018 - exec info.py file in order to obtain version
 # without any dependencies trouble.

@@ -1,22 +1,27 @@
 # -*- coding: utf-8 -*-
 import json
+import time
 
+import bottle
+import yaml
+
+from example import ErrorResponseSchema
+from example import HelloFileSchema
+from example import HelloJsonSchema
+from example import HelloPathSchema
+from example import HelloQuerySchema
+from example import HelloResponseSchema
+import hapic
+from hapic.data import HapicData
 from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
+from hapic.ext.bottle.context import BottleContext
 
 try:  # Python 3.5+
     from http import HTTPStatus
 except ImportError:
     from http import client as HTTPStatus
 
-import bottle
-import time
-import yaml
 
-import hapic
-from hapic.ext.bottle.context import BottleContext
-from example import HelloResponseSchema, HelloPathSchema, HelloJsonSchema, \
-    ErrorResponseSchema, HelloQuerySchema, HelloFileSchema
-from hapic.data import HapicData
 
 
 def bob(f):

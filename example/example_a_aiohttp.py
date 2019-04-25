@@ -1,9 +1,8 @@
 # coding: utf-8
 from aiohttp import web
-from hapic import async as hapic
-from hapic import async as HapicData
 import marshmallow
 
+from hapic import async as HapicData
 from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
 from hapic.ext.aiohttp.context import AiohttpContext
 

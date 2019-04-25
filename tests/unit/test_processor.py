@@ -45,7 +45,12 @@ class TestProcessor(Base):
         image.save(file, "png")
         file.name = "test_image.png"
         file.seek(0)
-        tested_data = HapicFile(file_object=file, mimetype="image/png", content_length=file.getbuffer().nbytes, last_modified=datetime.utcnow())
+        tested_data = HapicFile(
+            file_object=file,
+            mimetype="image/png",
+            content_length=file.getbuffer().nbytes,
+            last_modified=datetime.utcnow(),
+        )
         data = processor.dump_output_file(tested_data)
         assert data == tested_data
 
@@ -56,7 +61,9 @@ class TestProcessor(Base):
         image.save(file, "png")
         file.name = "test_image.png"
         file.seek(0)
-        tested_data = HapicFile(file_object=file, mimetype="image/png", last_modified='uncorrect_type')
+        tested_data = HapicFile(
+            file_object=file, mimetype="image/png", last_modified="uncorrect_type"
+        )
         with pytest.raises(ValidationException):
             data = processor.dump_output_file(tested_data)
 
@@ -67,7 +74,9 @@ class TestProcessor(Base):
         image.save(file, "png")
         file.name = "test_image.png"
         file.seek(0)
-        tested_data = HapicFile(file_object=file, mimetype="image/png", content_length='uncorrect_type')
+        tested_data = HapicFile(
+            file_object=file, mimetype="image/png", content_length="uncorrect_type"
+        )
         with pytest.raises(ValidationException):
             data = processor.dump_output_file(tested_data)
 
@@ -101,9 +110,7 @@ class TestProcessor(Base):
         file.name = "test_image.png"
         file.seek(0)
         tested_data = HapicFile(
-            file_path=os.path.abspath(__file__),
-            file_object=file,
-            mimetype="image/png",
+            file_path=os.path.abspath(__file__), file_object=file, mimetype="image/png"
         )
         with pytest.raises(ValidationException):
             data = processor.dump_output_file(tested_data)
@@ -125,9 +132,7 @@ class TestProcessor(Base):
         with pytest.raises(ValidationException):
             data = processor.dump_output_file(tested_data)
 
-    def test_unit_file_output_processor_err__missing_mimetype_for_file_object(
-        self
-    ):  # nopep8
+    def test_unit_file_output_processor_err__missing_mimetype_for_file_object(self):
         processor = MarshmallowProcessor()
         file = BytesIO()
         image = Image.new("RGBA", size=(1000, 1000), color=(0, 0, 0))
@@ -181,9 +186,7 @@ class TestProcessor(Base):
         assert errors.details
         assert "first_name" in errors.details
 
-    def test_unit__marshmallow_input_processor__error__validation_error_no_data(
-        self
-    ):  # nopep8
+    def test_unit__marshmallow_input_processor__error__validation_error_no_data(self):
         processor = MarshmallowProcessor()
         processor.set_schema(MySchema())
 
@@ -197,9 +200,7 @@ class TestProcessor(Base):
         assert errors.details
         assert "first_name" in errors.details
 
-    def test_unit__marshmallow_input_processor__error__validation_error_no_data_none(
-        self
-    ):  # nopep8
+    def test_unit__marshmallow_input_processor__error__validation_error_no_data_none(self):
         processor = MarshmallowProcessor()
         processor.set_schema(MySchema())
 
@@ -213,9 +214,7 @@ class TestProcessor(Base):
         assert errors.details
         assert "first_name" in errors.details
 
-    def test_unit__marshmallow_input_processor__error__validation_error_no_data_empty_string(
-        self
-    ):  # nopep8
+    def test_unit__marshmallow_input_processor__error__validation_error_no_data_empty_string(self):
         processor = MarshmallowProcessor()
         processor.set_schema(MySchema())
 

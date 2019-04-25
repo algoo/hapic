@@ -1,6 +1,6 @@
 # coding: utf-8
-import json
 from dataclasses import dataclass
+import json
 
 from aiohttp import web
 

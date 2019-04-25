@@ -29,14 +29,8 @@ class TestBottleExt(Base):
 
         assert route
         assert route.original_route_object.callback != controller_a
-        assert (
-            route.original_route_object.callback
-            == decoration.reference.wrapped
-        )  # nopep8
-        assert (
-            route.original_route_object.callback
-            != decoration.reference.wrapper
-        )  # nopep8
+        assert route.original_route_object.callback == decoration.reference.wrapped
+        assert route.original_route_object.callback != decoration.reference.wrapper
 
     def test_unit__map_binding__ok__mapped_function(self):
         hapic_ = hapic.Hapic(processor_class=MarshmallowProcessor)
@@ -58,14 +52,8 @@ class TestBottleExt(Base):
 
         assert route
         assert route.original_route_object.callback == controller_a
-        assert (
-            route.original_route_object.callback
-            == decoration.reference.wrapper
-        )  # nopep8
-        assert (
-            route.original_route_object.callback
-            != decoration.reference.wrapped
-        )  # nopep8
+        assert route.original_route_object.callback == decoration.reference.wrapper
+        assert route.original_route_object.callback != decoration.reference.wrapped
 
     def test_unit__map_binding__ok__mapped_method(self):
         hapic_ = hapic.Hapic(processor_class=MarshmallowProcessor)
@@ -93,24 +81,14 @@ class TestBottleExt(Base):
         assert route
         # Important note: instance controller_a method is
         # not class controller_a, so no matches with callbacks
-        assert (
-            route.original_route_object.callback != MyControllers.controller_a
-        )  # nopep8
-        assert (
-            route.original_route_object.callback
-            != decoration.reference.wrapped
-        )  # nopep8
-        assert (
-            route.original_route_object.callback
-            != decoration.reference.wrapper
-        )  # nopep8
+        assert route.original_route_object.callback != MyControllers.controller_a
+        assert route.original_route_object.callback != decoration.reference.wrapped
+        assert route.original_route_object.callback != decoration.reference.wrapper
 
     def test_unit__general_exception_handling__ok__nominal_case(self):
         hapic_ = hapic.Hapic(processor_class=MarshmallowProcessor)
         app = bottle.Bottle()
-        context = BottleContext(
-            app=app, default_error_builder=MarshmallowDefaultErrorBuilder()
-        )
+        context = BottleContext(app=app, default_error_builder=MarshmallowDefaultErrorBuilder())
         hapic_.set_context(context)
 
         def my_view():

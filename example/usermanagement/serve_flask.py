@@ -1,31 +1,32 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime
-
-from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
-
-try:  # Python 3.5+
-    from http import HTTPStatus
-except ImportError:
-    from http import client as HTTPStatus
 import json
-import flask
 import time
 from wsgiref.simple_server import make_server
 
-from hapic import Hapic
-from hapic.data import HapicData
-from hapic.ext.flask import FlaskContext
+import flask
 
 from example.usermanagement.schema import AboutSchema
 from example.usermanagement.schema import NoContentSchema
 from example.usermanagement.schema import UserDigestSchema
 from example.usermanagement.schema import UserIdPathSchema
 from example.usermanagement.schema import UserSchema
-
 from example.usermanagement.userlib import User
 from example.usermanagement.userlib import UserLib
 from example.usermanagement.userlib import UserNotFound
+from hapic import Hapic
+from hapic.data import HapicData
+from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
+from hapic.ext.flask import FlaskContext
+
+try:  # Python 3.5+
+    from http import HTTPStatus
+except ImportError:
+    from http import client as HTTPStatus
+
+
+
 
 hapic = Hapic()
 
@@ -87,7 +88,7 @@ class FlaskController(object):
         app.add_url_rule('/users', view_func=self.get_users)
         app.add_url_rule('/users/<id>', view_func=self.get_user)
         app.add_url_rule('/users/', view_func=self.add_user, methods=['POST'])
-        app.add_url_rule('/users/<id>', view_func=self.del_user, methods=['DELETE'])  # nopep8
+        app.add_url_rule('/users/<id>', view_func=self.del_user, methods=['DELETE'])
 
 
 if __name__ == "__main__":

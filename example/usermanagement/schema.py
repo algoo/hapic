@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import marshmallow
 
+
 class NoContentSchema(marshmallow.Schema):
     pass
 

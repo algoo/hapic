@@ -2,15 +2,14 @@
 import json
 import time
 
-from hapic import Hapic, HapicData
+from aiohttp import web
+
+from example.fake_api.schema_serpyco import *
+from hapic import Hapic
+from hapic import HapicData
 from hapic.error.serpyco import SerpycoDefaultErrorBuilder
 from hapic.ext.aiohttp.context import AiohttpContext
 from hapic.processor.serpyco import SerpycoProcessor
-
-from example.fake_api.schema_serpyco import *
-
-from aiohttp import web
-
 
 hapic = Hapic(async_=True)
 hapic.set_processor_class(SerpycoProcessor)

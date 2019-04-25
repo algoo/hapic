@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
+from datetime import datetime
 import typing
 import urllib.parse
-from datetime import datetime
 
 
 class HapicData(object):

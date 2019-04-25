@@ -57,9 +57,7 @@ except ImportError:
 
 class Hapic(object):
     def __init__(
-        self,
-        processor_class: typing.Optional[typing.Type[Processor]] = None,
-        async_: bool = False,
+        self, processor_class: typing.Optional[typing.Type[Processor]] = None, async_: bool = False
     ) -> None:
         self._buffer = DecorationBuffer()
         self._controllers = []  # type: typing.List[DecoratedController]
@@ -97,9 +95,7 @@ class Hapic(object):
     @property
     def processor_class(self) -> typing.Type[Processor]:
         if self._processor_class is None:
-            raise ConfigurationException(
-                "You must define Hapic processor_class before to use it."
-            )
+            raise ConfigurationException("You must define Hapic processor_class before to use it.")
 
         return self._processor_class
 
@@ -119,16 +115,12 @@ class Hapic(object):
         try:
             self._context.default_error_builder
         except ConfigurationException:
-            self._context.default_error_builder = (
-                self.processor_class.get_default_error_builder()
-            )
+            self._context.default_error_builder = self.processor_class.get_default_error_builder()
 
     def reset_context(self) -> None:
         self._context = None
 
-    def set_processor_class(
-        self, processor_class: typing.Type[Processor]
-    ) -> None:
+    def set_processor_class(self, processor_class: typing.Type[Processor]) -> None:
         self._processor_class = processor_class
 
     def _get_processor_factory(
@@ -155,9 +147,7 @@ class Hapic(object):
 
         return get_default_processor
 
-    def with_api_doc(
-        self, tags: typing.List["str"] = None, disable_doc: bool = False
-    ):
+    def with_api_doc(self, tags: typing.List["str"] = None, disable_doc: bool = False):
         """
         Permit to generate doc about a controller. Use as a decorator:
 
@@ -195,13 +185,9 @@ class Hapic(object):
             description.tags = tags
             description.disable_doc = disable_doc
 
-            reference = ControllerReference(
-                wrapper=wrapper, wrapped=func, token=token
-            )
+            reference = ControllerReference(wrapper=wrapper, wrapped=func, token=token)
             decorated_controller = DecoratedController(
-                reference=reference,
-                description=description,
-                name=func.__name__,
+                reference=reference, description=description, name=func.__name__
             )
             self._buffer.clear()
             self._controllers.append(decorated_controller)
@@ -541,9 +527,7 @@ class Hapic(object):
                 description=description,
                 # We must give a processor factory because wrapper will check
                 # it's own error format
-                processor_factory=lambda schema_: self.processor_class(
-                    schema_
-                ),
+                processor_factory=lambda schema_: self.processor_class(schema_),
             )
 
         else:
@@ -555,9 +539,7 @@ class Hapic(object):
                 description=description,
                 # We must give a processor factory because wrapper will check
                 # it's own error format
-                processor_factory=lambda schema_: self.processor_class(
-                    schema_
-                ),
+                processor_factory=lambda schema_: self.processor_class(schema_),
             )
 
         def decorator(func):
@@ -566,9 +548,7 @@ class Hapic(object):
 
         return decorator
 
-    def generate_doc(
-        self, title: str = "", description: str = "", version: str = "1.0.0"
-    ) -> dict:
+    def generate_doc(self, title: str = "", description: str = "", version: str = "1.0.0") -> dict:
         """
         See hapic.doc.DocGenerator#get_doc docstring
         :param title: Title of generated doc
@@ -584,9 +564,7 @@ class Hapic(object):
             version=version,
         )
 
-    def save_doc_in_file(
-        self, file_path: str, title: str = "", description: str = ""
-    ) -> None:
+    def save_doc_in_file(self, file_path: str, title: str = "", description: str = "") -> None:
         """
         See hapic.doc.DocGenerator#get_doc docstring
         :param file_path: The file path to write doc in YAML format
@@ -602,9 +580,7 @@ class Hapic(object):
             description=description,
         )
 
-    def add_documentation_view(
-        self, route: str, title: str = "", description: str = ""
-    ) -> None:
+    def add_documentation_view(self, route: str, title: str = "", description: str = "") -> None:
         # Ensure "/" at end of route, else web browser will not consider it as
         # a path
         if not route.endswith("/"):
@@ -640,9 +616,7 @@ class Hapic(object):
         doc_index_path = os.path.join(swaggerui_path, "index.html")
         with open(doc_index_path, "r") as doc_page:
             doc_page_content = doc_page.read()
-        doc_page_content = doc_page_content.replace(
-            "{{ spec_uri }}", "spec.yml"
-        )
+        doc_page_content = doc_page_content.replace("{{ spec_uri }}", "spec.yml")
 
         # Declare the swaggerui view
         def api_doc_view(*args, **kwargs):
@@ -659,15 +633,11 @@ class Hapic(object):
             )
 
         # Add a view to generate the html index page of swagger-ui
-        self.context.add_view(
-            route=route, http_method="GET", view_func=api_doc_view
-        )
+        self.context.add_view(route=route, http_method="GET", view_func=api_doc_view)
 
         # Add a doc yaml view
         self.context.add_view(
-            route=os.path.join(route, "spec.yml"),
-            http_method="GET",
-            view_func=spec_yaml_view,
+            route=os.path.join(route, "spec.yml"), http_method="GET", view_func=spec_yaml_view
         )
 
         # Add swagger directory as served static dir

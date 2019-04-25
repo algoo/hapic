@@ -1,19 +1,23 @@
 # -*- coding: utf-8 -*-
 import json
 
+from flask import Flask
+
+from example import ErrorResponseSchema
+from example import HelloJsonSchema
+from example import HelloPathSchema
+from example import HelloQuerySchema
+from example import HelloResponseSchema
+import hapic
+from hapic.data import HapicData
 from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
+from hapic.ext.flask import FlaskContext
 
 try:  # Python 3.5+
     from http import HTTPStatus
 except ImportError:
     from http import client as HTTPStatus
 
-from flask import Flask
-import hapic
-from example import HelloResponseSchema, HelloPathSchema, HelloJsonSchema, \
-    ErrorResponseSchema, HelloQuerySchema
-from hapic.data import HapicData
-from hapic.ext.flask import FlaskContext
 
 
 def bob(f):

@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
-import json
-from pyramid.config import Configurator
-from wsgiref.simple_server import make_server
-import time
 from datetime import datetime
-from hapic import Hapic, MarshmallowProcessor
-from example.fake_api.schema import *
+import json
+import time
+from wsgiref.simple_server import make_server
 
+from pyramid.config import Configurator
+
+from example.fake_api.schema import *
+from hapic import Hapic
+from hapic import MarshmallowProcessor
 from hapic.data import HapicData
 from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
 from hapic.ext.pyramid import PyramidContext
@@ -117,20 +119,20 @@ class PyramidController(object):
         configurator.add_route('about', '/about', request_method='GET')
         configurator.add_view(self.about, route_name='about', renderer='json')
 
-        configurator.add_route('get_users', '/users', request_method='GET')  # nopep8
-        configurator.add_view(self.get_users, route_name='get_users', renderer='json')  # nopep8
+        configurator.add_route('get_users', '/users', request_method='GET')
+        configurator.add_view(self.get_users, route_name='get_users', renderer='json')
 
-        configurator.add_route('get_users2', '/users2', request_method='GET')  # nopep8
-        configurator.add_view(self.get_users2, route_name='get_users2', renderer='json')  # nopep8
+        configurator.add_route('get_users2', '/users2', request_method='GET')
+        configurator.add_view(self.get_users2, route_name='get_users2', renderer='json')
 
-        configurator.add_route('get_user', '/users/{id}', request_method='GET')  # nopep8
-        configurator.add_view(self.get_user, route_name='get_user', renderer='json')  # nopep8
+        configurator.add_route('get_user', '/users/{id}', request_method='GET')
+        configurator.add_view(self.get_user, route_name='get_user', renderer='json')
 
-        configurator.add_route('add_user', '/users/', request_method='POST')  # nopep8
-        configurator.add_view(self.add_user, route_name='add_user', renderer='json')  # nopep8
+        configurator.add_route('add_user', '/users/', request_method='POST')
+        configurator.add_view(self.add_user, route_name='add_user', renderer='json')
 
-        configurator.add_route('del_user', '/users/{id}', request_method='DELETE')  # nopep8
-        configurator.add_view(self.del_user, route_name='del_user', renderer='json')  # nopep8
+        configurator.add_route('del_user', '/users/{id}', request_method='DELETE')
+        configurator.add_view(self.del_user, route_name='del_user', renderer='json')
 
 if __name__ == "__main__":
     configurator = Configurator(autocommit=True)

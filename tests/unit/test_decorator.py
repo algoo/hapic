@@ -39,9 +39,7 @@ class MyProcessor(Processor):
         return MarshmallowDefaultErrorBuilder()
 
     @classmethod
-    def generate_schema_ref(
-        cls, main_plugin: BasePlugin, schema: "TYPE_SCHEMA"
-    ) -> dict:
+    def generate_schema_ref(cls, main_plugin: BasePlugin, schema: "TYPE_SCHEMA") -> dict:
         pass
 
     def get_input_files_validation_error(
@@ -56,19 +54,13 @@ class MyProcessor(Processor):
         pass
 
     @classmethod
-    def create_apispec_plugin(
-        cls, schema_name_resolver: typing.Optional[typing.Callable] = None
-    ):
+    def create_apispec_plugin(cls, schema_name_resolver: typing.Optional[typing.Callable] = None):
         pass
 
-    def get_input_validation_error(
-        self, data_to_validate: typing.Any
-    ) -> ProcessValidationError:
+    def get_input_validation_error(self, data_to_validate: typing.Any) -> ProcessValidationError:
         return ProcessValidationError(details={}, message="ERROR")
 
-    def get_output_validation_error(
-        self, data_to_validate: typing.Any
-    ) -> ProcessValidationError:
+    def get_output_validation_error(self, data_to_validate: typing.Any) -> ProcessValidationError:
         return ProcessValidationError(details={}, message="ERROR")
 
     def get_output_file_validation_error(
@@ -81,9 +73,7 @@ class MyProcessor(Processor):
             return input_data + 1
         return input_data
 
-    def dump(
-        self, output_data: typing.Any
-    ) -> typing.Union[typing.Dict, typing.List]:
+    def dump(self, output_data: typing.Any) -> typing.Union[typing.Dict, typing.List]:
         if isinstance(output_data, int):
             return output_data + 1
         return output_data
@@ -96,17 +86,13 @@ class MySimpleProcessor(MyProcessor):
     def load_input(self, input_data: typing.Any) -> typing.Any:
         return input_data
 
-    def dump_output(
-        self, output_data: typing.Any
-    ) -> typing.Union[typing.Dict, typing.List]:
+    def dump_output(self, output_data: typing.Any) -> typing.Union[typing.Dict, typing.List]:
         return output_data
 
 
 class MyControllerWrapper(InputOutputControllerWrapper):
     def before_wrapped_func(
-        self,
-        func_args: typing.Tuple[typing.Any, ...],
-        func_kwargs: typing.Dict[str, typing.Any],
+        self, func_args: typing.Tuple[typing.Any, ...], func_kwargs: typing.Dict[str, typing.Any]
     ) -> typing.Union[None, typing.Any]:
         if func_args and func_args[0] == 666:
             return {"error_response": "we are testing"}
@@ -118,15 +104,11 @@ class MyControllerWrapper(InputOutputControllerWrapper):
 
 
 class MyInputQueryControllerWrapper(InputControllerWrapper):
-    def get_processed_data(
-        self, request_parameters: RequestParameters
-    ) -> typing.Any:
+    def get_processed_data(self, request_parameters: RequestParameters) -> typing.Any:
         return request_parameters.query_parameters
 
     def update_hapic_data(
-        self,
-        hapic_data: HapicData,
-        processed_data: typing.Dict[str, typing.Any],
+        self, hapic_data: HapicData, processed_data: typing.Dict[str, typing.Any]
     ) -> typing.Any:
         hapic_data.query = processed_data
 
@@ -180,9 +162,7 @@ class TestControllerWrapper(Base):
 
 class TestInputControllerWrapper(Base):
     def test_unit__input_data_wrapping__ok__nominal_case(self):
-        context = AgnosticContext(
-            app=None, query_parameters=MultiDict((("foo", "bar"),))
-        )
+        context = AgnosticContext(app=None, query_parameters=MultiDict((("foo", "bar"),)))
         processor = MyProcessor()
         wrapper = MyInputQueryControllerWrapper(context, lambda: processor)
 
@@ -199,15 +179,10 @@ class TestInputControllerWrapper(Base):
 
     def test_unit__multi_query_param_values__ok__use_as_list(self):
         context = AgnosticContext(
-            app=None,
-            query_parameters=MultiDict(
-                (("user_id", "abc"), ("user_id", "def"))
-            ),
+            app=None, query_parameters=MultiDict((("user_id", "abc"), ("user_id", "def")))
         )
         processor = MySimpleProcessor()
-        wrapper = InputQueryControllerWrapper(
-            context, lambda: processor, as_list=["user_id"]
-        )
+        wrapper = InputQueryControllerWrapper(context, lambda: processor, as_list=["user_id"])
 
         @wrapper.get_wrapper
         def func(hapic_data=None):
@@ -222,10 +197,7 @@ class TestInputControllerWrapper(Base):
 
     def test_unit__multi_query_param_values__ok__without_as_list(self):
         context = AgnosticContext(
-            app=None,
-            query_parameters=MultiDict(
-                (("user_id", "abc"), ("user_id", "def"))
-            ),
+            app=None, query_parameters=MultiDict((("user_id", "abc"), ("user_id", "def")))
         )
         processor = MySimpleProcessor()
         wrapper = InputQueryControllerWrapper(context, lambda: processor)
@@ -288,9 +260,7 @@ class TestExceptionHandlerControllerWrapper(Base):
             context,
             error_builder=error_builder,
             http_code=HTTPStatus.INTERNAL_SERVER_ERROR,
-            processor_factory=lambda schema_: MarshmallowProcessor(
-                error_builder.get_schema()
-            ),
+            processor_factory=lambda schema_: MarshmallowProcessor(error_builder.get_schema()),
         )
 
         @wrapper.get_wrapper
@@ -318,9 +288,7 @@ class TestExceptionHandlerControllerWrapper(Base):
             context,
             error_builder=error_builder,
             http_code=HTTPStatus.INTERNAL_SERVER_ERROR,
-            processor_factory=lambda schema_: MarshmallowProcessor(
-                error_builder.get_schema()
-            ),
+            processor_factory=lambda schema_: MarshmallowProcessor(error_builder.get_schema()),
         )
 
         @wrapper.get_wrapper
@@ -354,9 +322,7 @@ class TestExceptionHandlerControllerWrapper(Base):
             MyException,
             context,
             error_builder=error_builder,
-            processor_factory=lambda schema_: MarshmallowProcessor(
-                error_builder.get_schema()
-            ),
+            processor_factory=lambda schema_: MarshmallowProcessor(error_builder.get_schema()),
         )
 
         def raise_it():
