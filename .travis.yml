@@ -12,7 +12,7 @@ jobs:
       script:
         - black --version
         - echo -n "isort " && isort --version-number
-        - black -l 100 --exclude '/(\..*)/' --diff --check hapic tests
+        - black -l 100 --exclude '/(\..*)/' --diff --check hapic tests example
         - isort -df -c **/*.py
     - stage: static-tests
       name: flake8
