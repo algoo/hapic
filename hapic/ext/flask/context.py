@@ -26,6 +26,7 @@ except ImportError:
 
 if typing.TYPE_CHECKING:
     from flask import Response
+    from hapic.context import HandledException  # noqa: F401
 
 # flask regular expression to locate url parameters
 FLASK_RE_PATH_URL = re.compile(r"<(?:[^:<>]+:)?([^<>]+)>")

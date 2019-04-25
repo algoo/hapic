@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from hapic.data import HapicData
+from hapic.data import HapicData  # noqa: F401
 from hapic.hapic import Hapic
-from hapic.infos import __version__
+from hapic.infos import __version__  # noqa: F401
 
 # To make a default hapic instance, must determine processor
 try:

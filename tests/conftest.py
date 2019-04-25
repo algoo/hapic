@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import sys
 
-from tests.fixtures import *
+from tests.fixtures import *  # noqa: F403, F401
 
 collect_ignore = []
 if sys.version_info < (3, 6):

@@ -57,7 +57,6 @@ def get_pyramid_context():
     "context", [get_bottle_context(), get_flask_context(), get_pyramid_context()]
 )
 def test_func__test_fake_api_endpoints_ok__all_framework(context):
-    hapic = context["hapic"]
     app = context["app"]
     app = TestApp(app)
     resp = app.get("/about")

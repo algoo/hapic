@@ -65,7 +65,7 @@ class TestProcessor(Base):
             file_object=file, mimetype="image/png", last_modified="uncorrect_type"
         )
         with pytest.raises(ValidationException):
-            data = processor.dump_output_file(tested_data)
+            processor.dump_output_file(tested_data)
 
     def test_unit_file_output_processor__err__bad_content_length_type(self):
         processor = MarshmallowProcessor()
@@ -78,7 +78,7 @@ class TestProcessor(Base):
             file_object=file, mimetype="image/png", content_length="uncorrect_type"
         )
         with pytest.raises(ValidationException):
-            data = processor.dump_output_file(tested_data)
+            processor.dump_output_file(tested_data)
 
     def test_unit_file_output_processor__err__negative_content_length(self):
         processor = MarshmallowProcessor()
@@ -89,7 +89,7 @@ class TestProcessor(Base):
         file.seek(0)
         tested_data = HapicFile(file_object=file, mimetype="image/png", content_length=-1)
         with pytest.raises(ValidationException):
-            data = processor.dump_output_file(tested_data)
+            processor.dump_output_file(tested_data)
 
     def test_unit_file_output_processor_err__wrong_type(self):
         processor = MarshmallowProcessor()
@@ -100,7 +100,7 @@ class TestProcessor(Base):
         file.seek(0)
         tested_data = None
         with pytest.raises(ValidationException):
-            data = processor.dump_output_file(tested_data)
+            processor.dump_output_file(tested_data)
 
     def test_unit_file_output_processor_err__both_path_and_object(self):
         processor = MarshmallowProcessor()
@@ -113,7 +113,7 @@ class TestProcessor(Base):
             file_path=os.path.abspath(__file__), file_object=file, mimetype="image/png"
         )
         with pytest.raises(ValidationException):
-            data = processor.dump_output_file(tested_data)
+            processor.dump_output_file(tested_data)
 
     def test_unit_file_output_processor_err__no_path_no_object(self):
         processor = MarshmallowProcessor()
@@ -124,13 +124,13 @@ class TestProcessor(Base):
         file.seek(0)
         tested_data = HapicFile(mimetype="image/png")
         with pytest.raises(ValidationException):
-            data = processor.dump_output_file(tested_data)
+            processor.dump_output_file(tested_data)
 
     def test_unit_file_output_processor_err__file_do_not_exist(self):
         processor = MarshmallowProcessor()
         tested_data = HapicFile(file_path="_____________")
         with pytest.raises(ValidationException):
-            data = processor.dump_output_file(tested_data)
+            processor.dump_output_file(tested_data)
 
     def test_unit_file_output_processor_err__missing_mimetype_for_file_object(self):
         processor = MarshmallowProcessor()
@@ -141,7 +141,7 @@ class TestProcessor(Base):
         file.seek(0)
         tested_data = HapicFile(file_object=file)
         with pytest.raises(ValidationException):
-            data = processor.dump_output_file(tested_data)
+            processor.dump_output_file(tested_data)
 
     def test_unit__marshmallow_output_processor__ok__process_success(self):
         processor = MarshmallowProcessor()

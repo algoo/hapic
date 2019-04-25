@@ -12,7 +12,10 @@ from hapic.context import RouteRepresentation
 from hapic.decorator import DecoratedController
 from hapic.description import ControllerDescription
 from hapic.doc.schema import SchemaUsage
-from hapic.processor.main import Processor
+
+if typing.TYPE_CHECKING:
+    from hapic.hapic import Hapic
+
 
 FIELDS_PARAMS_GENERIC_ACCEPTED = ["type", "format", "required", "description", "enum"]
 FIELDS_TYPE_ARRAY = ["array"]

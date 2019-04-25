@@ -618,7 +618,6 @@ class TestAiohttpExt(object):
         app.router.add_get("/", hello)
         client = await aiohttp_client(app)
         response = await client.get("/", headers={"FOO": "bar"})
-        text_ = await response.text()
         assert 200 == response.status
         json_ = await response.json()
         assert {"foo": "bar"} == json_

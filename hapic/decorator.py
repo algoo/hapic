@@ -362,7 +362,7 @@ class AsyncOutputStreamControllerWrapper(OutputControllerWrapper):
                 try:
                     serialized_item = self._get_serialized_item(stream_item)
                     await self.context.feed_stream_response(stream_response, serialized_item)
-                except ValidationException as exc:
+                except ValidationException:
                     if not self.ignore_on_error:
                         # TODO BS 2018-07-31: Something should inform about
                         # error, a log ?

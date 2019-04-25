@@ -1,2 +1,2 @@
 # -*- coding: utf-8 -*-
-from hapic.ext.bottle.context import BottleContext
+from hapic.ext.bottle.context import BottleContext  # noqa: F401

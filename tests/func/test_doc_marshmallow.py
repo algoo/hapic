@@ -332,7 +332,7 @@ class TestDocGeneration(Base):
         assert "explicit description" in descriptions
         assert "400" in descriptions
         assert "Just a docstring" in descriptions
-        assert not "Docstring not used" in descriptions
+        assert "Docstring not used" not in descriptions
         assert doc["paths"]["/upload"]["post"]["responses"]["400"]["schema"]
         assert {"$ref": "#/definitions/DefaultErrorSchema"} == doc["paths"]["/upload"]["post"][
             "responses"
@@ -627,7 +627,7 @@ class TestDocGeneration(Base):
         assert field["type"] == "string"
         assert field["maxLength"] == 5
         assert field["minLength"] == 5
-        assert field["required"] == True
+        assert field["required"] is True
         assert field["enum"] == ["01000", "11111"]
         assert "maximum" not in field
 
@@ -672,7 +672,7 @@ class TestDocGeneration(Base):
         assert field["type"] == "string"
         assert field["maxLength"] == 5
         assert field["minLength"] == 5
-        assert field["required"] == True
+        assert field["required"] is True
         assert field["enum"] == ["01000", "11111"]
         assert "maximum" not in field
 
@@ -715,8 +715,8 @@ class TestDocGeneration(Base):
         assert field["type"] == "integer"
         assert field["maximum"] == 14
         assert field["minimum"] == 0
-        assert field["exclusiveMinimum"] == True
-        assert field["required"] == True
+        assert field["exclusiveMinimum"] is True
+        assert field["required"] is True
         assert field["enum"] == [4, 6]
         assert field["multipleOf"] == 2
 
@@ -759,7 +759,7 @@ class TestDocGeneration(Base):
         assert schema_field["type"] == "integer"
         assert schema_field["maximum"] == 14
         assert schema_field["minimum"] == 0
-        assert schema_field["exclusiveMinimum"] == True
+        assert schema_field["exclusiveMinimum"] is True
         assert schema_field["enum"] == [4, 6]
         assert schema_field["multipleOf"] == 2
 

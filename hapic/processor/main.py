@@ -11,7 +11,7 @@ from hapic.doc.schema import SchemaUsage
 from hapic.exception import ConfigurationException
 
 if typing.TYPE_CHECKING:
-    from hapic.type import TYPE_SCHEMA
+    from hapic.type import TYPE_SCHEMA  # noqa: F401
     from hapic.error.main import ErrorBuilderInterface
 
 

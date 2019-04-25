@@ -27,6 +27,7 @@ except ImportError:
 if typing.TYPE_CHECKING:
     from pyramid.response import Response
     from pyramid.config import Configurator
+    from hapic.context import HandledException  # noqa: F401
 
 # Bottle regular expression to locate url parameters
 PYRAMID_RE_PATH_URL = re.compile(r"")
