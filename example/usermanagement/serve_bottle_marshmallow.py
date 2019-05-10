@@ -85,10 +85,10 @@ class BottleController(object):
     @hapic.handle_exception(UserNotFound, HTTPStatus.NOT_FOUND)
     @hapic.handle_exception(UserAvatarNotFound, HTTPStatus.NOT_FOUND)
     @hapic.input_path(UserIdPathSchema())
-    @hapic.output_file(['image/png'])
+    @hapic.output_file(["image/png"])
     def get_user_avatar(self, id, hapic_data: HapicData):
         return HapicFile(
-            file_path=UserLib().get_user_avatar_path(user_id=(int(hapic_data.path['id'])))
+            file_path=UserLib().get_user_avatar_path(user_id=(int(hapic_data.path["id"])))
         )
 
     @hapic.with_api_doc()
@@ -99,18 +99,17 @@ class BottleController(object):
     @hapic.output_body(NoContentSchema(), default_http_code=204)
     def update_user_avatar(self, id, hapic_data: HapicData):
         UserLib().update_user_avatar(
-            user_id=int(hapic_data.path['id']),
-            avatar=hapic_data.files['avatar'],
+            user_id=int(hapic_data.path["id"]), avatar=hapic_data.files["avatar"]
         )
 
-    def bind(self, app:bottle.Bottle):
-        app.route('/about', callback=self.about)
-        app.route('/users/', callback=self.get_users)
-        app.route('/users/<id>', callback=self.get_user)
-        app.route('/users/', callback=self.add_user,  method='POST')
-        app.route('/users/<id>', callback=self.del_user, method='DELETE')
-        app.route('/users/<id>/avatar', callback=self.get_user_avatar)
-        app.route('/users/<id>/avatar', callback=self.update_user_avatar, method='PUT')
+    def bind(self, app: bottle.Bottle):
+        app.route("/about", callback=self.about)
+        app.route("/users/", callback=self.get_users)
+        app.route("/users/<id>", callback=self.get_user)
+        app.route("/users/", callback=self.add_user, method="POST")
+        app.route("/users/<id>", callback=self.del_user, method="DELETE")
+        app.route("/users/<id>/avatar", callback=self.get_user_avatar)
+        app.route("/users/<id>/avatar", callback=self.update_user_avatar, method="PUT")
 
 
 if __name__ == "__main__":
@@ -131,8 +130,8 @@ if __name__ == "__main__":
     )
     # TODO: add support for documentation view in bottle
     # hapic.add_documentation_view('/doc/', doc_title, doc_description)
-    openapi_file_name = 'api-documentation.json'
-    with open(openapi_file_name, 'w') as openapi_file_handle:
+    openapi_file_name = "api-documentation.json"
+    with open(openapi_file_name, "w") as openapi_file_handle:
         openapi_file_handle.write(
             json.dumps(hapic.generate_doc(title=doc_title, description=doc_description))
         )
@@ -140,9 +139,9 @@ if __name__ == "__main__":
     print("Documentation generated in {}".format(openapi_file_name))
     time.sleep(1)
 
-    print('')
-    print('')
-    print('RUNNING BOTTLE SERVER NOW')
+    print("")
+    print("")
+    print("RUNNING BOTTLE SERVER NOW")
     # TODO: add support for documentation view in bottle
     # print('DOCUMENTATION AVAILABLE AT /doc/')
     # Run app

@@ -29,8 +29,6 @@ except ImportError:
     from http import client as HTTPStatus
 
 
-
-
 hapic = Hapic()
 hapic.set_processor_class(MarshmallowProcessor)
 
@@ -87,10 +85,10 @@ class FlaskController(object):
     @hapic.handle_exception(UserNotFound, HTTPStatus.NOT_FOUND)
     @hapic.handle_exception(UserAvatarNotFound, HTTPStatus.NOT_FOUND)
     @hapic.input_path(UserIdPathSchema())
-    @hapic.output_file(['image/png'])
+    @hapic.output_file(["image/png"])
     def get_user_avatar(self, id, hapic_data: HapicData):
         return HapicFile(
-            file_path=UserLib().get_user_avatar_path(user_id=(int(hapic_data.path['id'])))
+            file_path=UserLib().get_user_avatar_path(user_id=(int(hapic_data.path["id"])))
         )
 
     @hapic.with_api_doc()
@@ -101,18 +99,19 @@ class FlaskController(object):
     @hapic.output_body(NoContentSchema(), default_http_code=204)
     def update_user_avatar(self, id, hapic_data: HapicData):
         UserLib().update_user_avatar(
-            user_id=int(hapic_data.path['id']),
-            avatar=hapic_data.files['avatar'],
+            user_id=int(hapic_data.path["id"]), avatar=hapic_data.files["avatar"]
         )
 
     def bind(self, app: flask.Flask):
-        app.add_url_rule('/about', view_func=self.about)
-        app.add_url_rule('/users/', view_func=self.get_users)
-        app.add_url_rule('/users/<id>', view_func=self.get_user)
-        app.add_url_rule('/users/', view_func=self.add_user, methods=['POST'])
-        app.add_url_rule('/users/<id>', view_func=self.del_user, methods=['DELETE'])  # nopep8
-        app.add_url_rule('/users/<id>/avatar', view_func=self.get_user_avatar, methods=['GET'])  # nopep8
-        app.add_url_rule('/users/<id>/avatar', view_func=self.update_user_avatar, methods=['PUT'])
+        app.add_url_rule("/about", view_func=self.about)
+        app.add_url_rule("/users/", view_func=self.get_users)
+        app.add_url_rule("/users/<id>", view_func=self.get_user)
+        app.add_url_rule("/users/", view_func=self.add_user, methods=["POST"])
+        app.add_url_rule("/users/<id>", view_func=self.del_user, methods=["DELETE"])  # nopep8
+        app.add_url_rule(
+            "/users/<id>/avatar", view_func=self.get_user_avatar, methods=["GET"]
+        )  # nopep8
+        app.add_url_rule("/users/<id>/avatar", view_func=self.update_user_avatar, methods=["PUT"])
 
 
 if __name__ == "__main__":
@@ -121,31 +120,28 @@ if __name__ == "__main__":
     controllers.bind(app)
     hapic.set_context(FlaskContext(app, default_error_builder=MarshmallowDefaultErrorBuilder()))
 
-    print('')
-    print('')
-    print('GENERATING OPENAPI DOCUMENTATION')
-    doc_title = 'Demo API documentation'
-    doc_description = 'This documentation has been generated from ' \
-                       'code. You can see it using swagger: ' \
-                       'http://editor2.swagger.io/'
-    hapic.add_documentation_view('/doc/', doc_title, doc_description)
-    openapi_file_name = 'api-documentation.json'
-    with open(openapi_file_name, 'w') as openapi_file_handle:
+    print("")
+    print("")
+    print("GENERATING OPENAPI DOCUMENTATION")
+    doc_title = "Demo API documentation"
+    doc_description = (
+        "This documentation has been generated from "
+        "code. You can see it using swagger: "
+        "http://editor2.swagger.io/"
+    )
+    hapic.add_documentation_view("/doc/", doc_title, doc_description)
+    openapi_file_name = "api-documentation.json"
+    with open(openapi_file_name, "w") as openapi_file_handle:
         openapi_file_handle.write(
-            json.dumps(
-                hapic.generate_doc(
-                    title=doc_title,
-                    description=doc_description
-                )
-            )
+            json.dumps(hapic.generate_doc(title=doc_title, description=doc_description))
         )
 
     print("Documentation generated in {}".format(openapi_file_name))
     time.sleep(1)
 
-    print('')
-    print('')
-    print('RUNNING FLASK SERVER NOW')
-    print('DOCUMENTATION AVAILABLE AT /doc/')
+    print("")
+    print("")
+    print("RUNNING FLASK SERVER NOW")
+    print("DOCUMENTATION AVAILABLE AT /doc/")
     # Run app
     app.run(host="127.0.0.1", port=8082, debug=True)
