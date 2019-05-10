@@ -54,14 +54,20 @@ def get_pyramid_context():
     return {"hapic": h, "app": pyramid_app}
 
 
-def get_aiohttp_context(loop):
+def get_aiohttp_app(loop):
     from example.usermanagement.serve_aiohttp_marshmallow import AiohttpController
+
+    controllers = AiohttpController()
+    app = web.Application(loop=loop)
+    controllers.bind(app)
+    return app
+
+
+def get_aiohttp_context(loop):
     from example.usermanagement.serve_aiohttp_marshmallow import hapic as h
 
-    app = web.Application(loop=loop)
-    controllers = AiohttpController()
-    controllers.bind(app)
     h.reset_context()
+    app = get_aiohttp_app(loop)
     h.set_context(AiohttpContext(app, default_error_builder=MarshmallowDefaultErrorBuilder()))
     return {"hapic": h, "app": app}
 
@@ -125,6 +131,70 @@ def test_func__test_usermanagment_endpoints_ok__sync_frameworks(context):
 
     resp = app.delete("/users/1", status="*")
     assert resp.status_int == 204
+
+
+async def test_func__test_usermanagment_endpoints_ok__aiohttp(aiohttp_client, loop):
+    UserLib.reset_database()
+    context = get_aiohttp_context(loop)
+    app = context["app"]
+    client = await aiohttp_client(app)
+    resp = await client.get("/about")
+    json_ = await resp.json()
+    assert resp.status == 200
+    assert json_["datetime"]
+    assert json_["version"] == "1.2.3"
+
+    resp = await client.get("/users/")
+    json_ = await resp.json()
+    assert resp.status == 200
+    assert json_ == [{"display_name": "Damien Accorsi", "id": 1}]
+
+    resp = await client.get("/users/1")
+    json_ = await resp.json()
+    assert resp.status == 200
+    assert json_ == {
+        "last_name": "Accorsi",
+        "first_name": "Damien",
+        "id": 1,
+        "display_name": "Damien Accorsi",
+        "email_address": "damien.accorsi@algoo.fr",
+        "company": "Algoo",
+    }
+
+    resp = await client.post("/users/")
+    json_ = await resp.json()
+    assert resp.status == 400
+    assert json_ == {
+        "code": None,
+        "details": {
+            "email_address": ["Missing data for required field."],
+            "last_name": ["Missing data for required field."],
+            "first_name": ["Missing data for required field."],
+        },
+        "message": "Validation error of input data",
+    }
+
+    user = {
+        "email_address": "some.user@hapic.com",
+        "last_name": "Accorsi",
+        "first_name": "Damien",
+        "company": "Algoo",
+    }
+
+    resp = await client.post("/users/", data=user)
+    json_ = await resp.json()
+    assert resp.status == 200
+    assert json_ == {
+        "last_name": "Accorsi",
+        "first_name": "Damien",
+        "id": 2,
+        "email_address": "some.user@hapic.com",
+        "company": "Algoo",
+        "display_name": "Damien Accorsi",
+    }
+
+    resp = await client.delete("/users/1")
+    assert resp.status == 204
 
 
 def check_marshmallow_doc(doc):
