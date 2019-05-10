@@ -127,17 +127,7 @@ def test_func__test_usermanagment_endpoints_ok__sync_frameworks(context):
     assert resp.status_int == 204
 
 
-@pytest.mark.parametrize(
-    "context", [get_bottle_context(), get_flask_context(), get_pyramid_context()]
-)
-def test_func__test_usermanagment_doc_ok__sync_frameworks(context):
-    UserLib.reset_database()
-    hapic = context["hapic"]
-    app = context["app"]
-    app = TestApp(app)
-    doc = hapic.generate_doc(title="Fake API", description="just an example of hapic API")
-    # INFO BS 2019-04-15: Prevent keep of OrderedDict
-    doc = json.loads(json.dumps(doc))
+def check_marshmallow_doc(doc):
     assert doc["info"] == {
         "description": "just an example of hapic API",
         "title": "Fake API",
@@ -322,3 +312,24 @@ def test_func__test_usermanagment_doc_ok__sync_frameworks(context):
         },
         "required": ["id"],
     }
+
+
+@pytest.mark.parametrize(
+    "context", [get_bottle_context(), get_flask_context(), get_pyramid_context()]
+)
+def test_func__test_usermanagment_doc_ok__sync_frameworks(context):
+    UserLib.reset_database()
+    hapic = context["hapic"]
+    doc = hapic.generate_doc(title="Fake API", description="just an example of hapic API")
+    # INFO BS 2019-04-15: Prevent keep of OrderedDict
+    doc = json.loads(json.dumps(doc))
+    check_marshmallow_doc(doc)
+
+
+async def test_func_test__usermanagment_doc_ok_aiohttp(loop):
+    UserLib.reset_database()
+    context = get_aiohttp_context(loop)
+    hapic = context["hapic"]
+    doc = hapic.generate_doc(title="Fake API", description="just an example of hapic API")
+    doc = json.loads(json.dumps(doc))
+    check_marshmallow_doc(doc)
