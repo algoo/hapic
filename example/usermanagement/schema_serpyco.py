@@ -36,11 +36,11 @@ class UserIdPathSchema(object):
 class UserSchema(object):
     """Complete representation of a user"""
 
-    first_name: str
     last_name: typing.Optional[str]
-    display_name: str
+    first_name: str
     company: typing.Optional[str]
     id: int
+    display_name: str
     email_address: str = string_field(format_=StringFormat.EMAIL)
 
 
