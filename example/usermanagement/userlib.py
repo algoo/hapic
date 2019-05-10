@@ -5,10 +5,7 @@ This module implements a basic User management library
 """
 import cgi
 import os
-from datetime import datetime
-from io import BytesIO
 
-from PIL import Image
 from aiohttp.web_request import FileField
 from bottle import FileUpload
 from werkzeug.datastructures import FileStorage
@@ -17,12 +14,12 @@ from werkzeug.datastructures import FileStorage
 class User(object):
     def __init__(
         self,
-        id: int =0,
-        first_name: str='first',
-        last_name: str='last',
-        email_address: str='',
+        id: int = 0,
+        first_name: str = "first",
+        last_name: str = "last",
+        email_address: str = "",
         display_name: str = None,
-        company: str='',
+        company: str = "",
         avatar_path: str = None,
     ):
         self.id = id
@@ -54,16 +51,18 @@ class UserLib(object):
 
     @classmethod
     def reset_database(cls):
-        UserLib.USERS=[]
+        UserLib.USERS = []
         UserLib.USERS.append(
-            User(**{
-                'id': 1,
-                'first_name': 'Damien',
-                'last_name': 'Accorsi',
-                'email_address': 'damien.accorsi@algoo.fr',
-                'company': 'Algoo',
-                'avatar_path': None
-            }),
+            User(
+                **{
+                    "id": 1,
+                    "first_name": "Damien",
+                    "last_name": "Accorsi",
+                    "email_address": "damien.accorsi@algoo.fr",
+                    "company": "Algoo",
+                    "avatar_path": None,
+                }
+            )
         )
 
     def add_user(self, user: User) -> User:
@@ -88,39 +87,39 @@ class UserLib(object):
 
     def get_user_avatar_path(self, user_id: int):
         try:
-            avatar_path = UserLib.USERS[user_id-1].avatar_path
-        except Exception as exc:
+            avatar_path = UserLib.USERS[user_id - 1].avatar_path
+        except Exception:
             raise UserNotFound
 
         if not avatar_path:
             raise UserAvatarNotFound()
         return avatar_path
 
-
     def update_user_avatar(self, user_id: int, avatar):
         try:
             user = UserLib.USERS[user_id - 1]
-        except Exception as exc:
+        except Exception:
             raise UserNotFound
         if avatar.filename:
             fn = os.path.basename(avatar.filename)
             avatar_path = user_avatar_base_path + fn
             if isinstance(avatar, cgi.FieldStorage):
                 # pyramid
-                open(avatar_path, 'wb').write(avatar.file.read())
+                open(avatar_path, "wb").write(avatar.file.read())
             elif isinstance(avatar, FileField):
                 # aiohttp
-                open(avatar_path, 'wb').write(avatar.file.read())
+                open(avatar_path, "wb").write(avatar.file.read())
             elif isinstance(avatar, FileUpload):
                 # bottle
-                open(avatar_path, 'wb').write(avatar.file.read())
+                open(avatar_path, "wb").write(avatar.file.read())
             elif isinstance(avatar, FileStorage):
                 # Flask
-                open(avatar_path, 'wb').write(avatar.stream.read())
+                open(avatar_path, "wb").write(avatar.stream.read())
             user.avatar_path = avatar_path
         else:
             raise UserAvatarNotFound()
 
-user_avatar_base_path = '/tmp/'
+
+user_avatar_base_path = "/tmp/"
 
 UserLib.reset_database()

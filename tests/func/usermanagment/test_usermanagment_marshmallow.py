@@ -1,10 +1,10 @@
 import json
 
-import pytest
 from aiohttp import web
 from bottle import Bottle
 from flask import Flask
 from pyramid.config import Configurator
+import pytest
 from webtest import TestApp
 
 from example.usermanagement.userlib import UserLib
@@ -71,7 +71,6 @@ def get_aiohttp_context(loop):
 )
 def test_func__test_usermanagment_endpoints_ok__sync_frameworks(context):
     UserLib.reset_database()
-    hapic = context["hapic"]
     app = context["app"]
     app = TestApp(app)
     resp = app.get("/about")
