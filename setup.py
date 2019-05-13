@@ -19,7 +19,7 @@ version = infos_dict['__version__']
 here = path.abspath(path.dirname(__file__))
 
 install_requires = [
-    'apispec>=1.1.0',
+    'apispec>=1.2.0',
     'multidict',
     'pyyaml',
 ]
