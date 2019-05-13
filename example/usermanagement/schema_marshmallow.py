@@ -39,3 +39,9 @@ class UserDigestSchema(marshmallow.Schema):
 
     id = marshmallow.fields.Int(required=True)
     display_name = marshmallow.fields.String(required=False, default="")
+
+
+class UserAvatarSchema(marshmallow.Schema):
+    """Avatar (image file) of user"""
+
+    avatar = marshmallow.fields.Raw()
