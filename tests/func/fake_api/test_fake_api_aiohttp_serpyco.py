@@ -29,7 +29,7 @@ async def test_func__test_fake_api_endpoints_ok__aiohttp(test_client,):
     resp = await app.get("/about")
     assert resp.status == 200
     json_ = await resp.json()
-    assert json_ == {"datetime": "2017-12-07T10:55:08.488996+00:00", "version": "1.2.3"}
+    assert json_ == {"datetime": "2017-12-07T10:55:08.488996", "version": "1.2.3"}
 
     resp = await app.get("/users")
     assert resp.status == 200
