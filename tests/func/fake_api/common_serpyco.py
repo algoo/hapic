@@ -214,7 +214,11 @@ serpyco_SWAGGER_DOC_API = {
             "type": "object",
             "properties": {
                 "version": {"type": "string"},
-                "datetime": {"type": "string", "format": "date-time"},
+                "datetime": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^[0-9]{4}-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0-9](\\.[0-9]+)?(([+-][0-9][0-9]:[0-9][0-9])|Z)?$",
+                },
             },
             "required": ["datetime", "version"],
             "description": "A docstring to prevent auto generated docstring",
