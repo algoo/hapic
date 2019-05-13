@@ -108,14 +108,13 @@ def test_func__test_usermanagment_endpoints_ok__sync_frameworks(context):
     #     "code": None,
     # }
 
-
     user = {
         "email_address": "some.user@hapic.com",
         "last_name": "Accorsi",
         "first_name": "Damien",
         "company": "Algoo",
     }
-    resp = app.post_json("/users/", user, status='*')
+    resp = app.post_json("/users/", user, status="*")
     # FIXME - G.M - 2019-05-13 - Broken in serpyco: see https://gitlab.com/sgrignard/serpyco/issues/27
     # assert resp.status_int == 200
     # assert resp.json == {
@@ -296,7 +295,11 @@ def check_serpyco_doc(doc):
         "type": "object",
         "properties": {
             "version": {"type": "string"},
-            "datetime": {"type": "string", "format": "date-time"},
+            "datetime": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^[0-9]{4}-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0-9](\\.[0-9]+)?(([+-][0-9][0-9]:[0-9][0-9])|Z)?$",
+            },
         },
         "required": ["datetime", "version"],
         "description": "Representation of the /about route",
