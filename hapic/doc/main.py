@@ -4,6 +4,7 @@ import typing
 
 from apispec import APISpec
 from apispec import BasePlugin
+from apispec.core import VALID_METHODS_OPENAPI_V2
 from apispec.exceptions import DuplicateComponentNameError
 import yaml
 
@@ -308,6 +309,14 @@ class DocGenerator(object):
             swagger_path = context.get_swagger_path(route.rule)
 
             operations = generate_operations(main_plugin, route, controller.description)
+
+            # Special cases compliance by replacing "*" by acceptable methods (apispec crash
+            # because OpenAPI only accepted valid http method)
+            if "*" in operations:
+                operation_value = operations["*"]
+                del operations["*"]
+                for method in VALID_METHODS_OPENAPI_V2:
+                    operations[method] = operation_value
 
             doc_string = controller.reference.get_doc_string()
             if doc_string:
