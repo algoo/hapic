@@ -145,6 +145,7 @@ class FlaskContext(BaseContext):
         self, exception_class: typing.Type[Exception], http_code: int
     ) -> None:
         def return_response_error(exc):
+            self.global_exception_caught(exc)
             dumped_error = self._get_dumped_error_from_exception_error(exc)
             return self.get_response(json.dumps(dumped_error), http_code)
 

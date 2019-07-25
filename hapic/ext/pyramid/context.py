@@ -204,6 +204,7 @@ class PyramidContext(BaseContext):
                     )
                 )
                 logger.debug(traceback.format_exc())
+                self.global_exception_caught(exc)
                 # TODO BS 2018-05-04: How to be attentive to hierarchy ?
                 error_builder = self.default_error_builder
                 error_body = error_builder.build_from_exception(
