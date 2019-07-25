@@ -111,6 +111,7 @@ class AiohttpContext(BaseContext):
                 # Parse each managed exceptions to manage it if must be
                 for handled_exception in self._handled_exceptions:
                     if isinstance(exc, handled_exception.exception_class):
+                        self.global_exception_caught(exc)
                         err = self._get_dumped_error_from_exception_error(exc)
                         return self.get_response(json.dumps(err), handled_exception.http_code)
                 raise exc
