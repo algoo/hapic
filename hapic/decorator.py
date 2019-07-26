@@ -150,7 +150,8 @@ class InputControllerWrapper(InputOutputControllerWrapper):
         try:
             processed_data = self.get_processed_data(request_parameters)
             self.update_hapic_data(hapic_data, processed_data)
-        except ProcessException:
+        except ProcessException as exc:
+            self.context.input_validation_error_caught(hapic_data, exc)
             error_response = self.get_error_response(request_parameters)
             return error_response
 
@@ -224,7 +225,8 @@ class AsyncInputControllerWrapper(InputControllerWrapper):
         try:
             processed_data = await self.get_processed_data(request_parameters)
             self.update_hapic_data(hapic_data, processed_data)
-        except ProcessException:
+        except ProcessException as exc:
+            self.context.input_validation_error_caught(hapic_data, exc)
             error_response = await self.get_error_response(request_parameters)
             return error_response
 
@@ -261,7 +263,8 @@ class OutputControllerWrapper(InputOutputControllerWrapper):
                 json.dumps(processed_response), self.default_http_code
             )
             return prepared_response
-        except ProcessException:
+        except ProcessException as exc:
+            self.context.output_validation_error_caught(response, exc)
             # TODO: ici ou ailleurs: il faut pas forcement donner le detail
             # de l'erreur (mode debug par exemple)  see #8
             error_response = self.get_error_response(response)
@@ -402,7 +405,8 @@ class OutputFileControllerWrapper(OutputControllerWrapper):
                 processed_response, self.default_http_code
             )
             return prepared_response
-        except ProcessException:
+        except ProcessException as exc:
+            self.context.output_validation_error_caught(response, exc)
             # TODO: ici ou ailleurs: il faut pas forcement donner le detail
             # de l'erreur (mode debug par exemple)  see #8
             error_response = self.get_error_response(response)
