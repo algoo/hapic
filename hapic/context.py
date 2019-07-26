@@ -2,10 +2,12 @@
 import json
 import typing
 
+from hapic.data import HapicData
 from hapic.data import HapicFile
 from hapic.error.main import ErrorBuilderInterface
 from hapic.exception import ConfigurationException
 from hapic.exception import OutputValidationException
+from hapic.exception import ProcessException
 from hapic.exception import ValidationException
 from hapic.processor.main import Processor
 from hapic.processor.main import ProcessValidationError
@@ -160,6 +162,22 @@ class ContextInterface(object):
     def local_exception_caught(self, caught_exception: Exception) -> None:
         """
         This method is called when hapic caught exception at view level
+        """
+        raise NotImplementedError()
+
+    def input_validation_error_caught(
+        self, hapic_data: HapicData, process_exception: ProcessException
+    ) -> None:
+        """
+        This method is called when hapic refuse input data
+        """
+        raise NotImplementedError()
+
+    def output_validation_error_caught(
+        self, output: typing.Any, process_exception: ProcessException
+    ) -> None:
+        """
+        This method is called when hapic refuse output data
         """
         raise NotImplementedError()
 
@@ -322,7 +340,25 @@ class BaseContext(ContextInterface):
 
     def local_exception_caught(self, exc: Exception) -> None:
         """
-        TSee parent docstring. Override it to perform action when exception is
+        See parent docstring. Override it to perform action when exception is
         caught at view level.
+        """
+        pass
+
+    def input_validation_error_caught(
+        self, hapic_data: HapicData, process_exception: ProcessException
+    ) -> None:
+        """
+        See parent docstring. Override it to perform action when input data
+        is invalid.
+        """
+        pass
+
+    def output_validation_error_caught(
+        self, output: typing.Any, process_exception: ProcessException
+    ) -> None:
+        """
+        See parent docstring. Override it to perform action when output data
+        is invalid.
         """
         pass
