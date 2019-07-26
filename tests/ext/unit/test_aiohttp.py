@@ -638,6 +638,32 @@ class TestAiohttpExt(object):
 
         assert 400 == response.status
 
+    async def test_unit__handle_exception__ok__hook_called(self, aiohttp_client):
+        hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
+
+        class MyContext(AiohttpContext):
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                self.hook_called = False
+
+            def local_exception_caught(self, exc: Exception) -> None:
+                self.hook_called = True
+
+        @hapic.with_api_doc()
+        @hapic.handle_exception(ZeroDivisionError, http_code=HTTPStatus.BAD_REQUEST)
+        def divide_by_zero(request):
+            raise ZeroDivisionError()
+
+        app = web.Application(debug=True)
+        context = MyContext(app)
+        hapic.set_context(context)
+        app.router.add_get("/", divide_by_zero)
+        client = await aiohttp_client(app)
+
+        assert not context.hook_called
+        await client.get("/")
+        assert context.hook_called
+
     async def test_unit__global_exception__ok__nominal_case(self, aiohttp_client):
         hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
@@ -654,3 +680,29 @@ class TestAiohttpExt(object):
         response = await client.get("/")
 
         assert 400 == response.status
+
+    async def test_unit__global_exception__ok__hook_called(self, aiohttp_client):
+        hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
+
+        class MyContext(AiohttpContext):
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                self.hook_called = False
+
+            def global_exception_caught(self, exc: Exception) -> None:
+                self.hook_called = True
+
+        @hapic.with_api_doc()
+        def divide_by_zero(request):
+            raise ZeroDivisionError()
+
+        app = web.Application(debug=True)
+        context = MyContext(app)
+        hapic.set_context(context)
+        context.handle_exception(ZeroDivisionError, http_code=HTTPStatus.BAD_REQUEST)
+        app.router.add_get("/", divide_by_zero)
+        client = await aiohttp_client(app)
+
+        assert not context.hook_called
+        await client.get("/")
+        assert context.hook_called
