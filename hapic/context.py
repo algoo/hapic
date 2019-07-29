@@ -2,7 +2,6 @@
 import json
 import typing
 
-from hapic.data import HapicData
 from hapic.data import HapicFile
 from hapic.error.main import ErrorBuilderInterface
 from hapic.exception import ConfigurationException
@@ -166,7 +165,7 @@ class ContextInterface(object):
         raise NotImplementedError()
 
     def input_validation_error_caught(
-        self, hapic_data: HapicData, process_exception: ProcessException
+        self, request_parameters: RequestParameters, process_exception: ProcessException
     ) -> None:
         """
         This method is called when hapic refuse input data
@@ -346,7 +345,7 @@ class BaseContext(ContextInterface):
         pass
 
     def input_validation_error_caught(
-        self, hapic_data: HapicData, process_exception: ProcessException
+        self, request_parameters: RequestParameters, process_exception: ProcessException
     ) -> None:
         """
         See parent docstring. Override it to perform action when input data
