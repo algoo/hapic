@@ -17,6 +17,7 @@ from hapic import MarshmallowProcessor
 from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
 from hapic.exception import ProcessException
 from hapic.ext.aiohttp.context import AiohttpContext
+from hapic.processor.main import RequestParameters
 
 
 class TestAiohttpExt(object):
@@ -717,12 +718,12 @@ class TestAiohttpExt(object):
         class MyContext(AiohttpContext):
             def __init__(self, *args, **kwargs):
                 super().__init__(*args, **kwargs)
-                self.hook_called = False
+                self.hook_called = None
 
             def input_validation_error_caught(
-                self, hapic_data: HapicData, process_exception: ProcessException
+                self, request_parameters: RequestParameters, process_exception: ProcessException
             ) -> None:
-                self.hook_called = True
+                self.hook_called = request_parameters
 
         @hapic.with_api_doc()
         @hapic.input_path(InputPathSchema())
@@ -736,8 +737,8 @@ class TestAiohttpExt(object):
         client = await aiohttp_client(app)
 
         assert not context.hook_called
-        await client.get("/user")
-        assert context.hook_called
+        await client.get("/user?foo=bar")
+        assert context.hook_called.query_parameters.get("foo") == "bar"
 
     async def test_unit__output_error__err__hook_called(self, aiohttp_client):
         hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)

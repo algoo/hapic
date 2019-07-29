@@ -151,7 +151,7 @@ class InputControllerWrapper(InputOutputControllerWrapper):
             processed_data = self.get_processed_data(request_parameters)
             self.update_hapic_data(hapic_data, processed_data)
         except ProcessException as exc:
-            self.context.input_validation_error_caught(hapic_data, exc)
+            self.context.input_validation_error_caught(request_parameters, exc)
             error_response = self.get_error_response(request_parameters)
             return error_response
 
@@ -226,7 +226,7 @@ class AsyncInputControllerWrapper(InputControllerWrapper):
             processed_data = await self.get_processed_data(request_parameters)
             self.update_hapic_data(hapic_data, processed_data)
         except ProcessException as exc:
-            self.context.input_validation_error_caught(hapic_data, exc)
+            self.context.input_validation_error_caught(request_parameters, exc)
             error_response = await self.get_error_response(request_parameters)
             return error_response
 
