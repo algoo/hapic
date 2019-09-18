@@ -4,10 +4,12 @@ import io
 import json
 import sys
 
+from aiohttp import hdrs
 from aiohttp import web
 from aiohttp.web_request import FileField
 from aiohttp.web_request import Request
 from aiohttp.web_response import Response
+from apispec.core import VALID_METHODS_OPENAPI_V2
 import marshmallow
 import pytest
 
@@ -770,3 +772,44 @@ class TestAiohttpExt(object):
         assert not context.hook_called
         await client.get("/user")
         assert context.hook_called
+
+    def test_unit__generate_doc_with_wildcard__ok__default_methods(self, aiohttp_client, loop):
+        hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
+
+        @hapic.with_api_doc()
+        async def a_proxy(request):
+            pass
+
+        app = web.Application(debug=True)
+        app.router.add_route(hdrs.METH_ANY, path="/", handler=a_proxy)
+        hapic.set_context(
+            AiohttpContext(app, default_error_builder=MarshmallowDefaultErrorBuilder())
+        )
+
+        doc = hapic.generate_doc("aiohttp", "testing")
+        # INFO BS 2019-04-15: Prevent keep of OrderedDict
+        doc = json.loads(json.dumps(doc))
+
+        assert len(VALID_METHODS_OPENAPI_V2) == len(doc["paths"]["/"])
+        for method in VALID_METHODS_OPENAPI_V2:
+            assert method in doc["paths"]["/"]
+
+    def test_unit__generate_doc_with_wildcard__ok__fixed_methods(self, aiohttp_client, loop):
+        hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
+
+        @hapic.with_api_doc()
+        async def a_proxy(request):
+            pass
+
+        app = web.Application(debug=True)
+        app.router.add_route(hdrs.METH_ANY, path="/", handler=a_proxy)
+        hapic.set_context(
+            AiohttpContext(app, default_error_builder=MarshmallowDefaultErrorBuilder())
+        )
+
+        doc = hapic.generate_doc("aiohttp", "testing", wildcard_method_replacement=["head"])
+        # INFO BS 2019-04-15: Prevent keep of OrderedDict
+        doc = json.loads(json.dumps(doc))
+
+        assert 1 == len(doc["paths"]["/"])
+        assert "head" in doc["paths"]["/"]
