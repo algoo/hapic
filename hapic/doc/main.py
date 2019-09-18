@@ -243,6 +243,7 @@ class DocGenerator(object):
         title: str = "",
         description: str = "",
         version: str = "1.0.0",
+        wildcard_method_replacement: typing.Optional[typing.List["str"]] = None,
     ) -> dict:
         """
         Generate an OpenApi 2.0 documentation. Th given context will be used
@@ -252,6 +253,9 @@ class DocGenerator(object):
         :param context: a context instance
         :param title: The generated doc title
         :param description: The generated doc description
+        :param wildcard_method_replacement: If wild card found as method in
+        operations consider these given methods as replacement. If not provided
+        all OpenAPI v2 valid methods will be used.
         :return: a apispec documentation dict
         """
         main_plugin = hapic.processor_class.create_apispec_plugin()
@@ -315,7 +319,10 @@ class DocGenerator(object):
             if "*" in operations:
                 operation_value = operations["*"]
                 del operations["*"]
-                for method in VALID_METHODS_OPENAPI_V2:
+                wildcard_method_replacement = (
+                    wildcard_method_replacement or VALID_METHODS_OPENAPI_V2
+                )
+                for method in wildcard_method_replacement:
                     operations[method] = operation_value
 
             doc_string = controller.reference.get_doc_string()
