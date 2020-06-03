@@ -49,5 +49,14 @@ jobs:
         - pip install -e ."[test]"
       script:
         - pytest --cov=hapic tests -vvvvv
+    - stage: tests
+      name: tests python3.8
+      python:
+        - "3.8"
+      before_script:
+        - python setup.py develop
+        - pip install -e ."[test]"
+      script:
+        - pytest --cov=hapic tests -vvvvv
       after_success:
         - coveralls
