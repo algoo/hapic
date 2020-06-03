@@ -114,13 +114,24 @@ class PyramidContext(BaseContext):
             response.content_type = file_response.mimetype
             response.app_iter = FileIter(file_response.file_object)
 
+        response.conditional_response = file_response.use_conditional_response
         if file_response.content_length:
             response.content_length = file_response.content_length
         if file_response.last_modified:
             response.last_modified = file_response.last_modified
+        if file_response.etag:
+            response.etag = file_response.etag
 
         response.status_code = http_code
+
+        # INFO - G.M - 2020-06-03 - Accept bytes range if conditional_response
+        # is accepted.
+        if file_response.use_conditional_response:
+            response.accept_ranges = "bytes"
+        else:
+            response.accept_ranges = "none"
         response.content_disposition = file_response.get_content_disposition_header_value()
+
         return response
 
     def get_validation_error_response(

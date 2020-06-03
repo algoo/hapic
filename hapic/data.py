@@ -24,14 +24,36 @@ class HapicFile(object):
         content_length: int = None,
         last_modified: datetime = None,
         as_attachment: bool = False,
+        use_conditional_response: bool = True,
+        etag: typing.Optional[str] = None,
     ):
+        """
+        Framework Representation of a file, allowing similar support for different
+        framework.
+        You should provided either file_path or file_object.
+
+        :file_path: path of the file
+        :file_object: File Object of the file
+        :mimetype: Mimetype of the returned file
+        :filename: filename of the returned file.
+        :content_length: full length of the file, may be modified after check if use_conditional_response
+        is activated (for example if you provide a 200 byte range, you will get a length of 200,
+        instead of the value given here)
+        :param as_attachment: set the disposition as attachment in order to force browser
+        to download file
+        :param use_conditional_response: active support of theses advanced feature: Range,
+        If-Modified-Since, If-None-Match, see RFC-7233
+        :param etag: Id of the file, used by conditional response to not return same file.
+        """
         self.file_path = file_path
         self.file_object = file_object
         self.filename = filename
         self.mimetype = mimetype
         self.as_attachment = as_attachment
-        self.content_length = content_length
         self.last_modified = last_modified
+        self.content_length = content_length
+        self.use_conditional_response = use_conditional_response
+        self.etag = etag
 
     def get_content_disposition_header_value(self) -> str:
         disposition = "inline"
