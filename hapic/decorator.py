@@ -660,7 +660,7 @@ class ExceptionHandlerControllerWrapper(ControllerWrapper):
         try:
             return super()._execute_wrapped_function(func, func_args, func_kwargs)
         except self.handled_exception_class as exc:
-            self.context.local_exception_caught(exc)
+            self.context.local_exception_caught(exc, *func_args, **func_kwargs)
             return self._build_error_response(exc)
 
     def _build_error_response(self, exc: Exception) -> typing.Any:
@@ -714,5 +714,5 @@ class AsyncExceptionHandlerControllerWrapper(ExceptionHandlerControllerWrapper):
         try:
             return await func(*func_args, **func_kwargs)
         except self.handled_exception_class as exc:
-            self.context.local_exception_caught(exc)
+            self.context.local_exception_caught(exc, *func_args, **func_kwargs)
             return self._build_error_response(exc)

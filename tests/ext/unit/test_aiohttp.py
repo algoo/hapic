@@ -650,7 +650,7 @@ class TestAiohttpExt(object):
                 super().__init__(*args, **kwargs)
                 self.hook_called = False
 
-            def local_exception_caught(self, exc: Exception) -> None:
+            def local_exception_caught(self, exc: Exception, *args, **kwargs) -> None:
                 self.hook_called = True
 
         @hapic.with_api_doc()
@@ -693,7 +693,7 @@ class TestAiohttpExt(object):
                 super().__init__(*args, **kwargs)
                 self.hook_called = False
 
-            def global_exception_caught(self, exc: Exception) -> None:
+            def global_exception_caught(self, exc: Exception, *args, **kwargs) -> None:
                 self.hook_called = True
 
         @hapic.with_api_doc()
