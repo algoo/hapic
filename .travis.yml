@@ -27,7 +27,6 @@ jobs:
       python:
         - "3.5"
       before_script:
-        - python setup.py develop
         - pip install -e ."[test_marshmallow]"
       script:
         - pytest --cov=hapic tests -vvvvv
@@ -36,7 +35,6 @@ jobs:
       python:
         - "3.6"
       before_script:
-        - python setup.py develop
         - pip install -e ."[test]"
       script:
         - pytest --cov=hapic tests -vvvvv
@@ -45,7 +43,6 @@ jobs:
       python:
         - "3.7"
       before_script:
-        - python setup.py develop
         - pip install -e ."[test]"
       script:
         - pytest --cov=hapic tests -vvvvv
@@ -54,7 +51,6 @@ jobs:
       python:
         - "3.8"
       before_script:
-        - python setup.py develop
         - pip install -e ."[test]"
       script:
         - pytest --cov=hapic tests -vvvvv
