@@ -8,7 +8,7 @@ jobs:
       name: fmt
       python: "3.7"
       before_script:
-        - pip install black isort
+        - pip install black==19.10b0 isort==4.3.21
       script:
         - black --version
         - echo -n "isort " && isort --version-number
@@ -27,34 +27,31 @@ jobs:
       python:
         - "3.5"
       before_script:
-        - python setup.py develop
+        # only testing marshmallow as serpyco is incompatible with python 3.5
         - pip install -e ."[test_marshmallow]"
       script:
-        - pytest --cov=hapic tests -vvvvv
+        - pytest tests -vvvvv
     - stage: tests
       name: tests python3.6
       python:
         - "3.6"
       before_script:
-        - python setup.py develop
         - pip install -e ."[test]"
       script:
-        - pytest --cov=hapic tests -vvvvv
+        - pytest tests -vvvvv
     - stage: tests
       name: tests python3.7
       python:
         - "3.7"
       before_script:
-        - python setup.py develop
         - pip install -e ."[test]"
       script:
-        - pytest --cov=hapic tests -vvvvv
+        - pytest tests -vvvvv
     - stage: tests
       name: tests python3.8
       python:
         - "3.8"
       before_script:
-        - python setup.py develop
         - pip install -e ."[test]"
       script:
         - pytest --cov=hapic tests -vvvvv
