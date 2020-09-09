@@ -151,16 +151,26 @@ class ContextInterface(object):
         """
         raise NotImplementedError()
 
-    def global_exception_caught(self, caught_exception: Exception) -> None:
+    def global_exception_caught(
+        self, caught_exception: Exception, *args: typing.Any, **kwargs: typing.Any
+    ) -> None:
         """
         This method must be called by context when an exception is caught
         at global level (when use .handle_exception and .handle_exceptions)
+
+        args and kwargs are the arguments given to the handler where the exception
+        has been raised.
         """
         raise NotImplementedError()
 
-    def local_exception_caught(self, caught_exception: Exception) -> None:
+    def local_exception_caught(
+        self, caught_exception: Exception, *args: typing.Any, **kwargs: typing.Any
+    ) -> None:
         """
         This method is called when hapic caught exception at view level
+
+        args and kwargs are the arguments given to the handler where the exception
+        has been raised.
         """
         raise NotImplementedError()
 
@@ -301,7 +311,7 @@ class BaseContext(ContextInterface):
                 # TODO BS 2018-05-04: How to be attentive to hierarchy ?
                 for handled_exception in handled_exceptions:
                     if isinstance(exc, handled_exception.exception_class):
-                        self.global_exception_caught(exc)
+                        self.global_exception_caught(exc, *args, **kwargs)
                         dumped_error = self._get_dumped_error_from_exception_error(exc)
                         return self.get_response(
                             json.dumps(dumped_error), handled_exception.http_code
@@ -330,14 +340,18 @@ class BaseContext(ContextInterface):
         """
         raise NotImplementedError()
 
-    def global_exception_caught(self, caught_exception: Exception) -> None:
+    def global_exception_caught(
+        self, caught_exception: Exception, *args: typing.Any, **kwargs: typing.Any
+    ) -> None:
         """
         See parent docstring. Override it to perform action when exception is
         caught at global level.
         """
         pass
 
-    def local_exception_caught(self, exc: Exception) -> None:
+    def local_exception_caught(
+        self, exc: Exception, *args: typing.Any, **kwargs: typing.Any
+    ) -> None:
         """
         See parent docstring. Override it to perform action when exception is
         caught at view level.
