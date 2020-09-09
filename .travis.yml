@@ -27,9 +27,10 @@ jobs:
       python:
         - "3.5"
       before_script:
+        # only testing marshmallow as serpyco is incompatible with python 3.5
         - pip install -e ."[test_marshmallow]"
       script:
-        - pytest --cov=hapic tests -vvvvv
+        - pytest tests -vvvvv
     - stage: tests
       name: tests python3.6
       python:
@@ -37,7 +38,7 @@ jobs:
       before_script:
         - pip install -e ."[test]"
       script:
-        - pytest --cov=hapic tests -vvvvv
+        - pytest tests -vvvvv
     - stage: tests
       name: tests python3.7
       python:
@@ -45,7 +46,7 @@ jobs:
       before_script:
         - pip install -e ."[test]"
       script:
-        - pytest --cov=hapic tests -vvvvv
+        - pytest tests -vvvvv
     - stage: tests
       name: tests python3.8
       python:
