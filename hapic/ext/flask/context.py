@@ -50,7 +50,7 @@ class FlaskContext(BaseContext):
 
         return RequestParameters(
             path_parameters=request.view_args,
-            query_parameters=request.args,  # TODO: Check
+            query_parameters=dict(request.args),
             body_parameters=request.get_json(),  # TODO: Check
             form_parameters=request.form,
             header_parameters=LowercaseKeysDict(
