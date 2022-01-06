@@ -228,6 +228,7 @@ def generate_operations(
 
     if description.tags:
         method_operations["tags"] = description.tags
+        method_operations["deprecated"] = description.deprecated
 
     operations = {route.method.lower(): method_operations}
 

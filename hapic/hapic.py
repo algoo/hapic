@@ -147,7 +147,9 @@ class Hapic(object):
 
         return get_default_processor
 
-    def with_api_doc(self, tags: typing.List["str"] = None, disable_doc: bool = False):
+    def with_api_doc(
+        self, tags: typing.List["str"] = None, disable_doc: bool = False, deprecated: bool = False
+    ):
         """
         Permit to generate doc about a controller. Use as a decorator:
 
@@ -184,6 +186,7 @@ class Hapic(object):
             description = self._buffer.get_description()
             description.tags = tags
             description.disable_doc = disable_doc
+            description.deprecated = deprecated
 
             reference = ControllerReference(wrapper=wrapper, wrapped=func, token=token)
             decorated_controller = DecoratedController(
