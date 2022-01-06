@@ -28,8 +28,8 @@ marshmallow_require = [
     "apispec_marshmallow_advanced==0.4",
 ]
 serpyco_require = [
-    "apispec_serpyco==0.17",
-    "serpyco==0.17.4",
+    "apispec_serpyco==0.19",
+    "serpyco==1.3.5",
 ]
 tests_base_require = [
     "pytest",

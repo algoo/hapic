@@ -96,7 +96,6 @@ class SerpycoProcessor(Processor):
                 self.schema,
                 only=self._only,
                 exclude=self._exclude,
-                many=self._many,
                 omit_none=False,
             )
 
@@ -122,7 +121,7 @@ class SerpycoProcessor(Processor):
             data_to_validate = dict(data_to_validate)
 
         try:
-            self.serializer.load(data_to_validate)
+            self.serializer.load(data_to_validate, many=self._many)
             raise WorkflowException("Serializer should raise an exception here")
         except ValidationError as exc:
             return ProcessValidationError(
@@ -158,7 +157,7 @@ class SerpycoProcessor(Processor):
         detail error for output data
         """
         try:
-            self.serializer.dump(data_to_validate, validate=True)
+            self.serializer.dump(data_to_validate, validate=True, many=self._many)
             raise WorkflowException("Serializer should raise an exception here")
         except ValidationError as exc:
             return ProcessValidationError(
@@ -203,7 +202,7 @@ class SerpycoProcessor(Processor):
             data = dict(data)
 
         try:
-            return self.serializer.load(data)
+            return self.serializer.load(data, many=self._many)
         except ValidationError as exc:
             raise ValidationException("Error when loading: {}".format(exc.args[0])) from exc
         except Exception as exc:
@@ -220,7 +219,7 @@ class SerpycoProcessor(Processor):
         :return: dumped data
         """
         try:
-            return self.serializer.dump(data, validate=True)
+            return self.serializer.dump(data, validate=True, many=self._many)
         except ValidationError as exc:
             raise ValidationException("Error when dumping: {}".format(exc.args[0])) from exc
         except Exception as exc:
