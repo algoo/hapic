@@ -51,7 +51,7 @@ class FlaskContext(BaseContext):
         return RequestParameters(
             path_parameters=request.view_args,
             query_parameters=dict(request.args),
-            body_parameters=request.get_json(),  # TODO: Check
+            body_parameters=request.get_json() if request.is_json else {},
             form_parameters=request.form,
             header_parameters=LowercaseKeysDict(
                 [(k.lower(), v) for k, v in request.headers.items()]
