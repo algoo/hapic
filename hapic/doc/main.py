@@ -140,7 +140,7 @@ def generate_operations(
                 errors_description.add(error.wrapper.description)
 
             method_operations.setdefault("responses", {})[int(http_status)] = {
-                "description": "\n\n".join(errors_description),
+                "description": "\n\n".join(sorted(errors_description)),
                 "schema": {
                     "$ref": "#/definitions/{}".format(
                         main_plugin.schema_name_resolver(schema_class)
