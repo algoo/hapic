@@ -4,7 +4,7 @@ import os
 import typing
 
 from apispec import BasePlugin
-from multidict.__init__ import MultiDict
+from multidict import MultiDict
 
 from hapic.data import HapicFile
 from hapic.doc.schema import SchemaUsage
