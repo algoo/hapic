@@ -26,7 +26,8 @@ def flask_app() -> flask.Flask:
 
     return app
 
+
 class TestFlaskExt:
     def test_unit__request_parameters__ok__nominal_case(self, flask_app: flask.Flask) -> None:
         client = flask_app.test_client()
-        assert client.get("/resources/23").text == "23"
+        assert client.get("/resources/23").data == b"23"
