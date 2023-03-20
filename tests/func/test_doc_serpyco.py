@@ -1,5 +1,6 @@
 # coding: utf-8
 import dataclasses
+import typing
 
 from hapic import Hapic
 from hapic.error.serpyco import SerpycoDefaultErrorBuilder
@@ -142,3 +143,46 @@ class TestDocSerpyco(object):
         assert "message" in properties
         assert "details" in properties
         assert "code" in properties
+
+    def test_func__ok__with_generic_type(self):
+        app = AgnosticApp()
+        hapic = Hapic()
+        hapic.set_processor_class(SerpycoProcessor)
+        hapic.set_context(AgnosticContext(app, default_error_builder=SerpycoDefaultErrorBuilder()))
+
+        Merchandise = typing.TypeVar("Merchandise")
+
+        @dataclasses.dataclass
+        class Container(typing.Generic[Merchandise]):
+            items: typing.List[Merchandise] = dataclasses.field(default_factory=list)
+
+        @hapic.with_api_doc()
+        @hapic.output_body(Container[int])
+        def my_view():
+            return Container([42])
+
+        @hapic.with_api_doc()
+        @hapic.output_body(Container[bool])
+        def my_view2():
+            return Container([True])
+
+        app.route("/hello", "GET", callback=my_view)
+        app.route("/hello2", "GET", callback=my_view2)
+        doc = hapic.generate_doc()
+
+        assert (
+            doc["paths"]["/hello"]["get"]["responses"]["200"]["schema"]["$ref"]
+            == "#/definitions/Container_int"
+        )
+        assert (
+            doc["paths"]["/hello2"]["get"]["responses"]["200"]["schema"]["$ref"]
+            == "#/definitions/Container_bool"
+        )
+        assert "Container_bool" in doc["definitions"]
+        assert "Container_int" in doc["definitions"]
+        assert doc["definitions"]["Container_bool"]["properties"]["items"]["items"] == {
+            "type": "boolean"
+        }
+        assert doc["definitions"]["Container_int"]["properties"]["items"]["items"] == {
+            "type": "integer"
+        }
