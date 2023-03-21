@@ -186,3 +186,32 @@ class TestDocSerpyco(object):
         assert doc["definitions"]["Container_int"]["properties"]["items"]["items"] == {
             "type": "integer"
         }
+
+    def test_func__ok__with_generic_type_at_2nd_level(self):
+        app = AgnosticApp()
+        hapic = Hapic()
+        hapic.set_processor_class(SerpycoProcessor)
+        hapic.set_context(AgnosticContext(app, default_error_builder=SerpycoDefaultErrorBuilder()))
+
+        Merchandise = typing.TypeVar("Merchandise")
+
+        @dataclasses.dataclass
+        class Container(typing.Generic[Merchandise]):
+            items: typing.List[Merchandise] = dataclasses.field(default_factory=list)
+
+        @dataclasses.dataclass
+        class IntegerBoat:
+            containers: typing.List[Container[int]] = dataclasses.field(default_factory=list)
+
+        @hapic.with_api_doc()
+        @hapic.output_body(IntegerBoat)
+        def my_view():
+            return IntegerBoat([Container([42])])
+
+        app.route("/hello", "GET", callback=my_view)
+        doc = hapic.generate_doc()
+
+        assert (
+            doc["definitions"]["IntegerBoat"]["properties"]["containers"]["items"]["$ref"]
+            == "#/definitions/Container_int"
+        )
