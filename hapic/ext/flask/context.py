@@ -50,8 +50,8 @@ class FlaskContext(BaseContext):
 
         return RequestParameters(
             path_parameters=request.view_args,
-            query_parameters=request.args,  # TODO: Check
-            body_parameters=request.get_json(),  # TODO: Check
+            query_parameters=dict(request.args),
+            body_parameters=request.get_json() if request.is_json else {},
             form_parameters=request.form,
             header_parameters=LowercaseKeysDict(
                 [(k.lower(), v) for k, v in request.headers.items()]
@@ -145,6 +145,7 @@ class FlaskContext(BaseContext):
         self, exception_class: typing.Type[Exception], http_code: int
     ) -> None:
         def return_response_error(exc):
+            self.global_exception_caught(exc)
             dumped_error = self._get_dumped_error_from_exception_error(exc)
             return self.get_response(json.dumps(dumped_error), http_code)
 

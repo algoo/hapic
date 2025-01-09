@@ -70,6 +70,7 @@ class ControllerDescription(object):
         errors: typing.List[ErrorDescription] = None,
         tags: typing.List[str] = None,
         disable_doc: bool = False,
+        deprecated: bool = False,
     ):
         self.input_path = input_path
         self.input_query = input_query
@@ -84,3 +85,4 @@ class ControllerDescription(object):
         self.errors = errors or []
         self.tags = tags or []
         self.disable_doc = disable_doc
+        self.deprecated = deprecated

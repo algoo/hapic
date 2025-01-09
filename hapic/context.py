@@ -6,6 +6,7 @@ from hapic.data import HapicFile
 from hapic.error.main import ErrorBuilderInterface
 from hapic.exception import ConfigurationException
 from hapic.exception import OutputValidationException
+from hapic.exception import ProcessException
 from hapic.exception import ValidationException
 from hapic.processor.main import Processor
 from hapic.processor.main import ProcessValidationError
@@ -150,6 +151,45 @@ class ContextInterface(object):
         """
         raise NotImplementedError()
 
+    def global_exception_caught(
+        self, caught_exception: Exception, *args: typing.Any, **kwargs: typing.Any
+    ) -> None:
+        """
+        This method must be called by context when an exception is caught
+        at global level (when use .handle_exception and .handle_exceptions)
+
+        args and kwargs are the arguments given to the handler where the exception
+        has been raised.
+        """
+        raise NotImplementedError()
+
+    def local_exception_caught(
+        self, caught_exception: Exception, *args: typing.Any, **kwargs: typing.Any
+    ) -> None:
+        """
+        This method is called when hapic caught exception at view level
+
+        args and kwargs are the arguments given to the handler where the exception
+        has been raised.
+        """
+        raise NotImplementedError()
+
+    def input_validation_error_caught(
+        self, request_parameters: RequestParameters, process_exception: ProcessException
+    ) -> None:
+        """
+        This method is called when hapic refuse input data
+        """
+        raise NotImplementedError()
+
+    def output_validation_error_caught(
+        self, output: typing.Any, process_exception: ProcessException
+    ) -> None:
+        """
+        This method is called when hapic refuse output data
+        """
+        raise NotImplementedError()
+
 
 class HandledException(object):
     """
@@ -271,6 +311,7 @@ class BaseContext(ContextInterface):
                 # TODO BS 2018-05-04: How to be attentive to hierarchy ?
                 for handled_exception in handled_exceptions:
                     if isinstance(exc, handled_exception.exception_class):
+                        self.global_exception_caught(exc, *args, **kwargs)
                         dumped_error = self._get_dumped_error_from_exception_error(exc)
                         return self.get_response(
                             json.dumps(dumped_error), handled_exception.http_code
@@ -298,3 +339,39 @@ class BaseContext(ContextInterface):
         :return:
         """
         raise NotImplementedError()
+
+    def global_exception_caught(
+        self, caught_exception: Exception, *args: typing.Any, **kwargs: typing.Any
+    ) -> None:
+        """
+        See parent docstring. Override it to perform action when exception is
+        caught at global level.
+        """
+        pass
+
+    def local_exception_caught(
+        self, exc: Exception, *args: typing.Any, **kwargs: typing.Any
+    ) -> None:
+        """
+        See parent docstring. Override it to perform action when exception is
+        caught at view level.
+        """
+        pass
+
+    def input_validation_error_caught(
+        self, request_parameters: RequestParameters, process_exception: ProcessException
+    ) -> None:
+        """
+        See parent docstring. Override it to perform action when input data
+        is invalid.
+        """
+        pass
+
+    def output_validation_error_caught(
+        self, output: typing.Any, process_exception: ProcessException
+    ) -> None:
+        """
+        See parent docstring. Override it to perform action when output data
+        is invalid.
+        """
+        pass

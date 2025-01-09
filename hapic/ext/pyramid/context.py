@@ -50,9 +50,14 @@ class PyramidContext(BaseContext):
         req = args[-1]  # TODO : Check
         # TODO : move this code to check_json
         # same idea as in : https://bottlepy.org/docs/dev/_modules/bottle.html#BaseRequest.json
-        if req.body and req.content_type in ("application/json", "application/json-rpc"):
-            json_body = req.json_body
-            # TODO : raise exception if not correct , return 400 if uncorrect instead ?
+        if req.content_type in ("application/json", "application/json-rpc"):
+            try:
+                json_body = req.json_body
+            # TODO - G.M - 2019-06-06 -  raise exception if not correct ,
+            # return 400 if uncorrect instead ?
+            except Exception:
+                json_body = {}
+
         else:
             json_body = {}
 
@@ -109,13 +114,24 @@ class PyramidContext(BaseContext):
             response.content_type = file_response.mimetype
             response.app_iter = FileIter(file_response.file_object)
 
+        response.conditional_response = file_response.use_conditional_response
         if file_response.content_length:
             response.content_length = file_response.content_length
         if file_response.last_modified:
             response.last_modified = file_response.last_modified
+        if file_response.etag:
+            response.etag = file_response.etag
 
         response.status_code = http_code
+
+        # INFO - G.M - 2020-06-03 - Accept bytes range if conditional_response
+        # is accepted.
+        if file_response.use_conditional_response:
+            response.accept_ranges = "bytes"
+        else:
+            response.accept_ranges = "none"
         response.content_disposition = file_response.get_content_disposition_header_value()
+
         return response
 
     def get_validation_error_response(
@@ -199,6 +215,7 @@ class PyramidContext(BaseContext):
                     )
                 )
                 logger.debug(traceback.format_exc())
+                self.global_exception_caught(exc, request)
                 # TODO BS 2018-05-04: How to be attentive to hierarchy ?
                 error_builder = self.default_error_builder
                 error_body = error_builder.build_from_exception(

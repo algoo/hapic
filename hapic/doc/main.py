@@ -4,6 +4,7 @@ import typing
 
 from apispec import APISpec
 from apispec import BasePlugin
+from apispec.core import VALID_METHODS_OPENAPI_V2
 from apispec.exceptions import DuplicateComponentNameError
 import yaml
 
@@ -139,7 +140,7 @@ def generate_operations(
                 errors_description.add(error.wrapper.description)
 
             method_operations.setdefault("responses", {})[int(http_status)] = {
-                "description": "\n\n".join(errors_description),
+                "description": "\n\n".join(sorted(errors_description)),
                 "schema": {
                     "$ref": "#/definitions/{}".format(
                         main_plugin.schema_name_resolver(schema_class)
@@ -227,6 +228,7 @@ def generate_operations(
 
     if description.tags:
         method_operations["tags"] = description.tags
+        method_operations["deprecated"] = description.deprecated
 
     operations = {route.method.lower(): method_operations}
 
@@ -242,6 +244,7 @@ class DocGenerator(object):
         title: str = "",
         description: str = "",
         version: str = "1.0.0",
+        wildcard_method_replacement: typing.Optional[typing.List["str"]] = None,
     ) -> dict:
         """
         Generate an OpenApi 2.0 documentation. Th given context will be used
@@ -251,6 +254,9 @@ class DocGenerator(object):
         :param context: a context instance
         :param title: The generated doc title
         :param description: The generated doc description
+        :param wildcard_method_replacement: If wild card found as method in
+        operations consider these given methods as replacement. If not provided
+        all OpenAPI v2 valid methods will be used.
         :return: a apispec documentation dict
         """
         main_plugin = hapic.processor_class.create_apispec_plugin()
@@ -308,6 +314,17 @@ class DocGenerator(object):
             swagger_path = context.get_swagger_path(route.rule)
 
             operations = generate_operations(main_plugin, route, controller.description)
+
+            # Special cases compliance by replacing "*" by acceptable methods (apispec crash
+            # because OpenAPI only accepted valid http method)
+            if "*" in operations:
+                operation_value = operations["*"]
+                del operations["*"]
+                wildcard_method_replacement = (
+                    wildcard_method_replacement or VALID_METHODS_OPENAPI_V2
+                )
+                for method in wildcard_method_replacement:
+                    operations[method] = operation_value
 
             doc_string = controller.reference.get_doc_string()
             if doc_string:

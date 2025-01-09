@@ -23,7 +23,9 @@ def get_aiohttp_serpyco_app_hapic(app):
     return hapic
 
 
-async def test_func__test_fake_api_endpoints_ok__aiohttp(test_client,):
+async def test_func__test_fake_api_endpoints_ok__aiohttp(
+    test_client,
+):
     app = await test_client(create_aiohttp_serpyco_app)
     get_aiohttp_serpyco_app_hapic(app)
     resp = await app.get("/about")
@@ -43,8 +45,8 @@ async def test_func__test_fake_api_endpoints_ok__aiohttp(test_client,):
     }
 
     resp = await app.get("/users2")
-    assert resp.status == 200
     json_ = await resp.json()
+    assert resp.status == 200
     assert json_ == [
         {"username": "some_user", "id": 4, "display_name": "Damien Accorsi", "company": "Algoo"}
     ]
@@ -74,8 +76,9 @@ async def test_func__test_fake_api_endpoints_ok__aiohttp(test_client,):
     assert resp.status == 400
     json_ = await resp.json()
 
-    assert 'Validation error of input data: "data: is missing required properties' in json_.get(
-        "message"
+    assert (
+        'Validation error of input data: "Validation failed for class "example.fake_api.schema_serpyco.UserSchema":'
+        in json_.get("message")
     )
 
     assert "email_address" in json_.get("message")

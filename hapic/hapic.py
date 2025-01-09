@@ -147,7 +147,9 @@ class Hapic(object):
 
         return get_default_processor
 
-    def with_api_doc(self, tags: typing.List["str"] = None, disable_doc: bool = False):
+    def with_api_doc(
+        self, tags: typing.List["str"] = None, disable_doc: bool = False, deprecated: bool = False
+    ):
         """
         Permit to generate doc about a controller. Use as a decorator:
 
@@ -184,6 +186,7 @@ class Hapic(object):
             description = self._buffer.get_description()
             description.tags = tags
             description.disable_doc = disable_doc
+            description.deprecated = deprecated
 
             reference = ControllerReference(wrapper=wrapper, wrapped=func, token=token)
             decorated_controller = DecoratedController(
@@ -548,11 +551,20 @@ class Hapic(object):
 
         return decorator
 
-    def generate_doc(self, title: str = "", description: str = "", version: str = "1.0.0") -> dict:
+    def generate_doc(
+        self,
+        title: str = "",
+        description: str = "",
+        version: str = "1.0.0",
+        wildcard_method_replacement: typing.Optional[typing.List["str"]] = None,
+    ) -> dict:
         """
         See hapic.doc.DocGenerator#get_doc docstring
         :param title: Title of generated doc
         :param description: Description of generated doc
+        :param wildcard_method_replacement: If wild card found as method in
+        operations consider these given methods as replacement. If not provided
+        all OpenAPI v2 valid methods will be used.
         :return: dict containing apispec doc
         """
         return self.doc_generator.get_doc(
@@ -562,6 +574,7 @@ class Hapic(object):
             title=title,
             description=description,
             version=version,
+            wildcard_method_replacement=wildcard_method_replacement,
         )
 
     def save_doc_in_file(self, file_path: str, title: str = "", description: str = "") -> None:

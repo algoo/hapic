@@ -4,10 +4,12 @@ import io
 import json
 import sys
 
+from aiohttp import hdrs
 from aiohttp import web
 from aiohttp.web_request import FileField
 from aiohttp.web_request import Request
 from aiohttp.web_response import Response
+from apispec.core import VALID_METHODS_OPENAPI_V2
 import marshmallow
 import pytest
 
@@ -15,7 +17,9 @@ from hapic import Hapic
 from hapic import HapicData
 from hapic import MarshmallowProcessor
 from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
+from hapic.exception import ProcessException
 from hapic.ext.aiohttp.context import AiohttpContext
+from hapic.processor.main import RequestParameters
 
 
 class TestAiohttpExt(object):
@@ -627,7 +631,7 @@ class TestAiohttpExt(object):
 
         @hapic.with_api_doc()
         @hapic.handle_exception(ZeroDivisionError, http_code=HTTPStatus.BAD_REQUEST)
-        def divide_by_zero(request):
+        async def divide_by_zero(request):
             raise ZeroDivisionError()
 
         app = web.Application(debug=True)
@@ -638,11 +642,37 @@ class TestAiohttpExt(object):
 
         assert 400 == response.status
 
+    async def test_unit__handle_exception__ok__hook_called(self, aiohttp_client):
+        hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
+
+        class MyContext(AiohttpContext):
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                self.hook_called = False
+
+            def local_exception_caught(self, exc: Exception, *args, **kwargs) -> None:
+                self.hook_called = True
+
+        @hapic.with_api_doc()
+        @hapic.handle_exception(ZeroDivisionError, http_code=HTTPStatus.BAD_REQUEST)
+        async def divide_by_zero(request):
+            raise ZeroDivisionError()
+
+        app = web.Application(debug=True)
+        context = MyContext(app)
+        hapic.set_context(context)
+        app.router.add_get("/", divide_by_zero)
+        client = await aiohttp_client(app)
+
+        assert not context.hook_called
+        await client.get("/")
+        assert context.hook_called
+
     async def test_unit__global_exception__ok__nominal_case(self, aiohttp_client):
         hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
         @hapic.with_api_doc()
-        def divide_by_zero(request):
+        async def divide_by_zero(request):
             raise ZeroDivisionError()
 
         app = web.Application(debug=True)
@@ -654,3 +684,132 @@ class TestAiohttpExt(object):
         response = await client.get("/")
 
         assert 400 == response.status
+
+    async def test_unit__global_exception__ok__hook_called(self, aiohttp_client):
+        hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
+
+        class MyContext(AiohttpContext):
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                self.hook_called = False
+
+            def global_exception_caught(self, exc: Exception, *args, **kwargs) -> None:
+                self.hook_called = True
+
+        @hapic.with_api_doc()
+        async def divide_by_zero(request):
+            raise ZeroDivisionError()
+
+        app = web.Application(debug=True)
+        context = MyContext(app)
+        hapic.set_context(context)
+        context.handle_exception(ZeroDivisionError, http_code=HTTPStatus.BAD_REQUEST)
+        app.router.add_get("/", divide_by_zero)
+        client = await aiohttp_client(app)
+
+        assert not context.hook_called
+        await client.get("/")
+        assert context.hook_called
+
+    async def test_unit__input_error__err__hook_called(self, aiohttp_client):
+        hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
+
+        class InputPathSchema(marshmallow.Schema):
+            user_id = marshmallow.fields.Int(required=True)
+
+        class MyContext(AiohttpContext):
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                self.hook_called = None
+
+            def input_validation_error_caught(
+                self, request_parameters: RequestParameters, process_exception: ProcessException
+            ) -> None:
+                self.hook_called = request_parameters
+
+        @hapic.with_api_doc()
+        @hapic.input_path(InputPathSchema())
+        async def user():
+            pass
+
+        app = web.Application(debug=True)
+        context = MyContext(app)
+        hapic.set_context(context)
+        app.router.add_get("/user", user)
+        client = await aiohttp_client(app)
+
+        assert not context.hook_called
+        await client.get("/user?foo=bar")
+        assert context.hook_called.query_parameters.get("foo") == "bar"
+
+    async def test_unit__output_error__err__hook_called(self, aiohttp_client):
+        hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
+
+        class OutputBodySchema(marshmallow.Schema):
+            user_id = marshmallow.fields.Int(required=True)
+
+        class MyContext(AiohttpContext):
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                self.hook_called = False
+
+            def output_validation_error_caught(
+                self, hapic_data: HapicData, process_exception: ProcessException
+            ) -> None:
+                self.hook_called = True
+
+        @hapic.with_api_doc()
+        @hapic.output_body(OutputBodySchema())
+        async def user(request):
+            return {}
+
+        app = web.Application(debug=True)
+        context = MyContext(app)
+        hapic.set_context(context)
+        app.router.add_get("/user", user)
+        client = await aiohttp_client(app)
+
+        assert not context.hook_called
+        await client.get("/user")
+        assert context.hook_called
+
+    def test_unit__generate_doc_with_wildcard__ok__default_methods(self, aiohttp_client, loop):
+        hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
+
+        @hapic.with_api_doc()
+        async def a_proxy(request):
+            pass
+
+        app = web.Application(debug=True)
+        app.router.add_route(hdrs.METH_ANY, path="/", handler=a_proxy)
+        hapic.set_context(
+            AiohttpContext(app, default_error_builder=MarshmallowDefaultErrorBuilder())
+        )
+
+        doc = hapic.generate_doc("aiohttp", "testing")
+        # INFO BS 2019-04-15: Prevent keep of OrderedDict
+        doc = json.loads(json.dumps(doc))
+
+        assert len(VALID_METHODS_OPENAPI_V2) == len(doc["paths"]["/"])
+        for method in VALID_METHODS_OPENAPI_V2:
+            assert method in doc["paths"]["/"]
+
+    def test_unit__generate_doc_with_wildcard__ok__fixed_methods(self, aiohttp_client, loop):
+        hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
+
+        @hapic.with_api_doc()
+        async def a_proxy(request):
+            pass
+
+        app = web.Application(debug=True)
+        app.router.add_route(hdrs.METH_ANY, path="/", handler=a_proxy)
+        hapic.set_context(
+            AiohttpContext(app, default_error_builder=MarshmallowDefaultErrorBuilder())
+        )
+
+        doc = hapic.generate_doc("aiohttp", "testing", wildcard_method_replacement=["head"])
+        # INFO BS 2019-04-15: Prevent keep of OrderedDict
+        doc = json.loads(json.dumps(doc))
+
+        assert 1 == len(doc["paths"]["/"])
+        assert "head" in doc["paths"]["/"]
