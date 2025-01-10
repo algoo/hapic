@@ -342,6 +342,7 @@ class Hapic(object):
         processor_factory = self._get_processor_factory(schema, processor)
         context = context or self._context_getter
 
+        # TODO - D.A - support async mode for (at least) aiohttp - see #76
         decoration = InputHeadersControllerWrapper(
             context=context,
             processor_factory=processor_factory,

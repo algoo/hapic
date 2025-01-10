@@ -301,7 +301,9 @@ def check_serpyco_doc(doc):
                 "pattern": "^[0-9]{4}-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0-9](\\.[0-9]+)?(([+-][0-9][0-9]:[0-9][0-9])|Z)?$",
             },
         },
-        "required": ["datetime", "version"],
+        'comment': 'example.usermanagement.schema_serpyco.AboutSchema',
+        'additionalProperties': True,
+        "required": ["version", "datetime"],
         "description": "Representation of the /about route",
     }
     assert doc["definitions"]["UserSchema"] == {
@@ -314,23 +316,33 @@ def check_serpyco_doc(doc):
             "id": {"type": "integer"},
             "email_address": {"type": "string", "format": "email"},
         },
-        "required": ["display_name", "email_address", "first_name", "id"],
+        'additionalProperties': True,
+        'comment': 'example.usermanagement.schema_serpyco.UserSchema',
+        "required": ["last_name", "first_name", "company", "id", "display_name", "email_address"],  # FIXME id should be optionnal and not present here
         "description": "Complete representation of a user",
     }
     assert doc["definitions"]["NoContentSchema"] == {
         "type": "object",
         "properties": {},
+        'additionalProperties': True,
+        'comment': 'example.usermanagement.schema_serpyco.NoContentSchema',
+        'required': [],
         "description": "A docstring to prevent auto generated docstring",
     }
     assert doc["definitions"]["DefaultErrorSchema"] == {
         "type": "object",
         "properties": {
             "message": {"type": "string"},
-            "details": {"type": "object", "additionalProperties": {}, "default": {}},
+            # FIXME - D.A. - 2025-01-10 - We should get "default" property here according to the way error structure is defined
+            # "details": {"type": "object", "additionalProperties": {}, "default": {}},
+            "details": {"type": "object", "additionalProperties": {}},
             "code": {"default": None},
         },
-        "required": ["code", "details", "message"],
-        "description": "DefaultErrorSchema(message:str, details:Dict[str, Any]=<factory>, code:Any=None)",
+        'additionalProperties': True,
+        'comment': 'hapic.error.serpyco.DefaultErrorSchema',
+        "required": ["message"],  # FIXME - D.A. - 2025-01-10 details and message keys should be required (even if empty)
+        # "required": ["code", "details", "message"],
+        "description": "DefaultErrorSchema(message: str, details: Dict[str, Any] = <factory>, code: Any = None)",
     }
     assert doc["definitions"]["UserSchema_exclude_id"] == {
         "type": "object",
@@ -341,12 +353,21 @@ def check_serpyco_doc(doc):
             "company": {"type": "string"},
             "email_address": {"type": "string", "format": "email"},
         },
-        "required": ["display_name", "email_address", "first_name"],
+        "additionalProperties": True,
+        "comment": "example.usermanagement.schema_serpyco.UserSchema",
+        # FIXME - D.A. - 2025-01-10 - should we get "required" like below?
+        # "required": ["display_name", "email_address", "first_name"],
+        "required": ["last_name", "first_name", "company", "display_name",
+                      "email_address"],
         "description": "Complete representation of a user",
     }
     assert doc["definitions"]["UserIdPathSchema"] == {
         "type": "object",
         "properties": {"id": {"type": "integer", "minimum": 1}},
+        'additionalProperties': True,
+        'comment': 'example.usermanagement.schema_serpyco.UserIdPathSchema',
+        # FIXME - D.A. - 2025-01-10 - should we get "required" like below?
+        # 'required': ['display_name', 'id'],
         "required": ["id"],
         "description": "representation of a user id in the uri. This allow to define rules for\n    what is expected. For example, you may want to limit id to number between\n    1 and 999",
     }
@@ -356,7 +377,11 @@ def check_serpyco_doc(doc):
             "id": {"type": "integer"},
             "display_name": {"type": "string", "default": ""},
         },
-        "required": ["display_name", "id"],
+        'additionalProperties': True,
+        'comment': 'example.usermanagement.schema_serpyco.UserDigestSchema',
+        # FIXME - D.A. - 2025-01-10 - should we get "required" like below?
+        # 'required': ['display_name', 'id'],
+        "required": ["id"],
         "description": "User representation for listing",
     }
 

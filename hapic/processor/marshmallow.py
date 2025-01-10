@@ -5,6 +5,8 @@ from apispec_marshmallow_advanced import MarshmallowAdvancedPlugin
 from apispec_marshmallow_advanced.common import generate_schema_name
 from apispec_marshmallow_advanced.common import schema_class_resolver as schema_class_resolver_
 
+from marshmallow import ValidationError as MarshmallowValidationError
+
 from hapic.doc.schema import SchemaUsage
 from hapic.error.main import ErrorBuilderInterface
 from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
@@ -56,7 +58,7 @@ class MarshmallowProcessor(Processor):
         :param data:
         :return:
         """
-        # Fixes #22: Schemas make not validation if None is given
+        # Fixes #22: Schemas make no validation if None is given
         if data is None:
             return {}
         return data
@@ -68,11 +70,12 @@ class MarshmallowProcessor(Processor):
         :return: ProcessValidationError instance for given data
         """
         clean_data = self.clean_data(data_to_validate)
-        marshmallow_errors = self.schema.load(clean_data).errors
-
-        return ProcessValidationError(
-            message="Validation error of input data", details=marshmallow_errors
-        )
+        try:
+            data = self.schema.load(clean_data)
+        except MarshmallowValidationError as error:
+            return ProcessValidationError(
+                message="Validation error of input data", details=error.messages
+            )
 
     def get_input_files_validation_error(
         self, data_to_validate: typing.Any
@@ -83,12 +86,14 @@ class MarshmallowProcessor(Processor):
         :return: ProcessValidationError instance for given data files
         """
         clean_data = self.clean_data(data_to_validate)
-        unmarshall = self.schema.load(clean_data)
-        errors = unmarshall.errors
-        additional_errors = self._get_input_files_errors(unmarshall.data)
-        errors.update(additional_errors)
+        try:
+            unmarshall = self.schema.load(clean_data)
+        except MarshmallowValidationError as error:
+            return ProcessValidationError(
+                message="Validation error of input files data", details=error.messages
+            )
 
-        return ProcessValidationError(message="Validation error of input data", details=errors)
+        return None
 
     def get_output_validation_error(self, data_to_validate: typing.Any) -> ProcessValidationError:
         """
@@ -97,10 +102,11 @@ class MarshmallowProcessor(Processor):
         :return: ProcessValidationError instance for given output data
         """
         clean_data = self.clean_data(data_to_validate)
-        dump_data = self.schema.dump(clean_data).data
-        errors = self.schema.load(dump_data).errors
-
-        return ProcessValidationError(message="Validation error of output data", details=errors)
+        try:
+            self.schema.load(clean_data)
+        except MarshmallowValidationError as error:
+            return ProcessValidationError(message="Validation error of output data", details=error.messages)
+        return None
 
     def get_output_file_validation_error(
         self, data_to_validate: typing.Any
@@ -126,11 +132,15 @@ class MarshmallowProcessor(Processor):
         :return: updated data (like with default values)
         """
         clean_data = self.clean_data(data)
-        unmarshall = self.schema.load(clean_data)
-        if unmarshall.errors:
-            raise ValidationException("Error when loading: {}".format(str(unmarshall.errors)))
+        unmarshall = None
+        try:
+            unmarshall = self.schema.load(clean_data)
+        except MarshmallowValidationError as error:
+            raise ValidationException("Error when loading: {}".format(str(error.messages)))
 
-        return unmarshall.data
+        return unmarshall
+
+
 
     def dump(self, data: typing.Any) -> typing.Any:
         """
@@ -140,14 +150,16 @@ class MarshmallowProcessor(Processor):
         :return: dumped data
         """
         clean_data = self.clean_data(data)
-        dump_data = self.schema.dump(clean_data).data
+        try:
+            serialized = self.schema.dump(clean_data)
+            # TODO - make this optionnal as it slows down the processing
+            # This could be done by defining a strict hapic mode
+            self.schema.load(serialized)
+        except MarshmallowValidationError as err:
+            raise ValidationException("Error when dumping: {}".format(str(err.messages)))
+        else:
+            return serialized
 
-        # Re-validate with dumped data
-        errors = self.schema.load(dump_data).errors
-        if errors:
-            raise ValidationException("Error when dumping: {}".format(str(errors)))
-
-        return dump_data
 
     def load_files_input(self, input_data: typing.Any) -> typing.Any:
         """
@@ -156,36 +168,13 @@ class MarshmallowProcessor(Processor):
         :return:
         """
         clean_data = self.clean_data(input_data)
-        unmarshall = self.schema.load(clean_data)
-        additional_errors = self._get_input_files_errors(unmarshall.data)
-
-        if unmarshall.errors or additional_errors:
+        try:
+            return self.schema.load(clean_data)
+        except MarshmallowValidationError as error:
             raise OutputValidationException(
-                "Error when validate ouput: {}".format(
-                    ", ".join([str(unmarshall.errors), str(additional_errors)])
-                )
+                "Error when validate ouput: {}".format(", ".join(error.messages))
             )
 
-        return unmarshall.data
-
-    def _get_input_files_errors(self, validated_data: dict) -> typing.Dict[str, str]:
-        """
-        Additional check of data
-        :param validated_data: previously validated data by marshmallow schema
-        :return: list of error if any
-        """
-        errors = {}
-
-        for field_name, field in self.schema.fields.items():
-            # Currenlty just check if value not empty
-            # TODO BS 20171102: Think about case where test file content is
-            # more complicated
-            if field.required and (
-                field_name not in validated_data or not validated_data[field_name]
-            ):
-                errors.setdefault(field_name, []).append("Missing data for required field")
-
-        return errors
 
     def dump_output(self, output_data: typing.Any) -> typing.Union[typing.Dict, typing.List]:
         """
@@ -194,14 +183,12 @@ class MarshmallowProcessor(Processor):
         :return: given data
         """
         clean_data = self.clean_data(output_data)
-        dump_data = self.schema.dump(clean_data).data
-
-        # Validate
-        errors = self.schema.load(dump_data).errors
-        if errors:
-            raise OutputValidationException("Error when validate input: {}".format(str(errors)))
-
-        return dump_data
+        try:
+            self.schema.load(clean_data)
+        except MarshmallowValidationError as error:
+            raise OutputValidationException("Error when validate input: {}".format(str(error.messages)))
+        else:
+            return self.schema.dump(clean_data)
 
     def dump_output_file(self, output_file: typing.Any) -> typing.Any:
         """

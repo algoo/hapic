@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-
+#
+# Run this example with python3 -m example.usermanagement.serve_flask_serpyco
+#
 from datetime import datetime
 import json
 import time

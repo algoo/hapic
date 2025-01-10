@@ -16,7 +16,7 @@ from tests.base import Base
 
 class MySchema(marshmallow.Schema):
     first_name = marshmallow.fields.String(required=True)
-    last_name = marshmallow.fields.String(missing="Doe")
+    last_name = marshmallow.fields.String(load_default="Doe")
 
 
 class TestProcessor(Base):
