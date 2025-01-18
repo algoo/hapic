@@ -23,7 +23,7 @@ def get_aiohttp_serpyco_app_hapic(app):
     return hapic
 
 
-@pytest.mark.skip("TODO - 2025-01-10 - aiohttp is missing so hapic features like async decorators ... see #76")
+@pytest.mark.skip("TODO - 2025-01-10 - aiohttp is missing so hapic features like async decorators ... see #221")
 async def test_func__test_fake_api_endpoints_ok__aiohttp(
     aiohttp_client,
 ):
@@ -116,7 +116,7 @@ async def test_func__test_fake_api_endpoints_ok__aiohttp(
 
 
 
-@pytest.mark.skip("TODO - 2025-01-10 - aiohttp is missing so hapic features like async decorators ... see #76")
+@pytest.mark.skip("TODO - 2025-01-10 - aiohttp is missing so hapic features like async decorators ... see #221")
 async def test_func__test_fake_api_doc_ok__aiohttp_serpyco(aiohttp_client):
     app = web.Application()
     controllers = AiohttpSerpycoController()

@@ -156,7 +156,7 @@ class TestAiohttpExt(object):
         data = await resp.json()
         assert "bob" == data.get("name")
 
-    @pytest.mark.skip("TODO - 2025-01-10 - aiohttp is missing so hapic features like async decorators ... see #76")
+    @pytest.mark.skip("TODO - 2025-01-10 - aiohttp is missing so hapic features like async decorators ... see #221")
     async def test_aiohttp_output_body__error__incorrect_output_body(self, aiohttp_client, loop):
         hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
@@ -457,7 +457,7 @@ class TestAiohttpExt(object):
         resp = await client.put("/avatar", data={"avatar": io.StringIO("text content of file")})
         assert resp.status == 200
 
-    @pytest.mark.skip("TODO - 2025-01-10 - aiohttp is missing so hapic features like async decorators ... see #76")
+    @pytest.mark.skip("TODO - 2025-01-10 - aiohttp is missing so hapic features like async decorators ... see #221")
     async def test_unit__post_file__ok__missing_file(self, aiohttp_client, loop):
         hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
@@ -485,7 +485,7 @@ class TestAiohttpExt(object):
             "code": None,
         } == json_
 
-    @pytest.mark.skip("TODO - 2025-01-10 - aiohttp is missing so hapic features like async decorators ... see #76")
+    @pytest.mark.skip("TODO - 2025-01-10 - aiohttp is missing so hapic features like async decorators ... see #221")
     async def test_request_header__ok__lowercase_key(self, aiohttp_client):
         hapic = Hapic(MarshmallowProcessor, True)
 
