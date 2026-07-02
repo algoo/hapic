@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
+from datetime import timezone
 from io import BytesIO
 import os
 
@@ -16,7 +17,7 @@ from tests.base import Base
 
 class MySchema(marshmallow.Schema):
     first_name = marshmallow.fields.String(required=True)
-    last_name = marshmallow.fields.String(missing="Doe")
+    last_name = marshmallow.fields.String(load_default="Doe")
 
 
 class TestProcessor(Base):
@@ -49,7 +50,7 @@ class TestProcessor(Base):
             file_object=file,
             mimetype="image/png",
             content_length=file.getbuffer().nbytes,
-            last_modified=datetime.utcnow(),
+            last_modified=datetime.now(timezone.utc),
         )
         data = processor.dump_output_file(tested_data)
         assert data == tested_data

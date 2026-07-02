@@ -80,7 +80,7 @@ def get_pyramid_context():
 
 def get_aiohttp_context():
     h = Hapic(async_=True, processor_class=MarshmallowProcessor)
-    aiohttp_app = web.Application(debug=True)
+    aiohttp_app = web.Application()
     h.reset_context()
     h.set_context(
         AiohttpContext(aiohttp_app, default_error_builder=MarshmallowDefaultErrorBuilder())
@@ -121,14 +121,14 @@ class TestDocumentationView(Base):
         assert resp.status_int == 200
         assert resp.headers.get("Content-Type", "").startswith("text/x-yaml")
 
-    async def test_func__test_documentation_view_ok__aiohttp(self, test_client):
+    async def test_func__test_documentation_view_ok__aiohttp(self, aiohttp_client):
         """
         Test documentation view aiohttp client
         """
         context = get_aiohttp_context()
         hapic = context["hapic"]
         hapic.add_documentation_view("/doc/", "DOC", "Generated doc")
-        app = await test_client(context["app"])
+        app = await aiohttp_client(context["app"])
         resp = await app.get("/doc/")
         assert resp.status == 200
         assert resp.headers.get("Content-Type", "").startswith("text/html")

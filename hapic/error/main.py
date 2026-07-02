@@ -52,17 +52,24 @@ class DefaultErrorBuilder(ErrorBuilderInterface):
         if not message:
             message = type(exception).__name__
 
+        code = getattr(exception, "error_code", None)
+
         details = {"error_detail": getattr(exception, "error_detail", {})}
         if include_traceback:
             details["traceback"] = traceback.format_exc()
 
-        return {"message": message, "details": details, "code": None}
+
+        return {"message": message, "details": details, "code": code}
 
     def build_from_validation_error(self, error: ProcessValidationError) -> dict:
         """
         See hapic.error.ErrorBuilderInterface#build_from_validation_error
         docstring
         """
+        code = getattr(error, "error_code", None)
+        if not code:
+            code = getattr(error.original_exception, "error_code", None)
+
         return {"message": error.message, "details": error.details, "code": None}
 
     @abc.abstractmethod

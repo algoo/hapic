@@ -18,7 +18,7 @@ class TestContextExceptionHandling(Base):
     """
 
     @pytest.mark.asyncio
-    async def test_func__catch_one_exception__ok__aiohttp_case(self, test_client):
+    async def test_func__catch_one_exception__ok__aiohttp_case(self, aiohttp_client):
         from aiohttp import web
 
         app = web.Application()
@@ -37,7 +37,7 @@ class TestContextExceptionHandling(Base):
         #  Check not only http code, but also body.
         # see  issue #158 (https://github.com/algoo/hapic/issues/158)
         context.handle_exception(ZeroDivisionError, http_code=400)
-        test_app = await test_client(app)
+        test_app = await aiohttp_client(app)
         response = await test_app.get("/my-view")
 
         assert 400 == response.status

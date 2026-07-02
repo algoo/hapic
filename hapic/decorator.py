@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import functools
+import inspect
 import json
 import logging
 import traceback
@@ -53,10 +54,10 @@ class ControllerReference(object):
 
     def get_doc_string(self) -> str:
         if self.wrapper.__doc__:
-            return self.wrapper.__doc__.strip()
+            return inspect.cleandoc(self.wrapper.__doc__)
 
         if self.wrapped.__doc__:
-            return self.wrapper.__doc__.strip()
+            return inspect.cleandoc(self.wrapped.__doc__)
 
         return ""
 

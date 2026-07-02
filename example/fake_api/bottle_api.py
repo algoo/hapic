@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
+from datetime import timezone
 import json
 import time
 
@@ -27,7 +28,7 @@ class BottleController(object):
         """
         General information about this API.
         """
-        return {"version": "1.2.3", "datetime": datetime(2017, 12, 7, 10, 55, 8, 488996)}
+        return {"version": "1.2.3", "datetime": datetime(2017, 12, 7, 10, 55, 8, 488996, timezone.utc)}
 
     @hapic.with_api_doc()
     @hapic.output_body(ListsUserSchema())

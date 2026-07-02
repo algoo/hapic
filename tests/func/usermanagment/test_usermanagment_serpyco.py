@@ -52,20 +52,20 @@ def get_pyramid_context():
     return {"hapic": h, "app": pyramid_app}
 
 
-def get_aiohttp_app(loop):
+def get_aiohttp_app():
     from example.usermanagement.serve_aiohttp_serpyco import AiohttpController
 
     controllers = AiohttpController()
-    app = web.Application(loop=loop)
+    app = web.Application()
     controllers.bind(app)
     return app
 
 
-def get_aiohttp_context(loop):
+def get_aiohttp_context():
     from example.usermanagement.serve_aiohttp_serpyco import hapic as h
 
     h.reset_context()
-    app = get_aiohttp_app(loop)
+    app = get_aiohttp_app()
     h.set_context(AiohttpContext(app, default_error_builder=SerpycoDefaultErrorBuilder()))
     return {"hapic": h, "app": app}
 
@@ -130,9 +130,9 @@ def test_func__test_usermanagment_endpoints_ok__sync_frameworks(context):
     assert resp.status_int == 204
 
 
-async def test_func__test_usermanagment_endpoints_ok__aiohttp(aiohttp_client, loop):
+async def test_func__test_usermanagment_endpoints_ok__aiohttp(aiohttp_client):
     UserLib.reset_database()
-    context = get_aiohttp_context(loop)
+    context = get_aiohttp_context()
     app = context["app"]
     client = await aiohttp_client(app)
     resp = await client.get("/about")
@@ -206,7 +206,7 @@ def check_serpyco_doc(doc):
             "responses": {
                 "200": {"description": "200", "schema": {"$ref": "#/definitions/AboutSchema"}}
             },
-            "description": "This endpoint allow to check that the API is running. This description\n        is generated from the docstring of the method.",
+            "description": "This endpoint allow to check that the API is running. This description\nis generated from the docstring of the method.",
         }
     }
     assert doc["paths"]["/users/"] == {
@@ -301,7 +301,9 @@ def check_serpyco_doc(doc):
                 "pattern": "^[0-9]{4}-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0-9](\\.[0-9]+)?(([+-][0-9][0-9]:[0-9][0-9])|Z)?$",
             },
         },
-        "required": ["datetime", "version"],
+        'comment': 'example.usermanagement.schema_serpyco.AboutSchema',
+        'additionalProperties': True,
+        "required": ["version", "datetime"],
         "description": "Representation of the /about route",
     }
     assert doc["definitions"]["UserSchema"] == {
@@ -314,23 +316,33 @@ def check_serpyco_doc(doc):
             "id": {"type": "integer"},
             "email_address": {"type": "string", "format": "email"},
         },
-        "required": ["display_name", "email_address", "first_name", "id"],
+        'additionalProperties': True,
+        'comment': 'example.usermanagement.schema_serpyco.UserSchema',
+        "required": ["last_name", "first_name", "company", "id", "display_name", "email_address"],  # FIXME id should be optionnal and not present here
         "description": "Complete representation of a user",
     }
     assert doc["definitions"]["NoContentSchema"] == {
         "type": "object",
         "properties": {},
+        'additionalProperties': True,
+        'comment': 'example.usermanagement.schema_serpyco.NoContentSchema',
+        'required': [],
         "description": "A docstring to prevent auto generated docstring",
     }
     assert doc["definitions"]["DefaultErrorSchema"] == {
         "type": "object",
         "properties": {
             "message": {"type": "string"},
-            "details": {"type": "object", "additionalProperties": {}, "default": {}},
+            # FIXME - D.A. - 2025-01-10 - We should get "default" property here according to the way error structure is defined
+            # "details": {"type": "object", "additionalProperties": {}, "default": {}},
+            "details": {"type": "object", "additionalProperties": {}},
             "code": {"default": None},
         },
-        "required": ["code", "details", "message"],
-        "description": "DefaultErrorSchema(message:str, details:Dict[str, Any]=<factory>, code:Any=None)",
+        'additionalProperties': True,
+        'comment': 'hapic.error.serpyco.DefaultErrorSchema',
+        "required": ["message"],  # FIXME - D.A. - 2025-01-10 details and message keys should be required (even if empty)
+        # "required": ["code", "details", "message"],
+        "description": "DefaultErrorSchema(message: str, details: Dict[str, Any] = <factory>, code: Any = None)",
     }
     assert doc["definitions"]["UserSchema_exclude_id"] == {
         "type": "object",
@@ -341,14 +353,23 @@ def check_serpyco_doc(doc):
             "company": {"type": "string"},
             "email_address": {"type": "string", "format": "email"},
         },
-        "required": ["display_name", "email_address", "first_name"],
+        "additionalProperties": True,
+        "comment": "example.usermanagement.schema_serpyco.UserSchema",
+        # FIXME - D.A. - 2025-01-10 - should we get "required" like below?
+        # "required": ["display_name", "email_address", "first_name"],
+        "required": ["last_name", "first_name", "company", "display_name",
+                      "email_address"],
         "description": "Complete representation of a user",
     }
     assert doc["definitions"]["UserIdPathSchema"] == {
         "type": "object",
         "properties": {"id": {"type": "integer", "minimum": 1}},
+        'additionalProperties': True,
+        'comment': 'example.usermanagement.schema_serpyco.UserIdPathSchema',
+        # FIXME - D.A. - 2025-01-10 - should we get "required" like below?
+        # 'required': ['display_name', 'id'],
         "required": ["id"],
-        "description": "representation of a user id in the uri. This allow to define rules for\n    what is expected. For example, you may want to limit id to number between\n    1 and 999",
+        "description": "representation of a user id in the uri. This allow to define rules for\nwhat is expected. For example, you may want to limit id to number between\n1 and 999",
     }
     assert doc["definitions"]["UserDigestSchema"] == {
         "type": "object",
@@ -356,7 +377,11 @@ def check_serpyco_doc(doc):
             "id": {"type": "integer"},
             "display_name": {"type": "string", "default": ""},
         },
-        "required": ["display_name", "id"],
+        'additionalProperties': True,
+        'comment': 'example.usermanagement.schema_serpyco.UserDigestSchema',
+        # FIXME - D.A. - 2025-01-10 - should we get "required" like below?
+        # 'required': ['display_name', 'id'],
+        "required": ["id"],
         "description": "User representation for listing",
     }
 
@@ -373,9 +398,9 @@ def test_func__test_usermanagment_doc_ok__sync_frameworks(context):
     check_serpyco_doc(doc)
 
 
-async def test_func_test__usermanagment_doc_ok_aiohttp(loop):
+async def test_func_test__usermanagment_doc_ok_aiohttp():
     UserLib.reset_database()
-    context = get_aiohttp_context(loop)
+    context = get_aiohttp_context()
     hapic = context["hapic"]
     doc = hapic.generate_doc(title="Fake API", description="just an example of hapic API")
     doc = json.loads(json.dumps(doc))

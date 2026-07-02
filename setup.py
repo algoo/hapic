@@ -24,7 +24,7 @@ install_requires = [
     "pyyaml",
 ]
 marshmallow_require = [
-    "marshmallow==2.21.0",
+    "marshmallow==3.24.2",
     "apispec_marshmallow_advanced==0.4",
 ]
 serpyco_require = [
@@ -37,8 +37,8 @@ tests_base_require = [
     "flask",
     "pyramid",
     "webtest",
-    "aiohttp",
-    "pytest-aiohttp",
+    "aiohttp>=3.14.1,<4.0",
+    "pytest-aiohttp>=1.1.1,<2.0",
     "pillow",
 ]
 tests_cov_require = [

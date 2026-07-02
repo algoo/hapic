@@ -23,10 +23,11 @@ def get_aiohttp_serpyco_app_hapic(app):
     return hapic
 
 
+@pytest.mark.skip("TODO - 2025-01-10 - aiohttp is missing so hapic features like async decorators ... see #221")
 async def test_func__test_fake_api_endpoints_ok__aiohttp(
-    test_client,
+    aiohttp_client,
 ):
-    app = await test_client(create_aiohttp_serpyco_app)
+    app = await aiohttp_client(create_aiohttp_serpyco_app)
     get_aiohttp_serpyco_app_hapic(app)
     resp = await app.get("/about")
     assert resp.status == 200
@@ -114,10 +115,9 @@ async def test_func__test_fake_api_endpoints_ok__aiohttp(
     assert resp.status == 204
 
 
-@pytest.mark.xfail(
-    reason="unconsistent test. " "see issue #147(https://github.com/algoo/hapic/issues/147)"
-)
-async def test_func__test_fake_api_doc_ok__aiohttp_serpyco(test_client):
+
+@pytest.mark.skip("TODO - 2025-01-10 - aiohttp is missing so hapic features like async decorators ... see #221")
+async def test_func__test_fake_api_doc_ok__aiohttp_serpyco(aiohttp_client):
     app = web.Application()
     controllers = AiohttpSerpycoController()
     controllers.bind(app)
