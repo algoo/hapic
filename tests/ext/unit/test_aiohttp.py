@@ -27,7 +27,7 @@ class TestAiohttpExt(object):
         async def hello(request):
             return web.Response(text="Hello, world")
 
-        app = web.Application(debug=True)
+        app = web.Application()
         app.router.add_get("/", hello)
         client = await aiohttp_client(app)
         resp = await client.get("/")
@@ -46,7 +46,7 @@ class TestAiohttpExt(object):
             name = hapic_data.path.get("name")
             return web.Response(text="Hello, {}".format(name))
 
-        app = web.Application(debug=True)
+        app = web.Application()
         app.router.add_get("/{name}", hello)
         hapic.set_context(
             AiohttpContext(app, default_error_builder=MarshmallowDefaultErrorBuilder())
@@ -70,7 +70,7 @@ class TestAiohttpExt(object):
             i = hapic_data.path.get("i")
             return web.Response(text="integer: {}".format(str(i)))
 
-        app = web.Application(debug=True)
+        app = web.Application()
         app.router.add_get("/{i}", hello)
         hapic.set_context(
             AiohttpContext(app, default_error_builder=MarshmallowDefaultErrorBuilder())
@@ -95,7 +95,7 @@ class TestAiohttpExt(object):
             name = hapic_data.body.get("name")
             return web.Response(text="Hello, {}".format(name))
 
-        app = web.Application(debug=True)
+        app = web.Application()
         app.router.add_post("/", hello)
         hapic.set_context(
             AiohttpContext(app, default_error_builder=MarshmallowDefaultErrorBuilder())
@@ -119,7 +119,7 @@ class TestAiohttpExt(object):
             i = hapic_data.body.get("i")
             return web.Response(text="integer, {}".format(i))
 
-        app = web.Application(debug=True)
+        app = web.Application()
         app.router.add_post("/", hello)
         hapic.set_context(
             AiohttpContext(app, default_error_builder=MarshmallowDefaultErrorBuilder())
@@ -143,7 +143,7 @@ class TestAiohttpExt(object):
         async def hello(request):
             return {"name": "bob"}
 
-        app = web.Application(debug=True)
+        app = web.Application()
         app.router.add_get("/", hello)
         hapic.set_context(
             AiohttpContext(app, default_error_builder=MarshmallowDefaultErrorBuilder())
@@ -168,7 +168,7 @@ class TestAiohttpExt(object):
         async def hello(request):
             return {"i": "bob"}  # NOTE: should be integer
 
-        app = web.Application(debug=True)
+        app = web.Application()
         app.router.add_get("/", hello)
         hapic.set_context(
             AiohttpContext(app, default_error_builder=MarshmallowDefaultErrorBuilder())
@@ -190,7 +190,7 @@ class TestAiohttpExt(object):
         async def hello(request):
             1 / 0
 
-        app = web.Application(debug=True)
+        app = web.Application()
         app.router.add_get("/", hello)
         hapic.set_context(
             AiohttpContext(app, default_error_builder=MarshmallowDefaultErrorBuilder())
@@ -214,7 +214,7 @@ class TestAiohttpExt(object):
 
         hello = get_func_with_output_stream(hapic, OuputStreamItemSchema)
 
-        app = web.Application(debug=True)
+        app = web.Application()
         app.router.add_get("/", hello)
         hapic.set_context(
             AiohttpContext(app, default_error_builder=MarshmallowDefaultErrorBuilder())
@@ -241,7 +241,7 @@ class TestAiohttpExt(object):
 
         hello = get_func_with_output_stream_and_error(hapic, OuputStreamItemSchema)
 
-        app = web.Application(debug=True)
+        app = web.Application()
         app.router.add_get("/", hello)
         hapic.set_context(
             AiohttpContext(app, default_error_builder=MarshmallowDefaultErrorBuilder())
@@ -269,7 +269,7 @@ class TestAiohttpExt(object):
             hapic, OuputStreamItemSchema, ignore_on_error=False
         )
 
-        app = web.Application(debug=True)
+        app = web.Application()
         app.router.add_get("/", hello)
         hapic.set_context(
             AiohttpContext(app, default_error_builder=MarshmallowDefaultErrorBuilder())
@@ -310,7 +310,7 @@ class TestAiohttpExt(object):
         async def post_user(request, hapic_data):
             pass
 
-        app = web.Application(debug=True)
+        app = web.Application()
         app.router.add_get("/{username}", get_user)
         app.router.add_post("/{username}", post_user)
         hapic.set_context(
@@ -353,7 +353,7 @@ class TestAiohttpExt(object):
         async def get_users(request, hapic_data):
             pass
 
-        app = web.Application(debug=True)
+        app = web.Application()
         app.router.add_get("/", get_users)
         hapic.set_context(
             AiohttpContext(app, default_error_builder=MarshmallowDefaultErrorBuilder())
@@ -377,7 +377,7 @@ class TestAiohttpExt(object):
         async def hello(request):
             return 1 / 0
 
-        app = web.Application(debug=True)
+        app = web.Application()
         app.router.add_get("/", hello)
         context = AiohttpContext(app, default_error_builder=MarshmallowDefaultErrorBuilder())
         context.handle_exception(ZeroDivisionError, 400)
@@ -405,7 +405,7 @@ class TestAiohttpExt(object):
         async def key(request):
             return dict()["foo"]
 
-        app = web.Application(debug=True)
+        app = web.Application()
         app.router.add_get("/a", zero)
         app.router.add_get("/b", key)
         context = AiohttpContext(app, default_error_builder=MarshmallowDefaultErrorBuilder())
@@ -447,7 +447,7 @@ class TestAiohttpExt(object):
             assert b"text content of file" == avatar.file.read()
             return Response(body="ok")
 
-        app = web.Application(debug=True)
+        app = web.Application()
         app.router.add_put("/avatar", update_avatar)
         hapic.set_context(
             AiohttpContext(app, default_error_builder=MarshmallowDefaultErrorBuilder())
@@ -469,7 +469,7 @@ class TestAiohttpExt(object):
         async def update_avatar(request: Request, hapic_data: HapicData):
             raise AssertionError("Test should no pass here")
 
-        app = web.Application(debug=True)
+        app = web.Application()
         app.router.add_put("/avatar", update_avatar)
         hapic.set_context(
             AiohttpContext(app, default_error_builder=MarshmallowDefaultErrorBuilder())
@@ -498,7 +498,7 @@ class TestAiohttpExt(object):
         async def hello(request, hapic_data: HapicData):
             return web.json_response({})
 
-        app = web.Application(debug=True)
+        app = web.Application()
         hapic.set_context(AiohttpContext(app))
         app.router.add_get("/", hello)
         client = await aiohttp_client(app)
@@ -515,7 +515,7 @@ class TestAiohttpExt(object):
         async def divide_by_zero(request):
             raise ZeroDivisionError()
 
-        app = web.Application(debug=True)
+        app = web.Application()
         hapic.set_context(AiohttpContext(app))
         app.router.add_get("/", divide_by_zero)
         client = await aiohttp_client(app)
@@ -539,7 +539,7 @@ class TestAiohttpExt(object):
         async def divide_by_zero(request):
             raise ZeroDivisionError()
 
-        app = web.Application(debug=True)
+        app = web.Application()
         context = MyContext(app)
         hapic.set_context(context)
         app.router.add_get("/", divide_by_zero)
@@ -556,7 +556,7 @@ class TestAiohttpExt(object):
         async def divide_by_zero(request):
             raise ZeroDivisionError()
 
-        app = web.Application(debug=True)
+        app = web.Application()
         context = AiohttpContext(app)
         hapic.set_context(context)
         context.handle_exception(ZeroDivisionError, http_code=HTTPStatus.BAD_REQUEST)
@@ -581,7 +581,7 @@ class TestAiohttpExt(object):
         async def divide_by_zero(request):
             raise ZeroDivisionError()
 
-        app = web.Application(debug=True)
+        app = web.Application()
         context = MyContext(app)
         hapic.set_context(context)
         context.handle_exception(ZeroDivisionError, http_code=HTTPStatus.BAD_REQUEST)
@@ -613,7 +613,7 @@ class TestAiohttpExt(object):
         async def user():
             pass
 
-        app = web.Application(debug=True)
+        app = web.Application()
         context = MyContext(app)
         hapic.set_context(context)
         app.router.add_get("/user", user)
@@ -644,7 +644,7 @@ class TestAiohttpExt(object):
         async def user(request):
             return {}
 
-        app = web.Application(debug=True)
+        app = web.Application()
         context = MyContext(app)
         hapic.set_context(context)
         app.router.add_get("/user", user)
@@ -661,7 +661,7 @@ class TestAiohttpExt(object):
         async def a_proxy(request):
             pass
 
-        app = web.Application(debug=True)
+        app = web.Application()
         app.router.add_route(hdrs.METH_ANY, path="/", handler=a_proxy)
         hapic.set_context(
             AiohttpContext(app, default_error_builder=MarshmallowDefaultErrorBuilder())
@@ -682,7 +682,7 @@ class TestAiohttpExt(object):
         async def a_proxy(request):
             pass
 
-        app = web.Application(debug=True)
+        app = web.Application()
         app.router.add_route(hdrs.METH_ANY, path="/", handler=a_proxy)
         hapic.set_context(
             AiohttpContext(app, default_error_builder=MarshmallowDefaultErrorBuilder())
