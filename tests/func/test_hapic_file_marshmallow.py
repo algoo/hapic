@@ -76,7 +76,7 @@ def get_pyramid_context():
 
 
 def get_aiohttp_context():
-    h = Hapic(async_=True, processor_class=MarshmallowProcessor)
+    h = Hapic(MarshmallowProcessor, True)
     aiohttp_app = web.Application()
     h.reset_context()
     h.set_context(

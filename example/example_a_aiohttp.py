@@ -8,7 +8,7 @@ from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
 from hapic.ext.aiohttp.context import AiohttpContext
 from hapic.processor.marshmallow import MarshmallowProcessor
 
-hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
+hapic = Hapic(MarshmallowProcessor, True)
 
 
 class DisplayNameInputPathSchema(marshmallow.Schema):
