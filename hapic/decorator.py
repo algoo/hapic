@@ -236,6 +236,14 @@ class AsyncInputControllerWrapper(InputControllerWrapper):
         processed_data = self.processor.load(parameters_data)
         return processed_data
 
+    async def get_error_response(self, request_parameters: RequestParameters) -> typing.Any:
+        parameters_data = await self.get_parameters_data(request_parameters)
+        error = self._get_processor_error(parameters_data)
+        error_response = self.context.get_validation_error_response(
+            error, http_code=self.error_http_code
+        )
+        return error_response
+
 
 class OutputControllerWrapper(InputOutputControllerWrapper):
     def __init__(
@@ -578,14 +586,6 @@ class AsyncInputHeadersControllerWrapper(AsyncInputControllerWrapper):
     async def get_parameters_data(self, request_parameters: RequestParameters) -> dict:
         return request_parameters.header_parameters
 
-    async def get_error_response(self, request_parameters: RequestParameters) -> typing.Any:
-        parameters_data = await self.get_parameters_data(request_parameters)
-        error = self._get_processor_error(parameters_data)
-        error_response = self.context.get_validation_error_response(
-            error, http_code=self.error_http_code
-        )
-        return error_response
-
 
 class InputFormsControllerWrapper(InputControllerWrapper):
     def update_hapic_data(self, hapic_data: HapicData, processed_data: typing.Any) -> None:
@@ -629,14 +629,6 @@ class AsyncInputFilesControllerWrapper(AsyncInputControllerWrapper):
 
     def _get_processor_error(self, parameters_data: typing.Any) -> ProcessValidationError:
         return self.processor.get_input_files_validation_error(parameters_data)
-
-    async def get_error_response(self, request_parameters: RequestParameters) -> typing.Any:
-        parameters_data = await self.get_parameters_data(request_parameters)
-        error = self._get_processor_error(parameters_data)
-        error_response = self.context.get_validation_error_response(
-            error, http_code=self.error_http_code
-        )
-        return error_response
 
 
 class ExceptionHandlerControllerWrapper(ControllerWrapper):
