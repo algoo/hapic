@@ -23,7 +23,7 @@ from hapic.processor.main import RequestParameters
 
 
 class TestAiohttpExt(object):
-    async def test_aiohttp_only__ok__nominal_case(self, aiohttp_client, loop):
+    async def test_aiohttp_only__ok__nominal_case(self, aiohttp_client):
         async def hello(request):
             return web.Response(text="Hello, world")
 
@@ -35,7 +35,7 @@ class TestAiohttpExt(object):
         text = await resp.text()
         assert "Hello, world" in text
 
-    async def test_aiohttp_input_path__ok__nominal_case(self, aiohttp_client, loop):
+    async def test_aiohttp_input_path__ok__nominal_case(self, aiohttp_client):
         hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
         class InputPathSchema(marshmallow.Schema):
@@ -59,7 +59,7 @@ class TestAiohttpExt(object):
         text = await resp.text()
         assert "Hello, bob" in text
 
-    async def test_aiohttp_input_path__error_wrong_input_parameter(self, aiohttp_client, loop):
+    async def test_aiohttp_input_path__error_wrong_input_parameter(self, aiohttp_client):
         hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
         class InputPathSchema(marshmallow.Schema):
@@ -84,7 +84,7 @@ class TestAiohttpExt(object):
         assert "Validation error of input data" in error.get("message")
         assert {"i": ["Not a valid integer."]} == error.get("details")
 
-    async def test_aiohttp_input_body__ok_nominal_case(self, aiohttp_client, loop):
+    async def test_aiohttp_input_body__ok_nominal_case(self, aiohttp_client):
         hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
         class InputBodySchema(marshmallow.Schema):
@@ -108,7 +108,7 @@ class TestAiohttpExt(object):
         text = await resp.text()
         assert "Hello, bob" in text
 
-    async def test_aiohttp_input_body__error__incorrect_input_body(self, aiohttp_client, loop):
+    async def test_aiohttp_input_body__error__incorrect_input_body(self, aiohttp_client):
         hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
         class InputBodySchema(marshmallow.Schema):
@@ -133,7 +133,7 @@ class TestAiohttpExt(object):
         assert "Validation error of input data" in error.get("message")
         assert {"i": ["Not a valid integer."]} == error.get("details")
 
-    async def test_aiohttp_output_body__ok__nominal_case(self, aiohttp_client, loop):
+    async def test_aiohttp_output_body__ok__nominal_case(self, aiohttp_client):
         hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
         class OuputBodySchema(marshmallow.Schema):
@@ -157,7 +157,7 @@ class TestAiohttpExt(object):
         assert "bob" == data.get("name")
 
     @pytest.mark.skip("TODO - 2025-01-10 - aiohttp is missing so hapic features like async decorators ... see #221")
-    async def test_aiohttp_output_body__error__incorrect_output_body(self, aiohttp_client, loop):
+    async def test_aiohttp_output_body__error__incorrect_output_body(self, aiohttp_client):
         hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
         class OuputBodySchema(marshmallow.Schema):
@@ -183,7 +183,7 @@ class TestAiohttpExt(object):
         assert "Validation error of output data" == data.get("message")
         assert {"i": ["Missing data for required field."]} == data.get("details")
 
-    async def test_aiohttp_handle_excpetion__ok__nominal_case(self, aiohttp_client, loop):
+    async def test_aiohttp_handle_excpetion__ok__nominal_case(self, aiohttp_client):
         hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
         @hapic.handle_exception(ZeroDivisionError, http_code=400)
@@ -204,7 +204,7 @@ class TestAiohttpExt(object):
         assert "division by zero" == data.get("message")
 
 
-    async def test_aiohttp_output_stream__ok__nominal_case(self, aiohttp_client, loop):
+    async def test_aiohttp_output_stream__ok__nominal_case(self, aiohttp_client):
         hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
         class OuputStreamItemSchema(marshmallow.Schema):
@@ -231,7 +231,7 @@ class TestAiohttpExt(object):
         assert b'{"name": "Hello, franck"}\n' == line
 
 
-    async def test_aiohttp_output_stream__error(self, aiohttp_client, loop):
+    async def test_aiohttp_output_stream__error(self, aiohttp_client):
         hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
         class OuputStreamItemSchema(marshmallow.Schema):
@@ -257,7 +257,7 @@ class TestAiohttpExt(object):
         line = await resp.content.readline()
         assert b'{"name": "Hello, franck"}\n' == line
 
-    async def test_aiohttp_output_stream__error__interrupt(self, aiohttp_client, loop):
+    async def test_aiohttp_output_stream__error__interrupt(self, aiohttp_client):
         hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
         class OuputStreamItemSchema(marshmallow.Schema):
@@ -285,7 +285,7 @@ class TestAiohttpExt(object):
         line = await resp.content.readline()
         assert b"" == line
 
-    def test_unit__generate_doc__ok__nominal_case(self, aiohttp_client, loop):
+    def test_unit__generate_doc__ok__nominal_case(self, aiohttp_client):
         hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
         class InputPathSchema(marshmallow.Schema):
@@ -342,7 +342,7 @@ class TestAiohttpExt(object):
             "200": {"schema": {"$ref": "#/definitions/UserSchema"}, "description": "200"}
         } == doc["paths"]["/{username}"]["get"]["responses"]
 
-    def test_unit__generate_output_stream_doc__ok__nominal_case(self, aiohttp_client, loop):
+    def test_unit__generate_output_stream_doc__ok__nominal_case(self, aiohttp_client):
         hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
         class OuputStreamItemSchema(marshmallow.Schema):
@@ -370,7 +370,7 @@ class TestAiohttpExt(object):
             "paths"
         ]["/"]["get"]["responses"]["200"]["schema"]
 
-    async def test_unit__general_exception_handling__ok__nominal_case(self, aiohttp_client, loop):
+    async def test_unit__general_exception_handling__ok__nominal_case(self, aiohttp_client):
         hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
         @hapic.with_api_doc()
@@ -394,7 +394,7 @@ class TestAiohttpExt(object):
             "code": None,
         } == json
 
-    async def test_unit__general_exception_handling__ok__exception_list(self, aiohttp_client, loop):
+    async def test_unit__general_exception_handling__ok__exception_list(self, aiohttp_client):
         hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
         @hapic.with_api_doc()
@@ -433,7 +433,7 @@ class TestAiohttpExt(object):
             "code": None,
         } == json
 
-    async def test_unit__post_file__ok__put_success(self, aiohttp_client, loop):
+    async def test_unit__post_file__ok__put_success(self, aiohttp_client):
         hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
         class InputFilesSchema(marshmallow.Schema):
@@ -458,7 +458,7 @@ class TestAiohttpExt(object):
         assert resp.status == 200
 
     @pytest.mark.skip("TODO - 2025-01-10 - aiohttp is missing so hapic features like async decorators ... see #221")
-    async def test_unit__post_file__ok__missing_file(self, aiohttp_client, loop):
+    async def test_unit__post_file__ok__missing_file(self, aiohttp_client):
         hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
         class InputFilesSchema(marshmallow.Schema):
@@ -654,7 +654,7 @@ class TestAiohttpExt(object):
         await client.get("/user")
         assert context.hook_called
 
-    def test_unit__generate_doc_with_wildcard__ok__default_methods(self, aiohttp_client, loop):
+    def test_unit__generate_doc_with_wildcard__ok__default_methods(self, aiohttp_client):
         hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
         @hapic.with_api_doc()
@@ -675,7 +675,7 @@ class TestAiohttpExt(object):
         for method in VALID_METHODS_OPENAPI_V2:
             assert method in doc["paths"]["/"]
 
-    def test_unit__generate_doc_with_wildcard__ok__fixed_methods(self, aiohttp_client, loop):
+    def test_unit__generate_doc_with_wildcard__ok__fixed_methods(self, aiohttp_client):
         hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
         @hapic.with_api_doc()

@@ -54,20 +54,20 @@ def get_pyramid_context():
     return {"hapic": h, "app": pyramid_app}
 
 
-def get_aiohttp_app(loop):
+def get_aiohttp_app():
     from example.usermanagement.serve_aiohttp_marshmallow import AiohttpController
 
     controllers = AiohttpController()
-    app = web.Application(loop=loop)
+    app = web.Application()
     controllers.bind(app)
     return app
 
 
-def get_aiohttp_context(loop):
+def get_aiohttp_context():
     from example.usermanagement.serve_aiohttp_marshmallow import hapic as h
 
     h.reset_context()
-    app = get_aiohttp_app(loop)
+    app = get_aiohttp_app()
     h.set_context(AiohttpContext(app, default_error_builder=MarshmallowDefaultErrorBuilder()))
     return {"hapic": h, "app": app}
 
@@ -133,9 +133,9 @@ def test_func__test_usermanagment_endpoints_ok__sync_frameworks(context):
     assert resp.status_int == 204
 
 
-async def test_func__test_usermanagment_endpoints_ok__aiohttp(aiohttp_client, loop):
+async def test_func__test_usermanagment_endpoints_ok__aiohttp(aiohttp_client):
     UserLib.reset_database()
-    context = get_aiohttp_context(loop)
+    context = get_aiohttp_context()
     app = context["app"]
     client = await aiohttp_client(app)
     resp = await client.get("/about")
@@ -396,9 +396,9 @@ def test_func__test_usermanagment_doc_ok__sync_frameworks(context):
     check_marshmallow_doc(doc)
 
 
-async def test_func_test__usermanagment_doc_ok_aiohttp(loop):
+async def test_func_test__usermanagment_doc_ok_aiohttp():
     UserLib.reset_database()
-    context = get_aiohttp_context(loop)
+    context = get_aiohttp_context()
     hapic = context["hapic"]
     doc = hapic.generate_doc(title="Fake API", description="just an example of hapic API")
     doc = json.loads(json.dumps(doc))
