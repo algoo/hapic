@@ -6,10 +6,10 @@ from wsgiref.simple_server import make_server
 from PIL import Image
 from pyramid.config import Configurator
 
-from example import HelloJsonSchema
-from example import HelloPathSchema
-from example import HelloQuerySchema
-from example import HelloResponseSchema
+from example.example import HelloJsonSchema
+from example.example import HelloPathSchema
+from example.example import HelloQuerySchema
+from example.example import HelloResponseSchema
 import hapic
 from hapic.data import HapicData
 from hapic.data import HapicFile
