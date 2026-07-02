@@ -206,7 +206,7 @@ def check_serpyco_doc(doc):
             "responses": {
                 "200": {"description": "200", "schema": {"$ref": "#/definitions/AboutSchema"}}
             },
-            "description": "This endpoint allow to check that the API is running. This description\n        is generated from the docstring of the method.",
+            "description": "This endpoint allow to check that the API is running. This description\nis generated from the docstring of the method.",
         }
     }
     assert doc["paths"]["/users/"] == {
@@ -369,7 +369,7 @@ def check_serpyco_doc(doc):
         # FIXME - D.A. - 2025-01-10 - should we get "required" like below?
         # 'required': ['display_name', 'id'],
         "required": ["id"],
-        "description": "representation of a user id in the uri. This allow to define rules for\n    what is expected. For example, you may want to limit id to number between\n    1 and 999",
+        "description": "representation of a user id in the uri. This allow to define rules for\nwhat is expected. For example, you may want to limit id to number between\n1 and 999",
     }
     assert doc["definitions"]["UserDigestSchema"] == {
         "type": "object",

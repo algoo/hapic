@@ -209,7 +209,7 @@ def check_marshmallow_doc(doc):
             "responses": {
                 "200": {"description": "200", "schema": {"$ref": "#/definitions/AboutSchema"}}
             },
-            "description": "This endpoint allow to check that the API is running. This description\n        is generated from the docstring of the method.",
+            "description": "This endpoint allow to check that the API is running. This description\nis generated from the docstring of the method.",
         }
     }
     assert doc["paths"]["/users/"] == {
