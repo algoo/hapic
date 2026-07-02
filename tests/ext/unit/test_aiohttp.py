@@ -156,7 +156,7 @@ class TestAiohttpExt(object):
         data = await resp.json()
         assert "bob" == data.get("name")
 
-    @pytest.mark.skip("TODO - 2025-01-10 - aiohttp is missing so hapic features like async decorators ... see #221")
+    @pytest.mark.skip("Output validation errors during serialization (marshmallow ValueError) are not caught — separate issue")
     async def test_aiohttp_output_body__error__incorrect_output_body(self, aiohttp_client):
         hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
@@ -457,7 +457,6 @@ class TestAiohttpExt(object):
         resp = await client.put("/avatar", data={"avatar": io.StringIO("text content of file")})
         assert resp.status == 200
 
-    @pytest.mark.skip("TODO - 2025-01-10 - aiohttp is missing so hapic features like async decorators ... see #221")
     async def test_unit__post_file__ok__missing_file(self, aiohttp_client):
         hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
@@ -480,23 +479,24 @@ class TestAiohttpExt(object):
         assert resp.status == 400
         json_ = await resp.json()
         assert {
-            "details": {"avatar": ["Missing data for required field"]},
-            "message": "Validation error of input data",
+            "details": {"avatar": ["Missing data for required field."]},
+            "message": "Validation error of input files data",
             "code": None,
         } == json_
 
-    @pytest.mark.skip("TODO - 2025-01-10 - aiohttp is missing so hapic features like async decorators ... see #221")
     async def test_request_header__ok__lowercase_key(self, aiohttp_client):
-        hapic = Hapic(MarshmallowProcessor, True)
+        hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
 
         class HeadersSchema(marshmallow.Schema):
             foo = marshmallow.fields.String(required=True)
 
+            class Meta:
+                unknown = marshmallow.EXCLUDE
+
         @hapic.with_api_doc()
         @hapic.input_headers(HeadersSchema())
-        @hapic.input_body(None)
         async def hello(request, hapic_data: HapicData):
-            return web.json_response({})
+            return web.json_response(hapic_data.headers)
 
         app = web.Application()
         hapic.set_context(AiohttpContext(app))

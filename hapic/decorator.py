@@ -312,7 +312,12 @@ class AsyncOutputBodyControllerWrapper(OutputControllerWrapper):
                 return replacement_response
 
             response = await self._execute_wrapped_function(func, args, kwargs)
-            new_response = self.after_wrapped_function(response)
+            try:
+                new_response = self.after_wrapped_function(response)
+            except ProcessException as exc:
+                self.context.output_validation_error_caught(response, exc)
+                error_response = self.get_error_response(response)
+                return error_response
             return new_response
 
         return functools.update_wrapper(wrapper, func)
@@ -560,6 +565,26 @@ class InputHeadersControllerWrapper(InputControllerWrapper):
 
     def get_parameters_data(self, request_parameters: RequestParameters) -> dict:
         return request_parameters.header_parameters
+
+
+# TODO BS 2019-01-11: This class is an async version of
+# InputHeadersControllerWrapper to permit async compatibility.
+# Please re-think about code refact
+# TAG: REFACT_ASYNC
+class AsyncInputHeadersControllerWrapper(AsyncInputControllerWrapper):
+    def update_hapic_data(self, hapic_data: HapicData, processed_data: typing.Any) -> None:
+        hapic_data.headers = processed_data
+
+    async def get_parameters_data(self, request_parameters: RequestParameters) -> dict:
+        return request_parameters.header_parameters
+
+    async def get_error_response(self, request_parameters: RequestParameters) -> typing.Any:
+        parameters_data = await self.get_parameters_data(request_parameters)
+        error = self._get_processor_error(parameters_data)
+        error_response = self.context.get_validation_error_response(
+            error, http_code=self.error_http_code
+        )
+        return error_response
 
 
 class InputFormsControllerWrapper(InputControllerWrapper):
