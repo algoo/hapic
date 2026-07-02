@@ -485,7 +485,7 @@ class TestAiohttpExt(object):
         } == json_
 
     async def test_request_header__ok__lowercase_key(self, aiohttp_client):
-        hapic = Hapic(async_=True, processor_class=MarshmallowProcessor)
+        hapic = Hapic(MarshmallowProcessor, True)
 
         class HeadersSchema(marshmallow.Schema):
             foo = marshmallow.fields.String(required=True)
