@@ -73,7 +73,7 @@ class PyramidContext(BaseContext):
             path_parameters=req.matchdict,
             query_parameters=req.GET,
             body_parameters=json_body,
-            form_parameters=req.POST,
+            form_parameters=forms_parameters,
             header_parameters=LowercaseKeysDict([(k.lower(), v) for k, v in req.headers.items()]),
             files_parameters=files_parameters,
         )
