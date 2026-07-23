@@ -2,33 +2,63 @@
 
 ## Prerequisite
 
-Prepare a `~/.pypirc` configuration file, eg:
+### Create a clean environment
 
-    [distutils]
-    index-servers = pypi
+```commandline
+cd /tmp
+mkdir hapic
+cd hapic
+```
+### Create the publication configuration
 
-    [pypi]
-    repository: https://upload.pypi.org/legacy/
-    username: algoo
+```commandline
+cat > .pypirc << 'EOF'
+[distutils]
+index-servers = pypi
 
-Upgrade or install packages:
+[pypi]
+repository: https://upload.pypi.org/legacy/
+username: algoo
+EOF
+```
 
-    pip install --upgrade setuptools wheel twine
+### Create the python environment
 
-## Package and distribute
+```commandline
+python3 -mvenv env/
+source env/bin/activate
+pip install --upgrade setuptools wheel twine
+```
 
-Checkout on branch `master` (or other branch if you know what you are doing):
+## Package and publish the module
 
-    git checkout master
+### Define the release to publish
 
-Build the package:
+Define the git tag 
 
-    python setup.py sdist
+```commandline
+TAG=release_1.00
+```
 
-Upload it:
+Get the code in the expected version
 
-    twine upload dist/*
+```
+git clone git@github.com:algoo/hapic.git /tmp/hapic-clone
+shopt -s dotglob        # so *, also matches dotfiles like .git, .gitignore
+mv /tmp/hapic-clone/* .
+rmdir /tmp/hapic-clone
+git checkout ${TAG}
+```
+
+### Upload to pypi
+
+```
+twine upload dist/*
+```
 
 If you want give a try before, use:
 
-    twine upload --repository-url https://test.pypi.org/legacy/ dist/hapic-VERSION.tar.gz
+```
+twine upload --repository-url https://test.pypi.org/legacy/ dist/hapic-VERSION.tar.gz
+```
+
