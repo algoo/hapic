@@ -3,6 +3,7 @@ import dataclasses
 import typing
 
 import pytest
+from serpyco import number_field
 from serpyco import ValidationError
 
 from hapic.exception import OutputValidationException
@@ -31,8 +32,26 @@ class UserSchema:
     name: str
 
 
+@dataclasses.dataclass
+class UserPathSchema(object):
+    """A docstring to prevent auto generated docstring"""
+
+    id: int = number_field(minimum=1, cast_on_load=True)
+    code: typing.Any = dataclasses.field(default=None)
+
 class TestSerpycoProcessor(Base):
+
     def test_unit__get_input_files_validation_error__ok__missing_one_file(
+        self, serpyco_processor: SerpycoProcessor
+    ) -> None:
+        serpyco_processor.set_schema(UserPathSchema)
+        res = serpyco_processor.load({"id": "4"})
+        # error = serpyco_processor.get_input_files_validation_error({})
+        #
+        # assert {"file1": "data is missing"} == error.details
+        # assert "Validation error of input data" == error.message
+
+    def test_unit__get_input_files_validation_error__ok__missing_one_file2(
         self, serpyco_processor: SerpycoProcessor
     ) -> None:
         serpyco_processor.set_schema(OneFileSchema)

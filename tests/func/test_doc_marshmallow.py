@@ -516,7 +516,7 @@ class TestDocGeneration(Base):
 
         class MySchema(marshmallow.Schema):
             category = marshmallow.fields.Raw(
-                required=True, description="a description", example="00010"
+                required=True, metadata={"description": "a description", "example": "00010"}
             )
 
         @hapic.with_api_doc()
@@ -548,19 +548,21 @@ class TestDocGeneration(Base):
         class MySchema(marshmallow.Schema):
             category = marshmallow.fields.String(
                 required=True,
-                description="a description",
-                example="00010",
-                format="binary",
-                enum=["01000", "11111"],
-                maxLength=5,
-                minLength=5,
-                # Theses none string specific parameters should disappear
-                # in query/path
-                maximum=400,
-                # exclusiveMaximun=False,
-                # minimum=0,
-                # exclusiveMinimum=True,
-                # multipleOf=1,
+                metadata={
+                    "description": "a description",
+                    "example": "00010",
+                    "format": "binary",
+                    "enum": ["01000", "11111"],
+                    "maxLength": 5,
+                    "minLength": 5,
+                    # Theses none string specific parameters should disappear
+                    # in query/path
+                    "maximum": 400,
+                    # "exclusiveMaximun": False,
+                    # "minimum": 0,
+                    # "exclusiveMinimum": True,
+                    # "multipleOf": 1,
+                },
             )
 
         @hapic.with_api_doc()
@@ -594,19 +596,21 @@ class TestDocGeneration(Base):
         class MySchema(marshmallow.Schema):
             category = marshmallow.fields.String(
                 required=True,
-                description="a description",
-                example="00010",
-                format="binary",
-                enum=["01000", "11111"],
-                maxLength=5,
-                minLength=5,
-                # Theses none string specific parameters should disappear
-                # in query/path
-                maximum=400,
-                # exclusiveMaximun=False,
-                # minimum=0,
-                # exclusiveMinimum=True,
-                # multipleOf=1,
+                metadata={
+                    "description": "a description",
+                    "example": "00010",
+                    "format": "binary",
+                    "enum": ["01000", "11111"],
+                    "maxLength": 5,
+                    "minLength": 5,
+                    # Theses none string specific parameters should disappear
+                    # in query/path
+                    "maximum": 400,
+                    # "exclusiveMaximun": False,
+                    # "minimum": 0,
+                    # "exclusiveMinimum": True,
+                    # "multipleOf": 1,
+                },
             )
 
         @hapic.with_api_doc()
@@ -639,19 +643,21 @@ class TestDocGeneration(Base):
         class MySchema(marshmallow.Schema):
             category = marshmallow.fields.String(
                 required=True,
-                description="a description",
-                example="00010",
-                format="binary",
-                enum=["01000", "11111"],
-                maxLength=5,
-                minLength=5,
-                # Theses none string specific parameters should disappear
-                # in query/path
-                maximum=400,
-                # exclusiveMaximun=False,
-                # minimum=0,
-                # exclusiveMinimum=True,
-                # multipleOf=1,
+                metadata={
+                    "description": "a description",
+                    "example": "00010",
+                    "format": "binary",
+                    "enum": ["01000", "11111"],
+                    "maxLength": 5,
+                    "minLength": 5,
+                    # Theses none string specific parameters should disappear
+                    # in query/path
+                    "maximum": 400,
+                    # "exclusiveMaximun": False,
+                    # "minimum": 0,
+                    # "exclusiveMinimum": True,
+                    # "multipleOf": 1,
+                },
             )
 
         @hapic.with_api_doc()
@@ -684,17 +690,19 @@ class TestDocGeneration(Base):
         class MySchema(marshmallow.Schema):
             category = marshmallow.fields.Integer(
                 required=True,
-                description="a number",
-                example="12",
-                format="int64",
-                enum=[4, 6],
-                # Theses none string specific parameters should disappear
-                # in query/path
-                maximum=14,
-                exclusiveMaximun=False,
-                minimum=0,
-                exclusiveMinimum=True,
-                multipleOf=2,
+                metadata={
+                    "description": "a number",
+                    "example": "12",
+                    "format": "int64",
+                    "enum": [4, 6],
+                    # Theses none string specific parameters should disappear
+                    # in query/path
+                    "maximum": 14,
+                    "exclusiveMaximun": False,
+                    "minimum": 0,
+                    "exclusiveMinimum": True,
+                    "multipleOf": 2,
+                },
             )
 
         @hapic.with_api_doc()
@@ -728,17 +736,19 @@ class TestDocGeneration(Base):
         class MySchema(marshmallow.Schema):
             category = marshmallow.fields.Integer(
                 required=True,
-                description="a number",
-                example="12",
-                format="int64",
-                enum=[4, 6],
-                # Theses none string specific parameters should disappear
-                # in query/path
-                maximum=14,
-                exclusiveMaximun=False,
-                minimum=0,
-                exclusiveMinimum=True,
-                multipleOf=2,
+                metadata={
+                    "description": "a number",
+                    "example": "12",
+                    "format": "int64",
+                    "enum": [4, 6],
+                    # Theses none string specific parameters should disappear
+                    # in query/path
+                    "maximum": 14,
+                    "exclusiveMaximun": False,
+                    "minimum": 0,
+                    "exclusiveMinimum": True,
+                    "multipleOf": 2,
+                },
             )
 
         @hapic.with_api_doc()
@@ -771,12 +781,14 @@ class TestDocGeneration(Base):
         class MySchema(marshmallow.Schema):
             category = marshmallow.fields.String(
                 required=True,
-                description="a description",
-                example="00010",
-                format="binary",
-                enum=["01000", "11111"],
-                maxLength=5,
-                minLength=5,
+                metadata={
+                    "description": "a description",
+                    "example": "00010",
+                    "format": "binary",
+                    "enum": ["01000", "11111"],
+                    "maxLength": 5,
+                    "minLength": 5,
+                },
             )
 
         @hapic.with_api_doc()

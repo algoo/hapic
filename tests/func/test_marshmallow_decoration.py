@@ -56,14 +56,15 @@ class TestMarshmallowDecoration(Base):
         assert {
             "http_code": 400,
             "original_error": {
-                "details": {"file_abc": ["Missing data for required field"]},
-                "message": "Validation error of input data",
+                "details": {"file_abc": ["Missing data for required field."]},
+                "message": "Validation error of input files data",
             },
         } == json.loads(result.body)
 
-    def test_unit__input_files__ok__file_is_empty_string(self):
+
+    def test_unit__input_files__err__file_is_none(self):
         hapic = Hapic(processor_class=MarshmallowProcessor)
-        hapic.set_context(AgnosticContext(app=None, files_parameters={"file_abc": ""}))
+        hapic.set_context(AgnosticContext(app=None, files_parameters={"file_abc": None}))
 
         class MySchema(marshmallow.Schema):
             file_abc = marshmallow.fields.Raw(required=True)
@@ -72,14 +73,14 @@ class TestMarshmallowDecoration(Base):
         def my_controller(hapic_data=None):
             assert hapic_data
             assert hapic_data.files
-            return "OK"
+            return "ERR"
 
         result = my_controller()
         assert HTTPStatus.BAD_REQUEST == result.status_code
         assert {
             "http_code": 400,
             "original_error": {
-                "details": {"file_abc": ["Missing data for required field"]},
-                "message": "Validation error of input data",
+                "details": {"file_abc": ["Field may not be null."]},
+                "message": "Validation error of input files data",
             },
         } == json.loads(result.body)

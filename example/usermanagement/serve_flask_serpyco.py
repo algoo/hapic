@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-
+#
+# Run this example with python3 -m example.usermanagement.serve_flask_serpyco
+#
 from datetime import datetime
 import json
 import time
@@ -46,7 +48,7 @@ class FlaskController(object):
         This endpoint allow to check that the API is running. This description
         is generated from the docstring of the method.
         """
-        return {"version": "1.2.3", "datetime": datetime.now()}
+        return DictLikeObject({"version": "1.2.3", "datetime": datetime.now()})
 
     @hapic.with_api_doc()
     @hapic.output_body(UserDigestSchema, processor=SerpycoProcessor(many=True))
@@ -111,7 +113,7 @@ class FlaskController(object):
         app.add_url_rule("/about", view_func=self.about)
         app.add_url_rule("/users/", view_func=self.get_users)
         app.add_url_rule("/users/<id>", view_func=self.get_user)
-        app.add_url_rule("/users//", view_func=self.add_user, methods=["POST"])
+        app.add_url_rule("/users/", view_func=self.add_user, methods=["POST"])
         app.add_url_rule("/users/<id>", view_func=self.del_user, methods=["DELETE"])  # nopep8
         app.add_url_rule(
             "/users/<id>/avatar", view_func=self.get_user_avatar, methods=["GET"]

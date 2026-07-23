@@ -6,8 +6,9 @@ from hapic import Hapic
 from hapic import HapicData
 from hapic.error.marshmallow import MarshmallowDefaultErrorBuilder
 from hapic.ext.aiohttp.context import AiohttpContext
+from hapic.processor.marshmallow import MarshmallowProcessor
 
-hapic = Hapic(async_=True)
+hapic = Hapic(MarshmallowProcessor, True)
 
 
 class DisplayNameInputPathSchema(marshmallow.Schema):
@@ -45,7 +46,7 @@ async def do_login(request):
     return web.json_response({"login": login})
 
 
-app = web.Application(debug=True)
+app = web.Application()
 app.add_routes(
     [
         web.get("/n/", display_name),

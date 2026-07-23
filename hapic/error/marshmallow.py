@@ -7,8 +7,8 @@ from hapic.type import TYPE_SCHEMA
 
 class DefaultErrorSchema(marshmallow.Schema):
     message = marshmallow.fields.String(required=True)
-    details = marshmallow.fields.Dict(required=False, missing={})
-    code = marshmallow.fields.Raw(missing=None)
+    details = marshmallow.fields.Dict(required=False, load_default={})
+    code = marshmallow.fields.Raw(load_default=None)
 
 
 # FIXME BS 2018-12-06: Marshmallow is used as default by hapic. But

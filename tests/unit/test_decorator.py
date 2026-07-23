@@ -230,7 +230,7 @@ class TestOutputControllerWrapper(Base):
         assert HTTPStatus.OK == result.status_code
         assert "43" == result.body
 
-    def test_unit__output_data_wrapping__fail__error_response(self):
+    def test_unit__output_data_wrapping__fail__error_response__invalid_schema(self):
         context = AgnosticContext(app=None)
         processor = MarshmallowProcessor()
         processor.set_schema(MySchema())
@@ -239,6 +239,26 @@ class TestOutputControllerWrapper(Base):
         @wrapper.get_wrapper
         def func(foo):
             return "wrong result format"
+
+        result = func(42)
+        assert HTTPStatus.INTERNAL_SERVER_ERROR == result.status_code
+        assert {
+            "original_error": {
+                "details": {"_schema": ["Invalid input type."]},
+                "message": "Validation error of output data",
+            },
+            "http_code": 500,
+        } == json.loads(result.body)
+
+    def test_unit__output_data_wrapping__fail__error_response__missing_field(self):
+        context = AgnosticContext(app=None)
+        processor = MarshmallowProcessor()
+        processor.set_schema(MySchema())
+        wrapper = OutputControllerWrapper(context, lambda: processor)
+
+        @wrapper.get_wrapper
+        def func(foo):
+            return {}  # missing property "name"
 
         result = func(42)
         assert HTTPStatus.INTERNAL_SERVER_ERROR == result.status_code

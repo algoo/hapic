@@ -9,7 +9,7 @@ LOGGER_NAME = "hapic"
 class LowercaseKeysDict(dict):
     """
     Like a dict but try to use lowercase version of given keys.
-    Must give string lowercase key to ths dict when fill it.
+    Must give string lowercase key to the dict when fill it.
     """
 
     @staticmethod
